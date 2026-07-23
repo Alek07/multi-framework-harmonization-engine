@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# uv / venv
+.venv/
+
+# Env & secrets
+.env
+
+# Local DB
+*.db
+*.sqlite3
+
+# Editors
+.vscode/
+.idea/
