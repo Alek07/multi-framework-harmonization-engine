@@ -12,6 +12,9 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
 
+    # Versioned catalog (UCM-4/UCM-7): read-only JSON, frozen in Git.
+    CATALOG_PATH: str = "data/catalog/catalog.v0.1.0.json"
+
     SECRET_KEY: str = "change-me"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24

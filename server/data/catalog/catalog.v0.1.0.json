@@ -1,0 +1,1840 @@
+{
+  "catalog_version": "0.1.0",
+  "schema": "TFM-motor-armonizacion/catalog",
+  "generated_for": "Motor de armonización multi-marco — POC del TFM (UCM Opción 5)",
+  "language_policy": "identificadores en inglés; name/description en español",
+  "ip_note": "Obra propia: IDs y títulos oficiales + descripciones parafraseadas desde fuentes secundarias públicas. No se redistribuye texto verbatim de ningún marco (§7.5).",
+  "scope_note": "Subconjunto representativo: solo capacidades/controles que tocan las zonas de los 2 perfiles del gaseoducto — Z-OT-CORRIDOR/Z-SIS (Perfil A, OT puro L1, SL-T 3) y Z-ENG-STATION (Perfil B, híbrido L3, SL-T 3). Extensible por configuración ('admite ≠ sabe').",
+  "limitations": [
+    "Fidelidad del catálogo IEC 62443-3-3 limitada por uso de fuentes secundarias públicas (sin acceso a la norma de pago).",
+    "El juicio de autor (author_judgment) se reserva para huecos OT y regionales; sujeto a revisión del CISO de la ACP."
+  ],
+  "axes": {
+    "deciding": [
+      "IT/OT",
+      "technical/legal"
+    ],
+    "non_deciding": [
+      "US/EU (el origen vive en la procedencia, no decide)"
+    ]
+  },
+  "target_zones": [
+    {
+      "zone": "Z-OT-CORRIDOR",
+      "profile": "PROFILE-A",
+      "purdue": "L1",
+      "target_sl": 3
+    },
+    {
+      "zone": "Z-SIS",
+      "profile": "PROFILE-A",
+      "role": "crown_jewel",
+      "target_sl": 3
+    },
+    {
+      "zone": "Z-ENG-STATION",
+      "profile": "PROFILE-B",
+      "purdue": "L3",
+      "target_sl": 3
+    }
+  ],
+  "frameworks": [
+    {
+      "id": "CSF",
+      "name": "NIST CSF 2.0",
+      "origin": "US",
+      "type": "outcomes",
+      "jurisdiction": "US",
+      "role": "siembra de capacidades (nombres)"
+    },
+    {
+      "id": "IEC62443",
+      "name": "IEC 62443-3-3",
+      "origin": "INTL",
+      "type": "standard_ot",
+      "jurisdiction": "INTL",
+      "role": "arquitectura + vara SL"
+    },
+    {
+      "id": "CIS",
+      "name": "CIS Controls v8",
+      "origin": "US",
+      "type": "actionable_catalog",
+      "jurisdiction": "US",
+      "role": "capa de acciones; IG = fase"
+    },
+    {
+      "id": "NIS2",
+      "name": "Directiva (UE) 2022/2555 (NIS2)",
+      "origin": "EU",
+      "type": "legal_obligation",
+      "jurisdiction": "EU",
+      "role": "overlay contextual (delta regional)"
+    },
+    {
+      "id": "IMO",
+      "name": "IMO MSC.428(98)",
+      "origin": "INTL",
+      "type": "legal_obligation",
+      "jurisdiction": "INTL-MARITIME",
+      "role": "contextual marítimo (SMS)"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "CAP-GOV-RISK",
+      "name": "Gestión del riesgo de ciberseguridad",
+      "description": "Establecer objetivos, apetito y proceso de gestión del riesgo de ciberseguridad del activo.",
+      "csf_seed_category": "GV.RM",
+      "ot_refinements": []
+    },
+    {
+      "id": "CAP-GOV-ROLES",
+      "name": "Roles, responsabilidades y rendición de cuentas",
+      "description": "Asignar responsabilidades de ciberseguridad y hacer responsable a la dirección.",
+      "csf_seed_category": "GV.RR",
+      "ot_refinements": [
+        "responsabilidad explícita sobre el corredor OT y la estación de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-GOV-SUPPLY",
+      "name": "Gestión del riesgo de la cadena de suministro",
+      "description": "Identificar y gestionar el riesgo de proveedores y componentes de terceros.",
+      "csf_seed_category": "GV.SC",
+      "ot_refinements": [
+        "proveedores de PLC/SIS y de software de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-ID-ASSET",
+      "name": "Inventario y gestión de activos",
+      "description": "Mantener inventario de activos hardware/software del sistema.",
+      "csf_seed_category": "ID.AM",
+      "ot_refinements": [
+        "inventario de componentes del sistema de control (SR 7.8)"
+      ]
+    },
+    {
+      "id": "CAP-ID-RISK",
+      "name": "Evaluación de riesgos y amenazas",
+      "description": "Identificar vulnerabilidades y amenazas aplicables al activo.",
+      "csf_seed_category": "ID.RA",
+      "ot_refinements": [
+        "modelo de amenazas ATT&CK for ICS; referencia TRITON"
+      ]
+    },
+    {
+      "id": "CAP-PR-IDENTITY",
+      "name": "Identidad y autenticación",
+      "description": "Gestionar identidades y autenticar usuarios, procesos y dispositivos.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "autenticación de usuario humano (SR 1.1) y de proceso/dispositivo (SR 1.2)"
+      ]
+    },
+    {
+      "id": "CAP-PR-MFA",
+      "name": "Autenticación reforzada (MFA/fortaleza)",
+      "description": "Exigir factores múltiples o autenticación de mayor fortaleza en accesos sensibles.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "fortaleza de autenticación y acceso desde redes no confiables (SR 1.7/1.13)"
+      ]
+    },
+    {
+      "id": "CAP-PR-ACCESS",
+      "name": "Control de acceso y mínimo privilegio",
+      "description": "Autorizar el acceso según necesidad y hacer cumplir el mínimo privilegio.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "cumplimiento de autorización en el sistema de control (SR 2.1)"
+      ]
+    },
+    {
+      "id": "CAP-PR-PAM",
+      "name": "Gestión de acceso privilegiado",
+      "description": "Controlar y segregar las cuentas administrativas y de ingeniería.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "cuentas de ingeniería que pueden descargar lógica a PLC/SIS"
+      ]
+    },
+    {
+      "id": "CAP-PR-DATACONF",
+      "name": "Confidencialidad de la información",
+      "description": "Proteger la confidencialidad de datos en reposo y en tránsito.",
+      "csf_seed_category": "PR.DS",
+      "ot_refinements": [
+        "proyectos de lógica y credenciales en la estación de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-PR-INTEGRITY",
+      "name": "Integridad de software, firmware y lógica",
+      "description": "Verificar y proteger la integridad de software, firmware y lógica de control.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "integridad de lógica de PLC y del SIS (eje anti-TRITON, SR 3.4/3.3)"
+      ]
+    },
+    {
+      "id": "CAP-PR-HARDENING",
+      "name": "Configuración segura / endurecimiento",
+      "description": "Establecer y mantener configuraciones seguras de los componentes.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "ajustes de configuración de red y seguridad del sistema de control (SR 7.6)"
+      ]
+    },
+    {
+      "id": "CAP-PR-ALLOWLIST",
+      "name": "Allowlisting de ejecución",
+      "description": "Impedir la ejecución de software no autorizado (lista de permitidos).",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "allowlisting en HMI y en la estación de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-PR-MALWARE",
+      "name": "Protección frente a código malicioso",
+      "description": "Prevenir, detectar y contener código malicioso.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "protección específica del sistema de control (SR 3.2)"
+      ]
+    },
+    {
+      "id": "CAP-PR-MEDIA",
+      "name": "Control de medios extraíbles",
+      "description": "Controlar el uso de medios extraíbles como vector de entrada.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "vector Stuxnet/TRITON hacia la estación de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-PR-SEGMENT",
+      "name": "Segmentación de red y frontera de zona/conducto",
+      "description": "Segmentar la red y proteger la frontera entre zonas y conductos.",
+      "csf_seed_category": "PR.IR",
+      "ot_refinements": [
+        "segmentación OT y protección de la IDMZ (SR 5.1/5.2)"
+      ]
+    },
+    {
+      "id": "CAP-PR-PATCH",
+      "name": "Gestión de vulnerabilidades y parches",
+      "description": "Identificar y remediar vulnerabilidades mediante parcheo controlado.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "parcheo de la estación de ingeniería (cara IT)"
+      ]
+    },
+    {
+      "id": "CAP-PR-AWARENESS",
+      "name": "Concienciación y formación",
+      "description": "Formar al personal en riesgos y prácticas de ciberseguridad.",
+      "csf_seed_category": "PR.AT",
+      "ot_refinements": [
+        "formación de ingenieros; anti-phishing en la cara IT"
+      ]
+    },
+    {
+      "id": "CAP-PR-BACKUP",
+      "name": "Copias de seguridad y recuperación",
+      "description": "Realizar copias de seguridad y probar su restauración.",
+      "csf_seed_category": "PR.IR",
+      "ot_refinements": [
+        "copia de la lógica de control y capacidad de reconstitución (SR 7.3/7.4)"
+      ]
+    },
+    {
+      "id": "CAP-DE-MONITOR",
+      "name": "Monitorización continua y de comandos",
+      "description": "Monitorizar la red y los comandos hacia actuadores en busca de anomalías.",
+      "csf_seed_category": "DE.CM",
+      "ot_refinements": [
+        "monitorización de comandos hacia actuadores (SR 6.2)"
+      ]
+    },
+    {
+      "id": "CAP-DE-LOG",
+      "name": "Registro y auditoría de eventos",
+      "description": "Generar, proteger y revisar registros de eventos auditables.",
+      "csf_seed_category": "DE.CM",
+      "ot_refinements": [
+        "eventos auditables y accesibilidad del registro (SR 2.8/6.1)"
+      ]
+    },
+    {
+      "id": "CAP-RS-IR",
+      "name": "Gestión de respuesta a incidentes",
+      "description": "Ejecutar el plan de respuesta a incidentes.",
+      "csf_seed_category": "RS.MA",
+      "ot_refinements": [
+        "respuesta que contemple impacto físico OT"
+      ]
+    },
+    {
+      "id": "CAP-RS-REPORT",
+      "name": "Notificación y comunicación de incidentes",
+      "description": "Notificar incidentes a las partes interesadas internas y externas.",
+      "csf_seed_category": "RS.CO",
+      "ot_refinements": [
+        "obligaciones legales de notificación por jurisdicción (delta regional)"
+      ]
+    },
+    {
+      "id": "CAP-RC-RECOVER",
+      "name": "Recuperación y reconstitución",
+      "description": "Ejecutar la recuperación para restablecer el servicio tras un incidente.",
+      "csf_seed_category": "RC.RP",
+      "ot_refinements": [
+        "reconstitución del sistema de control (SR 7.4)"
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "id": "CTL-CSF-GVRM01",
+      "framework": "CSF",
+      "official_id": "GV.RM-01",
+      "title": "Risk management objectives are established",
+      "paraphrased_description": "Se fijan y acuerdan los objetivos de gestión del riesgo de ciberseguridad.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-GVRR01",
+      "framework": "CSF",
+      "official_id": "GV.RR-01",
+      "title": "Organizational leadership is responsible and accountable for cybersecurity risk",
+      "paraphrased_description": "La dirección asume la responsabilidad y rendición de cuentas del riesgo cibernético.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-GVSC01",
+      "framework": "CSF",
+      "official_id": "GV.SC-01",
+      "title": "A cybersecurity supply chain risk management program is established",
+      "paraphrased_description": "Se establece un programa de gestión del riesgo de la cadena de suministro.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-GVSC04",
+      "framework": "CSF",
+      "official_id": "GV.SC-04",
+      "title": "Suppliers are known and prioritized by criticality",
+      "paraphrased_description": "Los proveedores se conocen y priorizan por criticidad.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-IDAM01",
+      "framework": "CSF",
+      "official_id": "ID.AM-01",
+      "title": "Inventories of hardware managed by the organization are maintained",
+      "paraphrased_description": "Se mantiene inventario del hardware gestionado por la organización.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-IDAM02",
+      "framework": "CSF",
+      "official_id": "ID.AM-02",
+      "title": "Inventories of software, services and systems are maintained",
+      "paraphrased_description": "Se mantiene inventario de software, servicios y sistemas.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-IDRA01",
+      "framework": "CSF",
+      "official_id": "ID.RA-01",
+      "title": "Vulnerabilities in assets are identified, validated and recorded",
+      "paraphrased_description": "Se identifican, validan y registran las vulnerabilidades de los activos.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-IDRA03",
+      "framework": "CSF",
+      "official_id": "ID.RA-03",
+      "title": "Internal and external threats are identified and recorded",
+      "paraphrased_description": "Se identifican y registran amenazas internas y externas.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRAA01",
+      "framework": "CSF",
+      "official_id": "PR.AA-01",
+      "title": "Identities and credentials are managed",
+      "paraphrased_description": "Se gestionan identidades y credenciales de usuarios y servicios.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRAA03",
+      "framework": "CSF",
+      "official_id": "PR.AA-03",
+      "title": "Users, services and hardware are authenticated",
+      "paraphrased_description": "Se autentican usuarios, servicios y hardware.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRAA05",
+      "framework": "CSF",
+      "official_id": "PR.AA-05",
+      "title": "Access permissions and authorizations are managed with least privilege",
+      "paraphrased_description": "Se gestionan permisos y autorizaciones bajo mínimo privilegio.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRAT01",
+      "framework": "CSF",
+      "official_id": "PR.AT-01",
+      "title": "Personnel are provided cybersecurity awareness and training",
+      "paraphrased_description": "Se forma y conciencia al personal en ciberseguridad.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRDS01",
+      "framework": "CSF",
+      "official_id": "PR.DS-01",
+      "title": "The confidentiality, integrity and availability of data-at-rest are protected",
+      "paraphrased_description": "Se protege la confidencialidad e integridad de los datos en reposo.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRDS02",
+      "framework": "CSF",
+      "official_id": "PR.DS-02",
+      "title": "The confidentiality, integrity and availability of data-in-transit are protected",
+      "paraphrased_description": "Se protege la información en tránsito.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRPS01",
+      "framework": "CSF",
+      "official_id": "PR.PS-01",
+      "title": "Configuration management practices are established and applied",
+      "paraphrased_description": "Se aplican prácticas de gestión de configuración segura.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRPS02",
+      "framework": "CSF",
+      "official_id": "PR.PS-02",
+      "title": "Software is maintained, replaced and removed commensurate with risk",
+      "paraphrased_description": "Se mantiene y actualiza el software conforme al riesgo.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRPS05",
+      "framework": "CSF",
+      "official_id": "PR.PS-05",
+      "title": "Installation and execution of unauthorized software is prevented",
+      "paraphrased_description": "Se impide la instalación y ejecución de software no autorizado.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRIR01",
+      "framework": "CSF",
+      "official_id": "PR.IR-01",
+      "title": "Networks and environments are protected from unauthorized logical access",
+      "paraphrased_description": "Se protegen redes y entornos frente a acceso lógico no autorizado.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-PRIR04",
+      "framework": "CSF",
+      "official_id": "PR.IR-04",
+      "title": "Adequate resource capacity to ensure availability is maintained",
+      "paraphrased_description": "Se mantiene capacidad de recursos y respaldo para asegurar disponibilidad.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-DECM01",
+      "framework": "CSF",
+      "official_id": "DE.CM-01",
+      "title": "Networks and network services are monitored to find adverse events",
+      "paraphrased_description": "Se monitorizan redes y servicios para detectar eventos adversos.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-DECM09",
+      "framework": "CSF",
+      "official_id": "DE.CM-09",
+      "title": "Computing hardware and software are monitored to find adverse events",
+      "paraphrased_description": "Se monitorizan hardware y software para detectar eventos adversos.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-DEAE02",
+      "framework": "CSF",
+      "official_id": "DE.AE-02",
+      "title": "Potentially adverse events are analyzed to understand activity",
+      "paraphrased_description": "Se analizan los eventos potencialmente adversos.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-RSMA01",
+      "framework": "CSF",
+      "official_id": "RS.MA-01",
+      "title": "The incident response plan is executed with third parties as needed",
+      "paraphrased_description": "Se ejecuta el plan de respuesta a incidentes.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-RSCO02",
+      "framework": "CSF",
+      "official_id": "RS.CO-02",
+      "title": "Internal and external stakeholders are notified of incidents",
+      "paraphrased_description": "Se notifica de los incidentes a las partes interesadas internas y externas.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CSF-RCRP01",
+      "framework": "CSF",
+      "official_id": "RC.RP-01",
+      "title": "The recovery portion of the incident response plan is executed",
+      "paraphrased_description": "Se ejecuta la parte de recuperación del plan de respuesta.",
+      "jurisdiction": "US",
+      "strength": "resultado",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR11",
+      "framework": "IEC62443",
+      "official_id": "SR 1.1",
+      "title": "Human user identification and authentication",
+      "paraphrased_description": "Identificar y autenticar a los usuarios humanos antes del acceso.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1; REs a SL2-3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR12",
+      "framework": "IEC62443",
+      "official_id": "SR 1.2",
+      "title": "Software process and device identification and authentication",
+      "paraphrased_description": "Identificar y autenticar procesos de software y dispositivos.",
+      "jurisdiction": "INTL",
+      "strength": "requerido a SL2-3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR13",
+      "framework": "IEC62443",
+      "official_id": "SR 1.3",
+      "title": "Account management",
+      "paraphrased_description": "Gestionar el ciclo de vida de las cuentas del sistema de control.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR15",
+      "framework": "IEC62443",
+      "official_id": "SR 1.5",
+      "title": "Authenticator management",
+      "paraphrased_description": "Gestionar los autenticadores (p. ej. credenciales) del sistema.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR17",
+      "framework": "IEC62443",
+      "official_id": "SR 1.7",
+      "title": "Strength of password-based authentication",
+      "paraphrased_description": "Exigir fortaleza en la autenticación basada en contraseña.",
+      "jurisdiction": "INTL",
+      "strength": "reforzado a SL3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR113",
+      "framework": "IEC62443",
+      "official_id": "SR 1.13",
+      "title": "Access via untrusted networks",
+      "paraphrased_description": "Controlar y monitorizar el acceso a través de redes no confiables.",
+      "jurisdiction": "INTL",
+      "strength": "reforzado a SL3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR21",
+      "framework": "IEC62443",
+      "official_id": "SR 2.1",
+      "title": "Authorization enforcement",
+      "paraphrased_description": "Hacer cumplir la autorización asignada por rol o permiso.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1; REs a SL3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR28",
+      "framework": "IEC62443",
+      "official_id": "SR 2.8",
+      "title": "Auditable events",
+      "paraphrased_description": "Generar registros de los eventos auditables relevantes.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR32",
+      "framework": "IEC62443",
+      "official_id": "SR 3.2",
+      "title": "Malicious code protection",
+      "paraphrased_description": "Proteger el sistema de control frente a código malicioso.",
+      "jurisdiction": "INTL",
+      "strength": "requerido a SL2-3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR33",
+      "framework": "IEC62443",
+      "official_id": "SR 3.3",
+      "title": "Security functionality verification",
+      "paraphrased_description": "Verificar el funcionamiento de las funciones de seguridad.",
+      "jurisdiction": "INTL",
+      "strength": "requerido a SL2-3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR34",
+      "framework": "IEC62443",
+      "official_id": "SR 3.4",
+      "title": "Software and information integrity",
+      "paraphrased_description": "Detectar y proteger la integridad de software e información (lógica).",
+      "jurisdiction": "INTL",
+      "strength": "clave a SL3 (anti-TRITON)",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR41",
+      "framework": "IEC62443",
+      "official_id": "SR 4.1",
+      "title": "Information confidentiality",
+      "paraphrased_description": "Proteger la confidencialidad de la información del sistema.",
+      "jurisdiction": "INTL",
+      "strength": "requerido a SL2-3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR43",
+      "framework": "IEC62443",
+      "official_id": "SR 4.3",
+      "title": "Use of cryptography",
+      "paraphrased_description": "Emplear criptografía adecuada cuando se requiera proteger información.",
+      "jurisdiction": "INTL",
+      "strength": "requerido a SL3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR51",
+      "framework": "IEC62443",
+      "official_id": "SR 5.1",
+      "title": "Network segmentation",
+      "paraphrased_description": "Segmentar la red en zonas conforme al modelo de referencia.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1; REs a SL3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR52",
+      "framework": "IEC62443",
+      "official_id": "SR 5.2",
+      "title": "Zone boundary protection",
+      "paraphrased_description": "Proteger la frontera de zona y controlar el tráfico entre zonas.",
+      "jurisdiction": "INTL",
+      "strength": "reforzado a SL3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR61",
+      "framework": "IEC62443",
+      "official_id": "SR 6.1",
+      "title": "Audit log accessibility",
+      "paraphrased_description": "Garantizar el acceso y la conservación de los registros de auditoría.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR62",
+      "framework": "IEC62443",
+      "official_id": "SR 6.2",
+      "title": "Continuous monitoring",
+      "paraphrased_description": "Monitorizar de forma continua la seguridad del sistema de control.",
+      "jurisdiction": "INTL",
+      "strength": "reforzado a SL3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR73",
+      "framework": "IEC62443",
+      "official_id": "SR 7.3",
+      "title": "Control system backup",
+      "paraphrased_description": "Realizar copias de seguridad del sistema de control.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR74",
+      "framework": "IEC62443",
+      "official_id": "SR 7.4",
+      "title": "Control system recovery and reconstitution",
+      "paraphrased_description": "Recuperar y reconstituir el sistema de control tras un incidente.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR76",
+      "framework": "IEC62443",
+      "official_id": "SR 7.6",
+      "title": "Network and security configuration settings",
+      "paraphrased_description": "Establecer y mantener ajustes de configuración de red y seguridad.",
+      "jurisdiction": "INTL",
+      "strength": "base SL1; REs a SL3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-IEC-SR78",
+      "framework": "IEC62443",
+      "official_id": "SR 7.8",
+      "title": "Control system component inventory",
+      "paraphrased_description": "Mantener inventario de los componentes del sistema de control.",
+      "jurisdiction": "INTL",
+      "strength": "requerido a SL2-3",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0101",
+      "framework": "CIS",
+      "official_id": "1.1",
+      "title": "Establish and Maintain Detailed Enterprise Asset Inventory",
+      "paraphrased_description": "Mantener inventario detallado de activos de la organización.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0201",
+      "framework": "CIS",
+      "official_id": "2.1",
+      "title": "Establish and Maintain a Software Inventory",
+      "paraphrased_description": "Mantener inventario del software autorizado.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0205",
+      "framework": "CIS",
+      "official_id": "2.5",
+      "title": "Allowlist Authorized Software",
+      "paraphrased_description": "Permitir solo la ejecución de software autorizado (allowlisting).",
+      "jurisdiction": "US",
+      "strength": "IG2",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0311",
+      "framework": "CIS",
+      "official_id": "3.11",
+      "title": "Encrypt Sensitive Data at Rest",
+      "paraphrased_description": "Cifrar los datos sensibles en reposo.",
+      "jurisdiction": "US",
+      "strength": "IG2",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0401",
+      "framework": "CIS",
+      "official_id": "4.1",
+      "title": "Establish and Maintain a Secure Configuration Process",
+      "paraphrased_description": "Establecer y mantener un proceso de configuración segura.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0504",
+      "framework": "CIS",
+      "official_id": "5.4",
+      "title": "Restrict Administrator Privileges to Dedicated Administrator Accounts",
+      "paraphrased_description": "Restringir privilegios de administrador a cuentas dedicadas.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0603",
+      "framework": "CIS",
+      "official_id": "6.3",
+      "title": "Require MFA for Externally-Exposed Applications",
+      "paraphrased_description": "Exigir MFA en aplicaciones expuestas al exterior.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0604",
+      "framework": "CIS",
+      "official_id": "6.4",
+      "title": "Require MFA for Remote Network Access",
+      "paraphrased_description": "Exigir MFA en el acceso remoto a la red.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0605",
+      "framework": "CIS",
+      "official_id": "6.5",
+      "title": "Require MFA for Administrative Access",
+      "paraphrased_description": "Exigir MFA en el acceso administrativo.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0701",
+      "framework": "CIS",
+      "official_id": "7.1",
+      "title": "Establish and Maintain a Vulnerability Management Process",
+      "paraphrased_description": "Establecer y mantener un proceso de gestión de vulnerabilidades.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-0802",
+      "framework": "CIS",
+      "official_id": "8.2",
+      "title": "Collect Audit Logs",
+      "paraphrased_description": "Recopilar registros de auditoría.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-1001",
+      "framework": "CIS",
+      "official_id": "10.1",
+      "title": "Deploy and Maintain Anti-Malware Software",
+      "paraphrased_description": "Desplegar y mantener software antimalware.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-1003",
+      "framework": "CIS",
+      "official_id": "10.3",
+      "title": "Disable Autorun and Autoplay for Removable Media",
+      "paraphrased_description": "Desactivar autoarranque de medios extraíbles.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-1101",
+      "framework": "CIS",
+      "official_id": "11.1",
+      "title": "Establish and Maintain a Data Recovery Process",
+      "paraphrased_description": "Establecer y mantener un proceso de recuperación de datos.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-1202",
+      "framework": "CIS",
+      "official_id": "12.2",
+      "title": "Establish and Maintain a Secure Network Architecture",
+      "paraphrased_description": "Establecer y mantener una arquitectura de red segura (segmentación).",
+      "jurisdiction": "US",
+      "strength": "IG2",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-1301",
+      "framework": "CIS",
+      "official_id": "13.1",
+      "title": "Centralize Security Event Alerting",
+      "paraphrased_description": "Centralizar la alerta de eventos de seguridad.",
+      "jurisdiction": "US",
+      "strength": "IG2",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-1401",
+      "framework": "CIS",
+      "official_id": "14.1",
+      "title": "Establish and Maintain a Security Awareness Program",
+      "paraphrased_description": "Establecer y mantener un programa de concienciación.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-1501",
+      "framework": "CIS",
+      "official_id": "15.1",
+      "title": "Establish and Maintain an Inventory of Service Providers",
+      "paraphrased_description": "Mantener inventario de proveedores de servicio.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-CIS-1701",
+      "framework": "CIS",
+      "official_id": "17.1",
+      "title": "Designate Personnel to Manage Incident Handling",
+      "paraphrased_description": "Designar personal para gestionar el manejo de incidentes.",
+      "jurisdiction": "US",
+      "strength": "IG1",
+      "type": "technical"
+    },
+    {
+      "id": "CTL-NIS2-A20",
+      "framework": "NIS2",
+      "official_id": "Art. 20",
+      "title": "Governance",
+      "paraphrased_description": "Los órganos de dirección aprueban y supervisan las medidas y reciben formación; responsabilidad de la gestión.",
+      "jurisdiction": "EU",
+      "strength": "obligación legal",
+      "type": "legal"
+    },
+    {
+      "id": "CTL-NIS2-A21",
+      "framework": "NIS2",
+      "official_id": "Art. 21",
+      "title": "Cybersecurity risk-management measures",
+      "paraphrased_description": "Medidas mínimas de gestión de riesgo exigidas por ley, incluida la seguridad de la cadena de suministro (21(2)(d)).",
+      "jurisdiction": "EU",
+      "strength": "obligación legal",
+      "type": "legal"
+    },
+    {
+      "id": "CTL-NIS2-A23",
+      "framework": "NIS2",
+      "official_id": "Art. 23",
+      "title": "Reporting obligations",
+      "paraphrased_description": "Notificación obligatoria de incidentes significativos: aviso temprano 24 h, notificación 72 h e informe final 1 mes.",
+      "jurisdiction": "EU",
+      "strength": "obligación legal (24h/72h/1 mes)",
+      "type": "legal"
+    },
+    {
+      "id": "CTL-IMO-42898",
+      "framework": "IMO",
+      "official_id": "MSC.428(98)",
+      "title": "Maritime Cyber Risk Management in Safety Management Systems",
+      "paraphrased_description": "Exige abordar el riesgo cibernético dentro del sistema de gestión de la seguridad (SMS).",
+      "jurisdiction": "INTL-MARITIME",
+      "strength": "obligación (SMS)",
+      "type": "legal"
+    }
+  ],
+  "mappings": [
+    {
+      "capability_id": "CAP-GOV-RISK",
+      "control_id": "CTL-CSF-GVRM01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-RISK",
+      "control_id": "CTL-NIS2-A21",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "medidas de gestión de riesgo exigidas por ley"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-RISK",
+      "control_id": "CTL-IMO-42898",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "riesgo cibernético dentro del SMS"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-ROLES",
+      "control_id": "CTL-CSF-GVRR01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-ROLES",
+      "control_id": "CTL-NIS2-A20",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "accountability del órgano de dirección + formación"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-SUPPLY",
+      "control_id": "CTL-CSF-GVSC01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-SUPPLY",
+      "control_id": "CTL-CSF-GVSC04",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-SUPPLY",
+      "control_id": "CTL-CIS-1501",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "inventario de proveedores"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-SUPPLY",
+      "control_id": "CTL-NIS2-A21",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "cadena de suministro exigida por ley (21(2)(d))"
+      }
+    },
+    {
+      "capability_id": "CAP-ID-ASSET",
+      "control_id": "CTL-CSF-IDAM01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-ID-ASSET",
+      "control_id": "CTL-CSF-IDAM02",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-ID-ASSET",
+      "control_id": "CTL-CIS-0101",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-ID-ASSET",
+      "control_id": "CTL-CIS-0201",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-ID-ASSET",
+      "control_id": "CTL-IEC-SR78",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "inventario de componentes del sistema de control"
+      }
+    },
+    {
+      "capability_id": "CAP-ID-RISK",
+      "control_id": "CTL-CSF-IDRA01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-ID-RISK",
+      "control_id": "CTL-CSF-IDRA03",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "amenazas (ATT&CK for ICS)"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-IDENTITY",
+      "control_id": "CTL-CSF-PRAA01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-IDENTITY",
+      "control_id": "CTL-CSF-PRAA03",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-IDENTITY",
+      "control_id": "CTL-IEC-SR11",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "usuario humano"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-IDENTITY",
+      "control_id": "CTL-IEC-SR12",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "proceso/dispositivo"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-IDENTITY",
+      "control_id": "CTL-IEC-SR13",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "gestión de cuentas"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-IDENTITY",
+      "control_id": "CTL-IEC-SR15",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "gestión de autenticadores"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "control_id": "CTL-CIS-0603",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "control_id": "CTL-CIS-0604",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "acceso remoto de ingeniería"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "control_id": "CTL-CIS-0605",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "acceso administrativo"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "control_id": "CTL-IEC-SR17",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "fortaleza de autenticación"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "control_id": "CTL-IEC-SR113",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "acceso desde redes no confiables"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "control_id": "CTL-CSF-PRAA03",
+      "type": "partial",
+      "coverage_weight": 0.5,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-ACCESS",
+      "control_id": "CTL-CSF-PRAA05",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-ACCESS",
+      "control_id": "CTL-IEC-SR21",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "cumplimiento de autorización"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-PAM",
+      "control_id": "CTL-CIS-0504",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "cuentas de administrador dedicadas"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-PAM",
+      "control_id": "CTL-CSF-PRAA05",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-DATACONF",
+      "control_id": "CTL-CSF-PRDS01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-DATACONF",
+      "control_id": "CTL-CSF-PRDS02",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-DATACONF",
+      "control_id": "CTL-IEC-SR41",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-DATACONF",
+      "control_id": "CTL-IEC-SR43",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "criptografía"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-DATACONF",
+      "control_id": "CTL-CIS-0311",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "cifrado en reposo"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-INTEGRITY",
+      "control_id": "CTL-CSF-PRPS01",
+      "type": "partial",
+      "coverage_weight": 0.5,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-INTEGRITY",
+      "control_id": "CTL-IEC-SR34",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "integridad de software/lógica"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-INTEGRITY",
+      "control_id": "CTL-IEC-SR33",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "verificación de funciones de seguridad"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-HARDENING",
+      "control_id": "CTL-CSF-PRPS01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-HARDENING",
+      "control_id": "CTL-CIS-0401",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-HARDENING",
+      "control_id": "CTL-IEC-SR76",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "ajustes de configuración de red/seguridad"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-ALLOWLIST",
+      "control_id": "CTL-CSF-PRPS05",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-ALLOWLIST",
+      "control_id": "CTL-CIS-0205",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MALWARE",
+      "control_id": "CTL-IEC-SR32",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MALWARE",
+      "control_id": "CTL-CIS-1001",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MEDIA",
+      "control_id": "CTL-CIS-1003",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "autorun/autoplay"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MEDIA",
+      "control_id": "CTL-CSF-PRPS05",
+      "type": "compensatory",
+      "coverage_weight": 0.4,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "control de ejecución como compensación"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-SEGMENT",
+      "control_id": "CTL-CSF-PRIR01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-SEGMENT",
+      "control_id": "CTL-IEC-SR51",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "segmentación"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-SEGMENT",
+      "control_id": "CTL-IEC-SR52",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "protección de frontera de zona (IDMZ)"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-SEGMENT",
+      "control_id": "CTL-CIS-1202",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-PATCH",
+      "control_id": "CTL-CSF-PRPS02",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-PATCH",
+      "control_id": "CTL-CIS-0701",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-PATCH",
+      "control_id": "CTL-CSF-IDRA01",
+      "type": "partial",
+      "coverage_weight": 0.5,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "identificación de vulnerabilidades"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-AWARENESS",
+      "control_id": "CTL-CSF-PRAT01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-AWARENESS",
+      "control_id": "CTL-CIS-1401",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-AWARENESS",
+      "control_id": "CTL-NIS2-A20",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "formación del órgano de dirección"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-BACKUP",
+      "control_id": "CTL-CSF-PRIR04",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-PR-BACKUP",
+      "control_id": "CTL-IEC-SR73",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "copia del sistema de control"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-BACKUP",
+      "control_id": "CTL-CIS-1101",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-DE-MONITOR",
+      "control_id": "CTL-CSF-DECM01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-DE-MONITOR",
+      "control_id": "CTL-CSF-DECM09",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-DE-MONITOR",
+      "control_id": "CTL-IEC-SR62",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "monitorización continua / comandos"
+      }
+    },
+    {
+      "capability_id": "CAP-DE-MONITOR",
+      "control_id": "CTL-CIS-1301",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-DE-LOG",
+      "control_id": "CTL-CSF-DEAE02",
+      "type": "partial",
+      "coverage_weight": 0.6,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-DE-LOG",
+      "control_id": "CTL-IEC-SR28",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "eventos auditables"
+      }
+    },
+    {
+      "capability_id": "CAP-DE-LOG",
+      "control_id": "CTL-IEC-SR61",
+      "type": "partial",
+      "coverage_weight": 0.7,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "accesibilidad del registro"
+      }
+    },
+    {
+      "capability_id": "CAP-DE-LOG",
+      "control_id": "CTL-CIS-0802",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-RS-IR",
+      "control_id": "CTL-CSF-RSMA01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-RS-IR",
+      "control_id": "CTL-CIS-1701",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-CSF-RSCO02",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": "capacidad común"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-NIS2-A23",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "plazos 24h/72h/1 mes (delta regional)"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-IMO-42898",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "reporte dentro del SMS"
+      }
+    },
+    {
+      "capability_id": "CAP-RC-RECOVER",
+      "control_id": "CTL-CSF-RCRP01",
+      "type": "total",
+      "coverage_weight": 1.0,
+      "provenance": {
+        "source": "official_crosswalk",
+        "jurisdiction": "US",
+        "note": ""
+      }
+    },
+    {
+      "capability_id": "CAP-RC-RECOVER",
+      "control_id": "CTL-IEC-SR74",
+      "type": "total",
+      "coverage_weight": 0.9,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL",
+        "note": "reconstitución del sistema de control"
+      }
+    }
+  ]
+}
