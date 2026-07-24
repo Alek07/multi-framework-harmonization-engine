@@ -1,7 +1,7 @@
 [project]
 name = "server"
 version = "0.1.0"
-description = "Add your description here"
+description = "Motor de armonización multi-marco — núcleo determinista, API y bitácora (TFM POC)"
 requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",
