@@ -38,6 +38,9 @@ extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# Enums inherit from `str` on purpose: they are Pydantic fields serialised to and
+# read back from the versioned JSON (catalog, rules, profiles).
+ignore = ["UP042"]
 
 [tool.mypy]
 python_version = "3.12"
