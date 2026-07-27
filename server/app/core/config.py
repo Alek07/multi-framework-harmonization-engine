@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     # Versioned catalog (UCM-4/UCM-7): read-only JSON, frozen in Git.
     CATALOG_PATH: str = "data/catalog/catalog.v0.1.0.json"
 
+    # Versioned engine rules (UCM-8): precedence per zone + declared contradictions.
+    RULES_PATH: str = "data/rules/precedence.v0.1.0.json"
+
+    # Hand-written asset profiles (UCM-1/UCM-2), inputs frozen in Git.
+    PROFILES_DIR: str = "data/profiles"
+
     SECRET_KEY: str = "change-me"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
