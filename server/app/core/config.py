@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Versioned engine rules (UCM-8): precedence per zone + declared contradictions.
     RULES_PATH: str = "data/rules/precedence.v0.1.0.json"
 
+    # Versioned gating rules (UCM-9): which mechanisms an asset profile rules out.
+    GATING_PATH: str = "data/rules/gating.v0.1.0.json"
+
     # Hand-written asset profiles (UCM-1/UCM-2), inputs frozen in Git.
     PROFILES_DIR: str = "data/profiles"
 

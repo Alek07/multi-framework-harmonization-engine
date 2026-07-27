@@ -1,0 +1,168 @@
+{
+  "rules_version": "0.1.0",
+  "schema": "TFM-motor-armonizacion/gating",
+  "generated_for": "UCM-9 — gating determinista por perfil del activo",
+  "language_policy": "identificadores en inglés; rationale/compensación/diferimiento en español",
+  "scope_note": "Reglas de gating del núcleo determinista: dicen qué MECANISMOS no aplican a este activo y por qué. Viven aparte del catálogo (que describe lo que existe) y aparte de la precedencia (que resuelve choques): son política de aplicabilidad, revisable con el CISO sin tocar código. Ampliar el gating es añadir entradas a este fichero, no rediseñar el motor.",
+  "principles": [
+    "Regla de oro: el gating elimina mecanismos, nunca capacidades requeridas, y nunca en silencio.",
+    "Tres salidas y sólo tres: no aplica (exclusión justificada, entregable), objetivo sin mecanismo (exige control compensatorio) y ámbito equivocado (diferido a la capa organizativa).",
+    "Toda exclusión lleva regla, premisa observada del perfil y justificación escrita: es material de auditoría, no una omisión.",
+    "El gating depende de la zona: mismo catálogo + zonas distintas = baselines distintas.",
+    "Una exclusión no es un hueco: el hueco aparece sólo cuando la capacidad se queda sin mecanismo, y entonces se declara."
+  ],
+  "outcome_precedence": [
+    "wrong_scope",
+    "not_applicable",
+    "objective_without_mechanism"
+  ],
+  "rules": [
+    {
+      "id": "GATE-SCOPE-GOVERNANCE",
+      "outcome": "wrong_scope",
+      "control_ids": [
+        "CTL-CSF-GVRM01",
+        "CTL-CSF-GVRR01",
+        "CTL-CSF-GVSC01",
+        "CTL-CSF-GVSC04",
+        "CTL-CIS-1501"
+      ],
+      "applies_when": {},
+      "rationale": "Gobierno del riesgo, rendición de cuentas de la dirección y gestión del riesgo de proveedores no se implementan en una zona del activo: son programa corporativo. Incluirlos en la baseline del activo fingiría una cobertura que el activo no ejerce.",
+      "deferred_to": "capa organizativa: programa corporativo de gestión de riesgo y de proveedores de la ACP",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM. Pendiente de revisión del CISO de la ACP."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-AWARENESS",
+      "outcome": "wrong_scope",
+      "control_ids": ["CTL-CSF-PRAT01", "CTL-CIS-1401"],
+      "applies_when": {},
+      "rationale": "La concienciación y la formación actúan sobre personas, no sobre la zona. La capacidad sigue exigida y se acredita en la capa organizativa; ninguna configuración del activo la satisface.",
+      "deferred_to": "capa organizativa: plan de concienciación y formación del personal",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-INCIDENT-ORGANIZATION",
+      "outcome": "wrong_scope",
+      "control_ids": ["CTL-CIS-1701", "CTL-CSF-RSCO02"],
+      "applies_when": {},
+      "rationale": "Designar responsables de respuesta y notificar a las partes interesadas son actos de la organización, no mecanismos de la zona. El activo aporta evidencia (registro, monitorización), pero no ejecuta la notificación.",
+      "deferred_to": "capa organizativa: plan de respuesta a incidentes y comunicación de la ACP",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "El control CSF RS.MA-01 (ejecución del plan sobre el activo) se mantiene deliberadamente en ámbito: la respuesta sí toca la zona."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-LEGAL-OBLIGATION",
+      "outcome": "wrong_scope",
+      "control_ids": ["CTL-NIS2-A20", "CTL-NIS2-A21", "CTL-NIS2-A23", "CTL-IMO-42898"],
+      "applies_when": {},
+      "rationale": "Una obligación legal (NIS2, IMO MSC.428(98)) nunca es un mecanismo: obliga al operador, no al equipo. Se difiere a la capa organizativa y permanece visible con su jurisdicción, porque es exactamente la materia del delta regional.",
+      "deferred_to": "capa organizativa: cumplimiento regulatorio del operador (jurisdicción anotada, alimenta el delta regional)",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Coherente con el eje declarado del catálogo: técnico/legal decide, US/EU no decide."
+      }
+    },
+    {
+      "id": "GATE-NA-ANTIMALWARE-AGENT-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-1001"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "Un agente antimalware residente exige un sistema operativo de propósito general que lo hospede; el controlador embebido no lo tiene. Exclusión justificada: la capacidad la cubre el mecanismo propio del sistema de control (SR 3.2), no queda hueco.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa técnica observable en el perfil (nature.general_purpose_os)."
+      }
+    },
+    {
+      "id": "GATE-NA-AUTORUN-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-1003"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "Autorun/autoplay es una función del sistema operativo de propósito general: deshabilitarlo no es implementable en un controlador embebido. Se excluye el mecanismo, no la capacidad: el puerto físico sigue existiendo y el control de medios extraíbles sigue exigido.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa técnica observable en el perfil (nature.general_purpose_os)."
+      }
+    },
+    {
+      "id": "GATE-NA-MFA-EXTERNAL-APPS",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-0603"],
+      "applies_when": {
+        "nature": { "office_it_surface": false, "interactive_users": false }
+      },
+      "rationale": "El activo no expone aplicaciones a usuarios: no hay superficie sobre la que exigir MFA de aplicación. La premisa del control no existe aquí, luego no es un hueco sino una exclusión justificada.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisas técnicas observables en el perfil (nature.office_it_surface, nature.interactive_users)."
+      }
+    },
+    {
+      "id": "GATE-NA-DATA-AT-REST-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-0311"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "El cifrado de datos sensibles en reposo presupone un sistema de ficheros de propósito general con datos de negocio almacenados; el controlador embebido guarda lógica y configuración, cubiertas por integridad (SR 3.4) y confidencialidad de la información (SR 4.1).",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa técnica observable en el perfil (nature.general_purpose_os)."
+      }
+    },
+    {
+      "id": "GATE-OWM-MFA-ADMIN-EMBEDDED",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-CIS-0605"],
+      "applies_when": {
+        "domains": ["OT"],
+        "nature": { "general_purpose_os": false, "interactive_users": false }
+      },
+      "rationale": "El objetivo (que la actuación privilegiada sobre el proceso exija autenticación reforzada) sigue vigente al SL-objetivo de la zona, pero el controlador embebido no puede hospedar un segundo factor. No es una exclusión: es un objetivo sin mecanismo en el activo.",
+      "compensation": "Control compensatorio en el conducto: acceso mediado por jump host con MFA y sesión registrada, más allowlisting de comandos hacia la zona de control.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Conductos C-SUPERVISORY/C-IDMZ del Perfil A. Pendiente de revisión del CISO de la ACP."
+      }
+    },
+    {
+      "id": "GATE-OWM-MFA-REMOTE-EMBEDDED",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-CIS-0604"],
+      "applies_when": {
+        "domains": ["OT"],
+        "nature": { "general_purpose_os": false, "interactive_users": false }
+      },
+      "rationale": "El acceso remoto no termina en el controlador ni éste puede exigir MFA por sí mismo; el objetivo (que ningún acceso desde red no confiable llegue sin autenticación reforzada) sigue exigido.",
+      "compensation": "Control compensatorio en la frontera de zona: terminación del acceso remoto en el IDMZ con MFA y grabación, sin ruta directa a la zona de control.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Conducto C-IDMZ (no_direct_ot_it_path) del Perfil A."
+      }
+    },
+    {
+      "id": "GATE-OWM-PATCH-CADENCE-SAFETY-OT",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-CIS-0701"],
+      "applies_when": { "domains": ["OT"], "safety_relevant": true },
+      "rationale": "La cadencia de remediación de TI (descubrir, priorizar, parchear en plazo) no es ejecutable sobre un equipo cuya parada exige ventana operativa y revalidación de la función de seguridad. El objetivo (que la exposición conocida no quede sin tratar) sigue exigido; lo que falta es el mecanismo.",
+      "compensation": "Control compensatorio: gestión de exposición sin parcheo — segmentación y filtrado en la frontera de zona, monitorización de comandos y ventanas de parcheo planificadas con revalidación.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Restricción operativa OT declarada por el TFM; sólo en zonas OT relevantes para safety. Pendiente de revisión del CISO de la ACP."
+      }
+    }
+  ],
+  "limitations": [
+    "Conjunto mínimo y deliberado de reglas: sólo las que el catálogo v0.1.0 y los dos perfiles sostienen con evidencia. Ampliarlo es configuración (añadir entradas), no rediseño.",
+    "Las premisas de aplicabilidad se leen del perfil (nature) y de la lectura de zona (dominio, relevancia para safety): el gating no infiere nada que el perfil no declare.",
+    "Reglas de juicio de autor sobre fuentes secundarias; el instrumento de medida (baseline dorada, UCM-5) es independiente y el motor no la ve."
+  ]
+}
