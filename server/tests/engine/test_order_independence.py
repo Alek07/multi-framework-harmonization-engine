@@ -1,8 +1,8 @@
-"""UCM-8/UCM-9 - The core must not depend on the order its inputs were ingested.
+"""UCM-8/UCM-9/UCM-10 - The core must not depend on the order its inputs were ingested.
 
 The ticket demands this be proven, not asserted: the catalog is shuffled with
-several fixed seeds and the whole resolution — and the gating built on it — must
-come out byte-identical.
+several fixed seeds and the whole resolution — and the gating and the roadmap
+built on it — must come out byte-identical.
 """
 
 import random
@@ -10,8 +10,9 @@ import random
 from app.assets.schemas import AssetProfile
 from app.catalog.schemas import Catalog
 from app.engine.gating_rules import GatingRules
+from app.engine.prioritization_rules import PrioritizationRules
 from app.engine.rules import RuleSet
-from app.engine.service import gate_profile, resolve_profile
+from app.engine.service import gate_profile, prioritize_profile, resolve_profile
 
 SEEDS = (1, 7, 42, 1337)
 
@@ -86,3 +87,51 @@ def test_shuffling_the_gating_rules_changes_nothing(
     for rule in reversed_rules.rules:
         rule.control_ids.reverse()
     assert _gate(profile_a, catalog, rules, reversed_rules) == baseline
+
+
+def _roadmap(
+    profile: AssetProfile,
+    catalog: Catalog,
+    rules: RuleSet,
+    gating_rules: GatingRules,
+    prioritization_rules: PrioritizationRules,
+) -> dict:
+    resolution = resolve_profile(profile, catalog, rules)
+    gating = gate_profile(profile, resolution, gating_rules, catalog)
+    return prioritize_profile(profile, gating, prioritization_rules, catalog).model_dump(
+        mode="json"
+    )
+
+
+def test_shuffling_the_catalog_changes_no_phase_of_the_roadmap(
+    profile_a: AssetProfile,
+    profile_b: AssetProfile,
+    catalog: Catalog,
+    rules: RuleSet,
+    gating_rules: GatingRules,
+    prioritization_rules: PrioritizationRules,
+) -> None:
+    for profile in (profile_a, profile_b):
+        baseline = _roadmap(profile, catalog, rules, gating_rules, prioritization_rules)
+        for seed in SEEDS:
+            other = _roadmap(
+                profile, _shuffled(catalog, seed), rules, gating_rules, prioritization_rules
+            )
+            assert other == baseline, f"the roadmap depends on ingestion order (seed {seed})"
+
+
+def test_shuffling_the_prioritization_rules_changes_nothing(
+    profile_a: AssetProfile,
+    catalog: Catalog,
+    rules: RuleSet,
+    gating_rules: GatingRules,
+    prioritization_rules: PrioritizationRules,
+) -> None:
+    baseline = _roadmap(profile_a, catalog, rules, gating_rules, prioritization_rules)
+    reversed_rules = prioritization_rules.model_copy(deep=True)
+    reversed_rules.sl_mandates.reverse()
+    reversed_rules.costs.reverse()
+    reversed_rules.dependencies.reverse()
+    for dependency in reversed_rules.dependencies:
+        dependency.requires.reverse()
+    assert _roadmap(profile_a, catalog, rules, gating_rules, reversed_rules) == baseline

@@ -1,10 +1,11 @@
-"""UCM-8/UCM-9 - Core steps 1-3 end to end, per asset profile.
+"""UCM-8/UCM-9/UCM-10 - Core steps 1-4 end to end, per asset profile.
 
 `resolve_profile` is what the rest of the engine builds on: gating
 (`gate_profile`, UCM-9) removes *mechanisms* from this result, prioritisation
-(UCM-10) tiers what survives, and the audit log (UCM-11) records every decision
-already made here. No AI takes part: same catalog + same rules + same profile
-always give the same result.
+(`prioritize_profile`, UCM-10) tiers what survives and lays out the phased
+roadmap, and the audit log (UCM-11) records every decision already made here. No
+AI takes part: same catalog + same rules + same profile always give the same
+result.
 """
 
 from __future__ import annotations
@@ -16,8 +17,15 @@ from app.engine.conflicts import resolve_capability
 from app.engine.gating import gate_zone
 from app.engine.gating_rules import GatingRules, get_gating_rules
 from app.engine.mapping import map_zone
+from app.engine.prioritization import prioritize_zone
+from app.engine.prioritization_rules import PrioritizationRules, get_prioritization_rules
 from app.engine.rules import RuleSet, get_rules
-from app.engine.schemas import ProfileGating, ProfileResolution, ZoneResolution
+from app.engine.schemas import (
+    ProfileGating,
+    ProfilePrioritization,
+    ProfileResolution,
+    ZoneResolution,
+)
 from app.engine.zones import zone_context
 
 
@@ -75,4 +83,41 @@ def gate_profile(
         rules_version=resolution.rules_version,
         gating_version=gating_rules.rules_version,
         zones=[gate_zone(zone, profile.nature, gating_rules) for zone in resolution.zones],
+    )
+
+
+def prioritize_profile(
+    profile: AssetProfile,
+    gating: ProfileGating | None = None,
+    prioritization_rules: PrioritizationRules | None = None,
+    catalog: Catalog | None = None,
+    rules: RuleSet | None = None,
+    gating_rules: GatingRules | None = None,
+) -> ProfilePrioritization:
+    """Tier, order and phase the gated profile, zone by zone (UCM-10).
+
+    Takes the gating rather than recomputing it, for the same reason gating takes
+    the resolution: one chain of decisions, auditable end to end. Prioritisation
+    reads what gating left applicable — it never re-opens a mechanism, and it
+    never repeals a mandate gating could not meet.
+    """
+    catalog = catalog if catalog is not None else get_catalog()
+    if gating is None:
+        gating = gate_profile(profile, None, gating_rules, catalog, rules)
+    prioritization_rules = (
+        prioritization_rules if prioritization_rules is not None else get_prioritization_rules()
+    )
+    prioritization_rules.validate_against(catalog)
+
+    return ProfilePrioritization(
+        profile_id=gating.profile_id,
+        profile_name=gating.profile_name,
+        catalog_version=gating.catalog_version,
+        rules_version=gating.rules_version,
+        gating_version=gating.gating_version,
+        prioritization_version=prioritization_rules.rules_version,
+        zones=[
+            prioritize_zone(zone, profile.criticality.scale, catalog, prioritization_rules)
+            for zone in gating.zones
+        ],
     )
