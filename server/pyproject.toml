@@ -5,14 +5,9 @@ description = "Motor de armonización multi-marco — núcleo determinista, API 
 requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",
-    "alembic>=1.18.5",
-    "asyncpg>=0.31.0",
-    "bcrypt>=5.0.0",
     "fastapi>=0.139.2",
     "pydantic-settings>=2.14.2",
     "pydantic[email]>=2.13.4",
-    "python-jose[cryptography]>=3.5.0",
-    "python-multipart>=0.0.32",
     "sqlalchemy>=2.0.51",
     "uvicorn[standard]>=0.51.0",
 ]
@@ -34,7 +29,6 @@ asyncio_mode = "auto"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
