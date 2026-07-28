@@ -6,6 +6,8 @@ requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",
     "fastapi>=0.139.2",
+    "httpx>=0.28.1",
+    "pydantic-ai-slim[openai]>=2.19.0",
     "pydantic-settings>=2.14.2",
     "pydantic[email]>=2.13.4",
     "sqlalchemy>=2.0.51",
@@ -14,7 +16,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "httpx>=0.28.1",
     "mypy>=2.3.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
@@ -25,6 +26,10 @@ dev = [
 pythonpath = ["."]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# The suite must run on any machine, with no Ollama and no network: the tests
+# that need the real 7B are deselected unless asked for (`pytest -m llm`).
+addopts = ["-m", "not llm"]
+markers = ["llm: needs Ollama up with the pinned model (UCM-12)"]
 
 [tool.ruff]
 line-length = 100

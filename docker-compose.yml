@@ -24,6 +24,12 @@ services:
       # Keep the model resident. A cold reload changes latency, not output, but
       # it makes the ≤5 min demo (UCM-26) unpredictable to record.
       OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+      # Context window for every request. Ollama's OpenAI-compatible endpoint has
+      # no field for it (UCM-12), and its default — 4096 — is smaller than the
+      # parse prompt plus the JSON schema it constrains decoding with. A window
+      # too small does not fail: it drops the oldest tokens, which here are the
+      # instructions. Mirrors LLM_NUM_CTX on the backend.
+      OLLAMA_CONTEXT_LENGTH: ${LLM_NUM_CTX:-8192}
       # One request at a time. Concurrent decoding batches requests together and
       # batched matmuls are not bit-reproducible, which would perturb greedy
       # sampling. Determinism outranks throughput for a single-operator POC.

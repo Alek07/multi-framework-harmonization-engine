@@ -46,14 +46,18 @@ class Settings(BaseSettings):
     #   357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b
     LLM_MODEL_DIGEST: str = "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
 
-    # Greedy decoding with a fixed seed. top_k/top_p/repeat_penalty are pinned
-    # rather than left to Ollama's defaults, which move between releases — an
-    # unpinned default is a reproducibility hole that nothing would report.
+    # Greedy decoding with a fixed seed. Only the four settings below reach the
+    # model through Ollama's OpenAI-compatible endpoint (UCM-12): it maps a fixed
+    # set of OpenAI fields and silently drops anything else, `top_k` and
+    # `repeat_penalty` included. Those two are left at the Ollama server's
+    # defaults and pinned by the *image* digest in the compose file — declared in
+    # `app/parse/agent.py` rather than faked with a setting that does nothing.
     LLM_TEMPERATURE: float = 0.0
     LLM_SEED: int = 42
-    LLM_TOP_K: int = 1
     LLM_TOP_P: float = 1.0
-    LLM_REPEAT_PENALTY: float = 1.0
+    # Context window. Not a request field either: it is applied server-side via
+    # OLLAMA_CONTEXT_LENGTH in the compose file, which reads this same value.
+    # Ollama's own default (4096) truncates this prompt plus its JSON schema.
     LLM_NUM_CTX: int = 8192
     LLM_NUM_PREDICT: int = 2048
     # Retries on Pydantic validation failure (UCM-12). A retry is not a reroll:
