@@ -1,0 +1,8 @@
+# Files executed inside Linux containers must keep LF endings. On a Windows
+# checkout git would otherwise hand `/bin/sh` a script with CRLF, which fails as
+# `\r: command not found` — a clone-and-run break that would only show up on
+# someone else's machine (UCM-22 is verified on exactly that).
+*.sh text eol=lf
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf
+.env.example text eol=lf
