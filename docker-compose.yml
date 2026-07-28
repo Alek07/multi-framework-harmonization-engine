@@ -1,0 +1,70 @@
+# UCM-20 (partial) — runtime services for the AI layer (M2).
+#
+# Only the two services M2 needs are declared for now: `ollama` (asset parse,
+# UCM-12) and `qdrant` (candidate retrieval, UCM-13). While M2 is in progress the
+# backend runs natively (`uv run uvicorn`), so both publish their ports to the
+# host. M5 *extends* this same file with the `backend` and `frontend` services
+# rather than replacing it, so what the tutors run is what was developed against.
+#
+# Images are pinned by tag *and* digest. A tag alone is mutable, and the
+# reproducibility invariant is that a foreign 8–16 GB machine gets the same
+# result (UCM-22) — a silently upgraded runtime would break it without a trace.
+
+name: tfm-harmonization-engine
+
+services:
+  ollama:
+    image: ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131
+    container_name: tfm-harmonization-engine-ollama
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    environment:
+      # Which model the entrypoint pulls. Flipping this to the 3B build is the
+      # documented 8 GB fallback (UCM-22): configuration, never a code change.
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:7b-instruct-q4_K_M}
+      # Keep the model resident. A cold reload changes latency, not output, but
+      # it makes the ≤5 min demo (UCM-26) unpredictable to record.
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+      # One request at a time. Concurrent decoding batches requests together and
+      # batched matmuls are not bit-reproducible, which would perturb greedy
+      # sampling. Determinism outranks throughput for a single-operator POC.
+      OLLAMA_NUM_PARALLEL: "1"
+    volumes:
+      - ./docker/ollama/entrypoint.sh:/entrypoint.sh:ro
+      # The ~4.7 GB model lives here, pulled on first start and cached across
+      # runs. It is never baked into the image.
+      - ollama_models:/root/.ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    healthcheck:
+      # Healthy only once the pull has finished, so nothing ever talks to a
+      # model that is not on disk yet.
+      test: ["CMD-SHELL", "test -f /tmp/model-ready && ollama list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      # ~20 min of grace: the first pull on a slow link is the worst case, and
+      # failing it would look like a broken POC rather than a slow download.
+      retries: 120
+      start_period: 30s
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.18.3@sha256:0bd98fa7977f1e75694779359ca4e212822e5a71334e28421182f72f209d5286
+    container_name: tfm-harmonization-engine-qdrant
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    healthcheck:
+      # The image ships neither curl nor wget; bash's /dev/tcp is the probe that
+      # works without adding a layer just to health-check it.
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  ollama_models:
+  qdrant_storage:

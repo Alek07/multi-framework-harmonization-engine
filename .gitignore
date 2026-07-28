@@ -1,0 +1,6 @@
+# Compose environment (UCM-20) — `.env.example` is the tracked template.
+.env
+
+# Editors
+.vscode/
+.idea/

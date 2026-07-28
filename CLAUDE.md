@@ -26,8 +26,9 @@ Linear project: [TFM](https://linear.app/checkpoint-std/project/tfm-5febd8144146
    API/Swagger.
 7. **Catalog IP rule**: `FrameworkControl` descriptions are **paraphrased, never verbatim** from
    the standards (CSF 2.0, IEC 62443-3-3, CIS v8, NIS2, IMO MSC.428(98)).
-8. **Language rule**: identifiers/schema field names in **English**, catalog/content text in
-   **Spanish**.
+8. **Language rule**: everything authored for developers is **English** — identifiers, schema
+   field names, code comments, docstrings, config/`.env` comments. Only text an end user reads is
+   **Spanish**: catalog content and audit-log `decision`/`rationale` strings.
 9. **The golden baseline (ground truth) is an external measuring instrument** — the engine must
    never read or use it (`UCM-5`, evaluated in `UCM-18`).
 
