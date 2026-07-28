@@ -31,8 +31,8 @@ echo "==> pulling ${MODEL} (cached in the ollama_models volume after the first r
 ollama pull "$MODEL"
 
 # Put the digest of what was actually pulled on the record. The backend checks
-# it against LLM_MODEL_DIGEST at startup: Ollama tags are mutable, so the tag on
-# its own pins nothing.
+# it against LLM_MODEL_DIGEST before its first parse (UCM-12): Ollama tags are
+# mutable, so the tag on its own pins nothing.
 echo "==> models available:"
 ollama list
 
