@@ -1,7 +1,9 @@
 """UCM-8 - The core runs end to end with the two hand-written profiles (M1 gate, no AI)."""
 
+from app.assets.schemas import AssetProfile
 from app.catalog.schemas import Catalog
 from app.engine.schemas import CandidateStatus, ProfileResolution
+from app.engine.service import prioritize_profile
 from tests.engine.conftest import ZONE_ENG, ZONE_OT, ZONE_SIS
 
 
@@ -69,3 +71,13 @@ def test_same_catalog_different_zone_gives_a_different_resolution(
     assert superseded_ot and superseded_hybrid
     assert superseded_ot != superseded_hybrid
     assert len(resolution_a.open_decisions) > len(resolution_b.open_decisions)
+
+
+def test_the_four_steps_run_from_the_profile_alone(
+    profile_a: AssetProfile, profile_b: AssetProfile
+) -> None:
+    """M1 gate: mapping, conflicts, gating and roadmap with the versioned inputs only."""
+    for profile in (profile_a, profile_b):
+        priorities = prioritize_profile(profile)
+        assert [z.zone.zone_id for z in priorities.zones] == [z.id for z in profile.zones]
+        assert all(zone.phases and zone.capabilities for zone in priorities.zones)

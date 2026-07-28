@@ -1,4 +1,4 @@
-"""UCM-8/UCM-9 - Shared inputs of the deterministic core: catalog, rules and profiles."""
+"""UCM-8/UCM-9/UCM-10 - Shared inputs of the deterministic core: catalog, rules and profiles."""
 
 import pytest
 
@@ -7,9 +7,10 @@ from app.assets.schemas import AssetProfile
 from app.catalog.loader import load_catalog
 from app.catalog.schemas import Catalog
 from app.engine.gating_rules import GatingRules, load_gating_rules
+from app.engine.prioritization_rules import PrioritizationRules, load_prioritization_rules
 from app.engine.rules import RuleSet, load_rules
-from app.engine.schemas import ProfileGating, ProfileResolution
-from app.engine.service import gate_profile, resolve_profile
+from app.engine.schemas import ProfileGating, ProfilePrioritization, ProfileResolution
+from app.engine.service import gate_profile, prioritize_profile, resolve_profile
 
 PROFILE_A = "PROFILE-A"
 PROFILE_B = "PROFILE-B"
@@ -71,3 +72,28 @@ def gating_b(
     catalog: Catalog,
 ) -> ProfileGating:
     return gate_profile(profile_b, resolution_b, gating_rules, catalog)
+
+
+@pytest.fixture(scope="session")
+def prioritization_rules() -> PrioritizationRules:
+    return load_prioritization_rules()
+
+
+@pytest.fixture(scope="session")
+def priorities_a(
+    profile_a: AssetProfile,
+    gating_a: ProfileGating,
+    prioritization_rules: PrioritizationRules,
+    catalog: Catalog,
+) -> ProfilePrioritization:
+    return prioritize_profile(profile_a, gating_a, prioritization_rules, catalog)
+
+
+@pytest.fixture(scope="session")
+def priorities_b(
+    profile_b: AssetProfile,
+    gating_b: ProfileGating,
+    prioritization_rules: PrioritizationRules,
+    catalog: Catalog,
+) -> ProfilePrioritization:
+    return prioritize_profile(profile_b, gating_b, prioritization_rules, catalog)

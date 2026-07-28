@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     # Versioned gating rules (UCM-9): which mechanisms an asset profile rules out.
     GATING_PATH: str = "data/rules/gating.v0.1.0.json"
 
+    # Versioned prioritisation rules (UCM-10): SL mandates, dependencies, ordinal cost.
+    PRIORITIZATION_PATH: str = "data/rules/prioritization.v0.1.0.json"
+
     # Hand-written asset profiles (UCM-1/UCM-2), inputs frozen in Git.
     PROFILES_DIR: str = "data/profiles"
 

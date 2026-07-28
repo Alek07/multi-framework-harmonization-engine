@@ -17,7 +17,7 @@ versionados).
 | -- | -- |
 | `server/` | FastAPI + Python 3.12 (uv): núcleo determinista, API, bitácora |
 | `server/data/catalog/` | Catálogo JSON versionado (capacidades, controles, mapeos) |
-| `server/data/rules/` | Reglas versionadas del motor: precedencia por zona y contradicciones declaradas |
+| `server/data/rules/` | Reglas versionadas del motor: precedencia por zona, gating por perfil y priorización (mandatos por SL, dependencias, coste ordinal) |
 | `server/data/profiles/` | Perfiles de activo escritos a mano (entradas congeladas de validación) |
 | `client/` | React + Vite + TypeScript: UI de una vista (composición soberana) |
 

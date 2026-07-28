@@ -79,4 +79,7 @@ def zone_context(zone: Zone, profile: AssetProfile) -> ZoneContext:
         target_sl=zone.target_sl,
         safety_relevant=safety,
         derivation=f"{domain_why}; {safety_why}",
+        # Carried verbatim: the SL-target per FR is what makes a capability
+        # mandatory in this zone and not in the next one (UCM-10).
+        sl_vector=zone.sl_vector,
     )

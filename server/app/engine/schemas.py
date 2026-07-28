@@ -1,13 +1,14 @@
-"""Output contract of the deterministic core, steps 1-3.
+"""Output contract of the deterministic core, steps 1-4.
 
-UCM-8 (mapping + conflict resolution) and UCM-9 (gating) are explicit here:
-which candidates a capability has per zone, which conflicts were found, how each
-one was resolved (and under which declared rule), which mechanisms the asset
-profile rules out — and with what justification — and which gaps remain. Nothing
-is dropped: a candidate that does not prevail is *marked*, never removed, a
-mechanism that does not apply is *excluded with a reason*, and a capability
-without an effective mechanism becomes an explicit gap (invariant: 0 silent
-omissions).
+UCM-8 (mapping + conflict resolution), UCM-9 (gating) and UCM-10
+(prioritisation) are explicit here: which candidates a capability has per zone,
+which conflicts were found, how each one was resolved (and under which declared
+rule), which mechanisms the asset profile rules out — and with what
+justification — which gaps remain, and in what order what is left should be
+built. Nothing is dropped: a candidate that does not prevail is *marked*, never
+removed, a mechanism that does not apply is *excluded with a reason*, and a
+capability without an effective mechanism becomes an explicit gap (invariant: 0
+silent omissions).
 """
 
 from __future__ import annotations
@@ -17,7 +18,15 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.catalog.schemas import Capability, Framework, FrameworkControl, Mapping, MappingType
+from app.assets.schemas import SLVector
+from app.catalog.schemas import (
+    Capability,
+    Framework,
+    FrameworkControl,
+    Jurisdiction,
+    Mapping,
+    MappingType,
+)
 
 
 class ZoneDomain(str, Enum):
@@ -26,6 +35,18 @@ class ZoneDomain(str, Enum):
     OT = "OT"
     IT = "IT"
     HYBRID = "HYBRID"
+
+
+class FoundationalRequirement(str, Enum):
+    """The seven IEC 62443 foundational requirements the SL-target is declared over."""
+
+    FR1 = "FR1"
+    FR2 = "FR2"
+    FR3 = "FR3"
+    FR4 = "FR4"
+    FR5 = "FR5"
+    FR6 = "FR6"
+    FR7 = "FR7"
 
 
 class CandidateStatus(str, Enum):
@@ -72,6 +93,16 @@ class ZoneContext(BaseModel):
     target_sl: int
     safety_relevant: bool
     derivation: str
+    # SL-target per foundational requirement, when the zone declares one. A zone
+    # rarely wants the same level everywhere (a corridor may demand SL3 on
+    # integrity and SL2 on confidentiality) and Tier 0 is read from it.
+    sl_vector: SLVector | None = None
+
+    def sl_target_for(self, requirement: FoundationalRequirement) -> int:
+        """The zone's SL-target for one FR — the scalar target when no vector is declared."""
+        if self.sl_vector is None:
+            return self.target_sl
+        return int(getattr(self.sl_vector, requirement.value))
 
 
 class CandidateOption(BaseModel):
@@ -342,3 +373,171 @@ class ProfileGating(BaseModel):
             if z.zone.zone_id == zone_id:
                 return z
         raise KeyError(f"zone not gated: {zone_id}")
+
+
+# --- UCM-10: prioritisation ---------------------------------------------------
+
+
+class PriorityTier(str, Enum):
+    """The two tiers of the ticket. They are never ranked against each other."""
+
+    # Mandatory at the zone's SL-target (or by legal obligation): not prioritised.
+    TIER_0 = "tier_0"
+    # Discretionary: this is the only thing the engine orders.
+    TIER_1 = "tier_1"
+
+
+class MandateSource(str, Enum):
+    """Why a capability is mandatory. Both sources are read from declared data."""
+
+    SL_TARGET = "sl_target"
+    LEGAL_OBLIGATION = "legal_obligation"
+
+
+class OrdinalLevel(str, Enum):
+    """The only scale the prioritisation uses. Comparable, never addable."""
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+class ImplementationLayer(str, Enum):
+    """Where the work is carried out — gating decides this, prioritisation reports it."""
+
+    ASSET = "asset"
+    ORGANIZATIONAL = "organizational"
+
+
+class Mandate(BaseModel):
+    """One reason a capability is Tier 0, with the evidence that supports it."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    source: MandateSource
+    control_id: str
+    official_id: str
+    framework: Framework
+    jurisdiction: Jurisdiction
+    foundational_requirement: FoundationalRequirement | None = None
+    required_at_sl: int | None = None
+    zone_sl_target: int | None = None
+    rationale: str
+
+
+class CapabilityPriority(BaseModel):
+    """Where one capability sits in the roadmap of one zone, and why."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    capability_id: str
+    zone_id: str
+    tier: PriorityTier
+    layer: ImplementationLayer
+    status: CapabilityStatus
+    mandates: list[Mandate] = Field(default_factory=list)
+    coverage: float
+    coverage_level: OrdinalLevel
+    # Capabilities this one enables (declared dependants) and its prerequisites.
+    leverage: int
+    unlocks: list[str] = Field(default_factory=list)
+    depends_on: list[str] = Field(default_factory=list)
+    benefit: OrdinalLevel
+    cost: OrdinalLevel
+    # Null on Tier 0 — and that is the contract, not a missing value: what is
+    # mandatory at the zone's SL-target is not ranked, it is completed.
+    priority: OrdinalLevel | None = None
+    # CIS Implementation Group of the retained CIS mechanism, when there is one.
+    implementation_group: str | None = None
+    phase: int
+    # Tier 0 that gating left without an applicable mechanism, or with a declared
+    # residual: what the human must close before the baseline can be signed.
+    outstanding: bool = False
+    gap: CapabilityGap | None = None
+    rationale: str
+
+
+class RoadmapPhase(BaseModel):
+    """A phase of the roadmap. Phase 0 is the mandatory block and is not a ranking."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    index: int
+    name: str
+    tier: PriorityTier
+    capability_ids: list[str] = Field(default_factory=list)
+    rationale: str
+
+
+class ZonePrioritization(BaseModel):
+    """Step 4 of the core for a single zone: tiers, ordinal order and phased roadmap."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    zone: ZoneContext
+    capabilities: list[CapabilityPriority]
+    phases: list[RoadmapPhase]
+
+    @property
+    def tier_0(self) -> list[CapabilityPriority]:
+        return [c for c in self.capabilities if c.tier is PriorityTier.TIER_0]
+
+    @property
+    def tier_1(self) -> list[CapabilityPriority]:
+        return [c for c in self.capabilities if c.tier is PriorityTier.TIER_1]
+
+    @property
+    def outstanding_mandates(self) -> list[CapabilityPriority]:
+        """Mandatory capabilities not yet complete — the pre-signature checklist."""
+        return [c for c in self.capabilities if c.outstanding]
+
+    @property
+    def tier_0_complete(self) -> bool:
+        return not self.outstanding_mandates
+
+    def capability(self, capability_id: str) -> CapabilityPriority:
+        for capability in self.capabilities:
+            if capability.capability_id == capability_id:
+                return capability
+        raise KeyError(f"capability not prioritised: {capability_id}")
+
+    def phase(self, index: int) -> RoadmapPhase:
+        for phase in self.phases:
+            if phase.index == index:
+                return phase
+        raise KeyError(f"phase not in the roadmap: {index}")
+
+
+class ProfilePrioritization(BaseModel):
+    """Step 4 of the core for a whole asset profile: the phased roadmap per zone."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    profile_id: str
+    profile_name: str
+    catalog_version: str
+    rules_version: str
+    gating_version: str
+    prioritization_version: str
+    zones: list[ZonePrioritization]
+
+    @property
+    def outstanding_mandates(self) -> list[CapabilityPriority]:
+        return [c for z in self.zones for c in z.outstanding_mandates]
+
+    @property
+    def tier_0_complete(self) -> bool:
+        """The engine's reading before the human composes (UCM-16).
+
+        False does not mean "cannot be signed": it means the engine cannot claim
+        the mandatory block is met on its own, and `outstanding_mandates` is the
+        list the human has to close — with a mechanism or with a justified
+        compensatory control — for `POST /baseline/compose` to accept the signature.
+        """
+        return all(z.tier_0_complete for z in self.zones)
+
+    def zone(self, zone_id: str) -> ZonePrioritization:
+        for z in self.zones:
+            if z.zone.zone_id == zone_id:
+                return z
+        raise KeyError(f"zone not prioritised: {zone_id}")
