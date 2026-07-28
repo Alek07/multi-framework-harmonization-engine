@@ -11,6 +11,5 @@ feature models import `app.models.base`, so a registry in the package's
 
 from app.audit.models import AuditEvent
 from app.models.base import Base
-from app.users.models import User
 
-__all__ = ["AuditEvent", "Base", "User"]
+__all__ = ["AuditEvent", "Base"]

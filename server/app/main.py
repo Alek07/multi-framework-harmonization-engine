@@ -7,7 +7,6 @@ from app.core.config import settings
 from app.core.database import init_db
 from app.core.exceptions import register_exception_handlers
 from app.core.middleware import register_middleware
-from app.users.router import router as users_router
 
 
 @asynccontextmanager
@@ -28,6 +27,9 @@ def create_app() -> FastAPI:
     register_middleware(app)
     register_exception_handlers(app)
 
+    # Liveness probe, not part of the API surface. The closed surface is the
+    # five endpoints of §7.4 (M3); this one exists so the compose healthcheck
+    # can tell a started container from a serving one (UCM-20).
     health_router = APIRouter()
 
     @health_router.get("/health")
@@ -36,7 +38,6 @@ def create_app() -> FastAPI:
 
     api_router = APIRouter()
     api_router.include_router(health_router, tags=["health"])
-    api_router.include_router(users_router, prefix="/users", tags=["users"])
 
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
     return app

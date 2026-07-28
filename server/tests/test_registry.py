@@ -18,7 +18,7 @@ SERVER_ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.mark.parametrize(
     "module",
-    ["app.audit.models", "app.users.models", "app.models.registry", "app.core.database"],
+    ["app.audit.models", "app.models.registry", "app.core.database"],
 )
 def test_a_model_module_imports_on_its_own(module: str) -> None:
     result = subprocess.run(
