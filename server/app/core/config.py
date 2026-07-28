@@ -12,6 +12,11 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
 
+    # The POC ships no Alembic revision: the schema (audit log included, UCM-11)
+    # is created from the models at startup so `docker compose up` works on a
+    # foreign machine with no migration step. The tests own their own schema.
+    CREATE_TABLES_ON_STARTUP: bool = True
+
     # Versioned catalog (UCM-4/UCM-7): read-only JSON, frozen in Git.
     CATALOG_PATH: str = "data/catalog/catalog.v0.1.0.json"
 
