@@ -1,13 +1,29 @@
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
 from fastapi import APIRouter, FastAPI
 
 from app.core.config import settings
+from app.core.database import init_db
 from app.core.exceptions import register_exception_handlers
 from app.core.middleware import register_middleware
 from app.users.router import router as users_router
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Bring up the SQLite schema the audit log lives in (UCM-11)."""
+    if settings.CREATE_TABLES_ON_STARTUP:
+        await init_db()
+    yield
+
+
 def create_app() -> FastAPI:
-    app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_PREFIX}/openapi.json")
+    app = FastAPI(
+        title=settings.PROJECT_NAME,
+        openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
+        lifespan=lifespan,
+    )
 
     register_middleware(app)
     register_exception_handlers(app)
