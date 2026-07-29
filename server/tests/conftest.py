@@ -32,6 +32,9 @@ PROFILE_B = "PROFILE-B"
 # The tests own their schema: it is created and dropped per test on an in-memory
 # database, so the app's startup must not touch the configured SQLite file.
 settings.CREATE_TABLES_ON_STARTUP = False
+# Nor may starting the app reach for Qdrant or load the ~1.1 GB embedding model
+# (UCM-13): the suite must run on any machine, offline, with no containers up.
+settings.RAG_POPULATE_ON_STARTUP = False
 
 engine = create_async_engine(
     "sqlite+aiosqlite:///:memory:",

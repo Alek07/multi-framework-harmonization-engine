@@ -62,6 +62,10 @@ class AuditStage(str, Enum):
     CONFLICT_RESOLUTION = "conflict_resolution"
     GATING = "gating"
     PRIORITIZATION = "prioritization"
+    # The RAG pass (UCM-13). It decides nothing — it only adds options — but it is
+    # logged for the invariant it has to satisfy: coverage is only ever widened,
+    # and a declared lens that sets a candidate aside says so on the record.
+    RETRIEVAL = "retrieval"
     # Where the human takes over (UCM-16).
     COMPOSITION = "composition"
     SIGNATURE = "signature"
@@ -86,6 +90,13 @@ class AuditEventType(str, Enum):
     ROADMAP_PHASED = "roadmap_phased"
     STAGE_COMPLETED = "stage_completed"
     RUN_COMPLETED = "run_completed"
+
+    # --- engine (RAG pass, UCM-13) ---
+    # Candidates offered on top of the catalog's, for one capability in one zone.
+    CANDIDATES_RETRIEVED = "candidates_retrieved"
+    # A declared lens (jurisdiction/zone/mapping type) left a candidate out. It is
+    # recorded precisely because it was *not* discarded: apartar no es descartar.
+    CANDIDATE_SET_ASIDE = "candidate_set_aside"
 
     # --- human (sovereign composition, UCM-16) ---
     OPTION_SELECTED = "option_selected"

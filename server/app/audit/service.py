@@ -35,6 +35,8 @@ from app.audit.schemas import (
 )
 from app.audit.trail import trail_for_core_run
 from app.engine.schemas import ProfileGating, ProfilePrioritization, ProfileResolution
+from app.retrieval.schemas import ProfileRetrieval
+from app.retrieval.trail import trail_for_retrieval
 
 
 class AuditService:
@@ -62,6 +64,19 @@ class AuditService:
         run_id = run_id if run_id is not None else uuid4()
         entries = trail_for_core_run(profile, resolution, gating, prioritization, run_id)
         return await self.repository.append_many(entries)
+
+    async def record_retrieval(
+        self, retrieval: ProfileRetrieval, run_id: UUID | None = None
+    ) -> list[AuditEvent]:
+        """Record the RAG pass of one run (UCM-13): what it added, and to what.
+
+        Kept apart from `record_core_run` because the pass is optional — the core
+        runs without it and the baseline is composable without it — but it is
+        still the engine's own entry: retrieval offers options, it never decides.
+        The `run_id` is the core run's, so the log reads as one story.
+        """
+        run_id = run_id if run_id is not None else uuid4()
+        return await self.repository.append_many(trail_for_retrieval(retrieval, run_id))
 
     async def record_human_decision(
         self,
