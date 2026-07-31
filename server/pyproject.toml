@@ -10,6 +10,8 @@ dependencies = [
     "pydantic-ai-slim[openai]>=2.19.0",
     "pydantic-settings>=2.14.2",
     "pydantic[email]>=2.13.4",
+    "qdrant-client>=1.12",
+    "sentence-transformers>=5.0",
     "sqlalchemy>=2.0.51",
     "uvicorn[standard]>=0.51.0",
 ]
@@ -26,10 +28,14 @@ dev = [
 pythonpath = ["."]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-# The suite must run on any machine, with no Ollama and no network: the tests
-# that need the real 7B are deselected unless asked for (`pytest -m llm`).
-addopts = ["-m", "not llm"]
-markers = ["llm: needs Ollama up with the pinned model (UCM-12)"]
+# The suite must run on any machine, with no containers and no network: the tests
+# that need the real 7B or the real index are deselected unless asked for
+# (`pytest -m llm`, `pytest -m rag`).
+addopts = ["-m", "not llm and not rag"]
+markers = [
+    "llm: needs Ollama up with the pinned model (UCM-12)",
+    "rag: needs Qdrant up and the e5-base model on disk (UCM-13)",
+]
 
 [tool.ruff]
 line-length = 100

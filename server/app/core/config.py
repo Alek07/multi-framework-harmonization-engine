@@ -67,18 +67,35 @@ class Settings(BaseSettings):
     LLM_TIMEOUT_SECONDS: int = 180
 
     QDRANT_URL: str = "http://localhost:6333"
-    # The collection is suffixed with the catalog version when it is populated,
-    # so a catalog bump can never retrieve against stale vectors (UCM-13).
+    # The collection is suffixed with the catalog version *and* a digest of the
+    # catalog it was built from, so a catalog bump — or an edit made in place,
+    # which the conventions forbid — can never retrieve against stale vectors
+    # (UCM-13). The full name is computed in `app/retrieval/index.py`.
     QDRANT_COLLECTION_PREFIX: str = "catalog"
+    QDRANT_TIMEOUT_SECONDS: int = 30
     EMBEDDING_MODEL: str = "intfloat/multilingual-e5-base"
     EMBEDDING_DIM: int = 768
     EMBEDDING_CACHE_DIR: str = "./.cache/models"
-    # Retrieval widens candidate coverage and never narrows it. RAG_TOP_K caps
-    # how many *extra* candidates are offered per capability; a capability left
-    # with none is declared an explicit gap, never dropped. There is deliberately
-    # no score threshold: a threshold discards candidates silently, which is the
-    # one thing the engine may not do.
+    # Pinned to one thread: a multi-threaded reduction adds its partial sums in
+    # whatever order the threads finish, so the vectors would not be identical
+    # from run to run even on the same machine. 69 controls encoded once at index
+    # time make the cost irrelevant next to the reproducibility (see
+    # `app/retrieval/embeddings.py` for what this does and does not guarantee).
+    EMBEDDING_NUM_THREADS: int = 1
+    # Retrieval widens candidate coverage and never narrows it. RAG_TOP_K is how
+    # many *extra* candidates the query reserves per capability: it asks the index
+    # for RAG_TOP_K plus the catalog's own candidates, so a capability whose
+    # candidates all come back as confirmations still gets RAG_TOP_K suggestions.
+    # Nothing is discarded after the query — the bound lives in the query and is
+    # recorded in the provenance. There is deliberately no score threshold either:
+    # a threshold discards candidates silently, which is the one thing the engine
+    # may not do.
     RAG_TOP_K: int = 10
+    # Populate Qdrant from the catalog at startup. Best effort and never fatal:
+    # the index is derived data, it is rebuilt idempotently, and the API must come
+    # up on a machine where Qdrant is still starting or the model still
+    # downloading. Retrieval ensures the index itself before its first query.
+    RAG_POPULATE_ON_STARTUP: bool = True
 
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 

@@ -51,6 +51,9 @@ ACTOR_REFS: dict[AuditStage, str] = {
     AuditStage.CONFLICT_RESOLUTION: "engine.conflicts",
     AuditStage.GATING: "engine.gating",
     AuditStage.PRIORITIZATION: "engine.prioritization",
+    # The RAG pass (UCM-13) is engine-authored too: the retriever offers, it does
+    # not decide, so its entries are the engine's — never the model's.
+    AuditStage.RETRIEVAL: "engine.retrieval",
 }
 
 

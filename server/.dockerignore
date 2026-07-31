@@ -9,3 +9,6 @@ __pycache__
 *.db
 tests
 node_modules
+# Embedding model cache (~1.1 GB): pulled at first use into a volume, never baked
+# into the image — the same rule the 4.7 GB LLM follows (UCM-20).
+.cache
