@@ -53,7 +53,7 @@ import {
 
 function messageOf(error: unknown): string {
   if (error instanceof ApiError || error instanceof OfflineError) return error.message
-  return 'Error inesperado al hablar con el motor.'
+  return 'Ha ocurrido un error inesperado. Vuelve a intentarlo.'
 }
 
 export function CompositionProvider({ children }: { children: ReactNode }) {
@@ -425,16 +425,16 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
         // close on its own (`CapabilityPriority.outstanding`).
         if (capability.priority.outstanding && !decided) {
           blockers.push({
-            text: `Mandato obligatorio sin cerrar: ${capability.capability_id} (${zid})`,
+            text: `Requisito obligatorio sin decidir: «${capability.capability_name}» en la zona ${zid}`,
             zoneId: zid,
             capabilityId: capability.capability_id,
           })
         }
         // A decision without a written justification is not a decision: the
-        // ledger refuses a blank `rationale` (UCM-11).
+        // ledger refuses a blank `rationale`.
         if (decided && !reason) {
           blockers.push({
-            text: `Razón obligatoria vacía: ${capability.capability_id} (${zid})`,
+            text: `Falta escribir por qué has decidido «${capability.capability_name}» en la zona ${zid}`,
             zoneId: zid,
             capabilityId: capability.capability_id,
           })
@@ -447,7 +447,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
         stats.conflictsOpen += 1
         if (!signed) {
           blockers.push({
-            text: `Conflicto sin resolver: ${conflict.capability_id} (${zid})`,
+            text: `Conflicto pendiente de tu decisión en «${conflict.capability_id}», zona ${zid}`,
             zoneId: zid,
             capabilityId: conflict.capability_id,
           })

@@ -20,26 +20,32 @@ export function StageSign({ onOpenSign }: { onOpenSign: () => void }) {
     <Section
       id="s5"
       step={4}
-      title="Firma de la baseline"
-      scope="activo completo — todas las zonas"
+      title="Revisa y firma la línea base"
+      hint="Último repaso antes de dejarlo por escrito. Al firmar, todas tus decisiones y sus razones quedan registradas de forma permanente y la composición pasa a ser de solo lectura."
+      scope="todas las zonas del activo"
     >
       {signed && baseline ? (
-        <div className="text-[13px] text-ok-ink">
-          Firmada por <b>{baseline.signed_by}</b> ·{' '}
-          <span className="font-mono">{baseline.baseline_id}</span> ·{' '}
-          {new Date(baseline.signed_at).toLocaleString('es-ES')} · {baseline.audit_events} entradas
-          añadidas a la bitácora.
-          <div className="mt-1.5 font-mono text-[11px] text-ink-4">
-            versiones:{' '}
-            {Object.entries(baseline.versions)
-              .map(([name, value]) => `${name} ${value}`)
-              .join(' · ')}
+        <div className="text-[13px] leading-[1.6] text-ok-ink">
+          Firmada por <b>{baseline.signed_by}</b> el{' '}
+          {new Date(baseline.signed_at).toLocaleString('es-ES')}. Se han añadido{' '}
+          {baseline.audit_events} anotaciones al registro de decisiones.
+          <div className="mt-1.5 text-[11px] text-ink-4">
+            Referencia de la línea base: <span className="font-mono">{baseline.baseline_id}</span>
+            <span
+              title={Object.entries(baseline.versions)
+                .map(([name, value]) => `${name} ${value}`)
+                .join(' · ')}
+              className="ml-2 cursor-help underline decoration-dotted"
+            >
+              ver versiones de catálogo y reglas usadas
+            </span>
           </div>
         </div>
       ) : progress.blockers.length > 0 ? (
         <>
-          <p className="m-0 mb-2.5 text-[12.5px] text-ink-3">
-            La firma está bloqueada. Cada motivo enlaza con el elemento culpable:
+          <p className="m-0 mb-2.5 text-[12.5px] leading-[1.55] text-ink-3">
+            Todavía no se puede firmar. Falta esto por resolver — pulsa cualquier línea para ir
+            directamente a ella:
           </p>
           <div className="flex flex-col gap-[5px]">
             {progress.blockers.map((blocker, index) => (
@@ -59,20 +65,20 @@ export function StageSign({ onOpenSign }: { onOpenSign: () => void }) {
           </div>
         </>
       ) : candidates ? (
-        <p className="m-0 mb-3 text-[13px] font-medium text-ok-ink">
-          ✓ Todo mandato que el motor dejó abierto está cerrado, los conflictos elevados están
-          resueltos y cada decisión tiene su razón escrita. {choices.length} decisión(es) se
-          registrarán al firmar.
+        <p className="m-0 mb-3 text-[13px] leading-[1.55] font-medium text-ok-ink">
+          ✓ Todo listo: no queda ningún requisito obligatorio sin decidir, ningún conflicto sin
+          resolver y ninguna decisión sin justificar. Al firmar se registrarán {choices.length}{' '}
+          decisión(es).
         </p>
       ) : (
         <p className="m-0 text-[13px] text-ink-4">
-          Pendiente: la etapa 2 tiene que haber pedido candidatos.
+          Antes hay que pasar por el paso 2 y elegir los controles de cada requisito.
         </p>
       )}
 
       {!signed ? (
         <PrimaryButton tone="ink" className="mt-4" disabled={blocked} onClick={onOpenSign}>
-          Firmar baseline
+          Firmar la línea base
         </PrimaryButton>
       ) : null}
     </Section>

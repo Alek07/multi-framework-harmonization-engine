@@ -46,6 +46,7 @@ from dataclasses import dataclass
 
 from app.assets.schemas import ConsequenceScale
 from app.catalog.schemas import Catalog, ControlType, Framework, FrameworkControl, MappingType
+from app.core.wording import say
 from app.engine.prioritization_rules import PrioritizationRules
 from app.engine.schemas import (
     CapabilityGap,
@@ -474,7 +475,7 @@ def _roadmap(capabilities: list[CapabilityPriority]) -> list[RoadmapPhase]:
 def _rationale(assessment: _Assessment, phase: int, zone: ZoneContext) -> str:
     """Every item says out loud why it sits where it sits."""
     if assessment.tier is PriorityTier.TIER_0:
-        sources = ", ".join(sorted({m.source.value for m in assessment.mandates}))
+        sources = ", ".join(sorted({say(m.source) for m in assessment.mandates}))
         note = _mandatory_note(assessment)
         return (
             f"Tier 0 en {zone.zone_id}: obligatoria por {len(assessment.mandates)} mandato(s) "
@@ -499,10 +500,10 @@ def _rationale(assessment: _Assessment, phase: int, zone: ZoneContext) -> str:
     )
     group = _group_note(assessment.implementation_group, zone)
     return (
-        f"Tier 1 (discrecional) en {zone.zone_id}: beneficio {assessment.benefit.value} "
+        f"Tier 1 (discrecional) en {zone.zone_id}: beneficio {say(assessment.benefit)} "
         f"(cobertura {assessment.coverage} tras el gating · apalancamiento sobre "
-        f"{assessment.leverage} capacidad(es)) frente a coste {assessment.cost.value} "
-        f"-> prioridad {assessment.priority.value if assessment.priority else 'n/a'} por la "
+        f"{assessment.leverage} capacidad(es)) frente a coste {say(assessment.cost)} "
+        f"-> prioridad {say(assessment.priority) if assessment.priority else 'sin asignar'} por la "
         f"tabla ordinal declarada. Fase {phase}.{uplift}{dependencies}{lift}{group}"
     )
 
@@ -535,6 +536,6 @@ def _group_note(implementation_group: str | None, zone: ZoneContext) -> str:
     use = (
         "ordena en esta zona IT/híbrida"
         if zone.domain in IG_ORDERING_DOMAINS
-        else f"informativo: en zona {zone.domain.value} el IG no ordena"
+        else f"informativo: en zona {say(zone.domain)} el IG no ordena"
     )
     return f" IG de CIS: {implementation_group} ({use})."

@@ -3,10 +3,10 @@
  * it, compose from the options the engine laid side by side, compare regions,
  * sign, read the trail.
  *
- * The UI is a demonstration wrapper, not the product (UCM-21). Every fact on
- * screen comes from one of the five endpoints, and when the backend is not there
- * this component says so and points at Swagger — the declared plan B — instead
- * of pretending to work offline.
+ * Every fact on screen comes from an engine response, and when the backend is
+ * not there this component says so plainly rather than pretending to work
+ * offline. What it never says is *how* it asked: routes, schema names and rule
+ * identifiers are the engineer's vocabulary, not the operator's.
  */
 
 import { useState } from 'react'
@@ -25,33 +25,33 @@ import { CompositionProvider } from './state/CompositionProvider'
 import { useComposition, type Step } from './state/composition'
 
 const STEP_LABELS: Record<Step, string> = {
-  1: 'Activo y perfil',
-  2: 'Candidatos',
-  3: 'Delta regional',
-  4: 'Firma',
-  5: 'Bitácora',
+  1: 'Describir el activo',
+  2: 'Elegir los controles',
+  3: 'Comparar por región',
+  4: 'Revisar y firmar',
+  5: 'Registro de decisiones',
 }
 
 function BackendDown() {
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center bg-page p-6">
       <div className="max-w-[460px] text-center">
-        <div className="mb-3 font-mono text-[11px] font-semibold tracking-[0.1em] text-ink-4">
-          BACKEND NO DISPONIBLE — PLAN B
+        <div className="mb-3 text-[11px] font-semibold tracking-[0.1em] text-ink-4 uppercase">
+          Servicio no disponible
         </div>
-        <h2 className="m-0 mb-2.5 text-xl font-semibold">El motor se demuestra por API</h2>
-        <p className="m-0 mb-4 text-sm text-ink-3">
-          La UI es envoltorio de demostración, no producto. Toda la funcionalidad está en los cinco
-          endpoints.
+        <h2 className="m-0 mb-2.5 text-xl font-semibold">No se puede conectar con el sistema</h2>
+        <p className="m-0 mb-5 text-sm leading-[1.6] text-ink-3">
+          La aplicación no ha podido contactar con el servicio que compone las líneas base. No se ha
+          perdido nada: nada se guarda hasta que firmas. Comprueba que el sistema esté arrancado y
+          vuelve a intentarlo.
         </p>
-        <a
-          href="http://localhost:8000/docs"
-          className="font-mono text-sm font-semibold"
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="cursor-pointer rounded-md border-none bg-accent px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-accent-ink"
         >
-          http://localhost:8000/docs
-        </a>
+          Reintentar
+        </button>
       </div>
     </div>
   )
@@ -72,10 +72,13 @@ function Composition() {
 
         <main className="flex min-w-0 flex-1 flex-col gap-9">
           {signed && baseline ? (
-            <div className="rounded-md border border-ok-line bg-ok-tint px-4 py-3 text-[13px] text-ok-ink">
-              Baseline <b className="font-mono">{baseline.baseline_id}</b> firmada. La composición
-              es de <b>solo lectura</b>; cambiar algo exige una baseline nueva sobre una ejecución
-              nueva (invariante 5).
+            <div className="rounded-md border border-ok-line bg-ok-tint px-4 py-3 text-[13px] leading-[1.55] text-ok-ink">
+              <b>Línea base firmada.</b> A partir de aquí la composición es de solo lectura: el
+              registro no se puede modificar ni borrar. Si algo tiene que cambiar, se compone y se
+              firma una línea base nueva, y ambas quedan en el histórico.
+              <div className="mt-1 text-[11.5px] text-ink-4">
+                Referencia: <span className="font-mono">{baseline.baseline_id}</span>
+              </div>
             </div>
           ) : null}
 

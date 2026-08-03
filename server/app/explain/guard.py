@@ -36,6 +36,7 @@ import unicodedata
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from app.core.wording import say_all
 from app.explain.schemas import EvidenceKey
 
 # Category -> pattern. The category names are Spanish because they end up in the
@@ -144,7 +145,7 @@ def _reason(terms: list[tuple[str, str]], ungrounded: tuple[EvidenceKey, ...]) -
             f"el texto generado contenía lenguaje de decisión ({categories}): {quoted}"
         )
     if ungrounded:
-        keys = ", ".join(key.value for key in ungrounded)
+        keys = say_all(ungrounded)
         parts.append(
             f"la explicación citaba evidencia que este candidato no tiene ({keys})"
         )

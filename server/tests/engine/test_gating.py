@@ -40,8 +40,9 @@ def test_not_applicable_excludes_the_mechanism_without_opening_a_gap(
 
     assert excluded.outcome is GatingOutcome.NOT_APPLICABLE
     assert excluded.rule_id == "GATE-NA-DATA-AT-REST-EMBEDDED"
-    # The premise the engine read from the profile, not a hunch.
-    assert "nature.general_purpose_os=false" in excluded.evidence
+    # The premise the engine read from the profile, not a hunch — and stated as a
+    # sentence the operator can judge, not as the field path it came from.
+    assert "el activo no tiene sistema operativo de propósito general" in excluded.evidence
     # The capability keeps a full mechanism: the exclusion costs nothing.
     assert dataconf.status is CapabilityStatus.COVERED_BY_MECHANISM
     assert dataconf.coverage == dataconf.coverage_before_gating == 1.0

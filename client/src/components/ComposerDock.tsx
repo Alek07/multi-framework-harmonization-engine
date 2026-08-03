@@ -25,10 +25,13 @@ export function ComposerDock({ onOpenSign }: { onOpenSign: () => void }) {
     >
       <div className="mx-auto flex max-w-[1192px] flex-wrap items-center justify-between gap-6">
         <div className="flex flex-wrap items-center gap-5">
-          <div className="flex flex-col gap-[5px]">
+          <div
+            className="flex flex-col gap-[5px]"
+            title="Requisitos que el nivel de seguridad de la zona o la ley hacen obligatorios. Tienen que estar todos decididos para poder firmar."
+          >
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-[11px] font-semibold tracking-[0.08em] text-ink-2 uppercase">
-                Tier 0
+                Obligatorios decididos
               </span>
               <span className="font-mono text-xs font-semibold text-ink">
                 {tier0Done}/{tier0Total}
@@ -46,23 +49,29 @@ export function ComposerDock({ onOpenSign }: { onOpenSign: () => void }) {
 
           <span className="block h-[34px] w-px bg-[#e0dcd3]" />
 
-          <div className="flex flex-none flex-col gap-[3px]">
+          <div
+            className="flex flex-none flex-col gap-[3px]"
+            title="Requisitos que no quedan cubiertos por ningún control. Aceptarlos por escrito es una salida válida; ignorarlos, no."
+          >
             <span className="text-[10.5px] font-semibold tracking-[0.08em] whitespace-nowrap text-ink-4 uppercase">
-              Huecos
+              Sin cobertura
             </span>
             <span className="text-[12.5px] leading-none whitespace-nowrap text-ink-3">
               <b className="font-mono text-[13px] font-semibold text-alert">{gaps}</b> ·{' '}
-              {gapsAcknowledged} reconocidos
+              {gapsAcknowledged} aceptados por escrito
             </span>
           </div>
 
-          <div className="flex flex-none flex-col gap-[3px]">
+          <div
+            className="flex flex-none flex-col gap-[3px]"
+            title="Casos en los que dos marcos piden cosas incompatibles y el sistema te deja elegir a ti."
+          >
             <span className="text-[10.5px] font-semibold tracking-[0.08em] whitespace-nowrap text-ink-4 uppercase">
-              Conflictos
+              Decisiones pendientes
             </span>
             <span className="text-[12.5px] leading-none whitespace-nowrap text-ink-3">
               <b className="font-mono text-[13px] font-semibold text-warn">{conflictsOpen}</b> ·
-              abiertos
+              conflictos sin resolver
             </span>
           </div>
         </div>
@@ -70,7 +79,7 @@ export function ComposerDock({ onOpenSign }: { onOpenSign: () => void }) {
         <div className="ml-auto flex min-w-0 flex-1 flex-wrap items-center justify-end gap-3.5">
           {!signed && first ? (
             <span className="min-w-0 flex-initial text-right text-xs text-alert-ink">
-              ⓘ bloqueado:{' '}
+              Aún no puedes firmar:{' '}
               <a
                 href="#"
                 onClick={(event) => {
@@ -79,12 +88,12 @@ export function ComposerDock({ onOpenSign }: { onOpenSign: () => void }) {
                 }}
               >
                 {first.text}
-                {blockers.length > 1 ? ` (+${blockers.length - 1} más)` : ''}
+                {blockers.length > 1 ? ` (y ${blockers.length - 1} cosa(s) más)` : ''}
               </a>
             </span>
           ) : null}
           <PrimaryButton testId="dock-sign" tone="ink" disabled={blocked} onClick={onOpenSign}>
-            Firmar baseline
+            Firmar la línea base
           </PrimaryButton>
         </div>
       </div>

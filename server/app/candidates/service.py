@@ -44,6 +44,7 @@ from app.candidates.schemas import (
 )
 from app.catalog.loader import get_catalog
 from app.core.exceptions import AppException
+from app.core.wording import say
 from app.engine.schemas import (
     CapabilityGating,
     CapabilityPriority,
@@ -62,15 +63,15 @@ from app.retrieval.schemas import CapabilityRetrieval, ProfileRetrieval, ZoneRet
 from app.retrieval.service import RetrievalService
 
 RETRIEVAL_DISABLED_NOTICE = (
-    "La pasada RAG no se ejecutó porque la petición la desactivó ('retrieval': false). Se "
-    "ofrecen los candidatos mapeados en el catálogo, íntegros: desactivar la recuperación no "
-    "recorta la línea base, solo renuncia a las sugerencias adicionales."
+    "La búsqueda de controles similares no se ejecutó porque la petición la desactivó. Se "
+    "ofrecen los candidatos mapeados en el catálogo, íntegros: desactivarla no recorta la "
+    "línea base, solo renuncia a las sugerencias adicionales."
 )
 
 EXPLAIN_NEEDS_RETRIEVAL_NOTICE = (
-    "No se generan explicaciones porque la pasada RAG no se ejecutó: la explicación describe "
-    "el conjunto completo de candidatos ofrecidos, y sin recuperación ese conjunto no está "
-    "cerrado. Cada candidato conserva la justificación determinista del motor."
+    "No se generan explicaciones porque la búsqueda de controles similares no se ejecutó: la "
+    "explicación describe el conjunto completo de candidatos ofrecidos, y sin esa búsqueda ese "
+    "conjunto no está cerrado. Cada candidato conserva la justificación determinista del motor."
 )
 
 
@@ -378,7 +379,7 @@ class CandidatesService:
         escalated = len(zone.open_decisions)
 
         text = (
-            f"Zona {zone.zone.zone_id} ({zone.zone.domain.value}, SL-objetivo "
+            f"Zona {zone.zone.zone_id} ({say(zone.zone.domain)}, SL-objetivo "
             f"{zone.zone.target_sl}): {len(capabilities)} capacidades del catálogo, "
             f"{offered} opción(es) ofrecidas, {gaps} hueco(s) explícito(s). "
         )

@@ -25,6 +25,7 @@ from uuid import UUID
 
 from app.audit.schemas import AuditActor, AuditEventCreate, AuditEventType, AuditStage
 from app.audit.trail import ACTOR_REFS
+from app.core.wording import say, say_all
 from app.retrieval.schemas import (
     CapabilityRetrieval,
     ProfileRetrieval,
@@ -113,7 +114,7 @@ def _set_aside(
             AuditEventType.CANDIDATE_SET_ASIDE,
             f"{candidate.official_id} ({candidate.framework.value}) apartado de "
             f"«{capability.capability_name}» en {capability.zone_id} por "
-            f"{', '.join(axis.value for axis in candidate.excluded_by)}",
+            f"{say_all(candidate.excluded_by)}",
             f"{candidate.rationale} Queda en el registro con su similitud y el eje que lo apartó: "
             "una lente declarada acota la vista del operador, nunca la línea base, y lo que deja "
             "fuera es recuperable de la propia bitácora.",
@@ -139,10 +140,10 @@ def _gap_declared(
     assert gap is not None  # guarded by the caller; the model forbids the other case
     return _event(
         AuditEventType.GAP_DECLARED,
-        f"Hueco {gap.kind.value} tras la recuperación en «{capability.capability_name}» "
+        f"Hueco ({say(gap.kind)}) tras la recuperación en «{capability.capability_name}» "
         f"({gap.zone_id})",
-        f"{gap.rationale} Se declara como hueco explícito: la invariante medida del TFM es 0 "
-        "omisiones silenciosas, y una capacidad sin candidato se señala, no se calla.",
+        f"{gap.rationale} Se declara como hueco explícito: la meta declarada es 0 omisiones "
+        "silenciosas, y una capacidad sin candidato se señala, no se calla.",
         run_id,
         retrieval.profile_id,
         versions,
@@ -164,8 +165,9 @@ def _stage_completed(
         f"Recuperación completada en {zone.zone.zone_id}: {zone.suggestions} sugerencia(s) "
         f"sobre {len(zone.capabilities)} capacidad(es), {len(zone.set_aside)} apartada(s) por "
         f"la lente",
-        "La pasada RAG solo amplía: ningún candidato del catálogo se elimina ni se reordena, y "
-        "las sugerencias se marcan como tales — no son mapeos, no tienen peso de cobertura y no "
+        "La pasada de recuperación solo amplía: ningún candidato del catálogo se elimina ni se "
+        "reordena, y las sugerencias se marcan como tales — no son mapeos, no tienen peso de "
+        "cobertura y no "
         "entran en gating ni en priorización. Lo que una lente declarada deja fuera queda "
         "registrado candidato a candidato. Las capacidades sin ningún candidato se declaran como "
         "hueco explícito.",

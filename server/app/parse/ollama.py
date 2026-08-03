@@ -83,8 +83,8 @@ async def verify_model() -> str:
     if _normalise(served) != expected:
         raise ModelMismatchError(
             f"El modelo '{settings.LLM_MODEL}' que sirve Ollama tiene el digest "
-            f"{_normalise(served)}, no el fijado {expected}. La etiqueta ha cambiado: "
-            "la reproducibilidad del TFM no está garantizada con estos pesos."
+            f"{_normalise(served)}, no el fijado {expected}. La etiqueta ha cambiado: no se "
+            "puede garantizar que dos ejecuciones den el mismo resultado con estos pesos."
         )
 
     _verified_digest = _normalise(served)

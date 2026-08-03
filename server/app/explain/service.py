@@ -28,6 +28,8 @@ gating decision and every priority would be identical.
 
 from __future__ import annotations
 
+import logging
+
 from pydantic_ai.messages import ModelResponse
 
 from app.core.config import settings
@@ -54,9 +56,11 @@ from app.explain.schemas import (
 from app.parse.ollama import verify_model
 from app.retrieval.schemas import CapabilityRetrieval, ZoneRetrieval
 
+logger = logging.getLogger(__name__)
+
 DISABLED_NOTICE = (
-    "La capa de explicaciones está desactivada por configuración (EXPLAIN_ENABLED). Se muestra "
-    "la justificación determinista del motor, que es la que sostiene al candidato."
+    "La capa de explicaciones está desactivada en la configuración de este despliegue. Se "
+    "muestra la justificación determinista del motor, que es la que sostiene al candidato."
 )
 
 MISSING_NOTICE = (
@@ -108,12 +112,22 @@ class CandidateExplanationService:
         # provider error, `UnexpectedModelBehavior` when the retry is spent — must
         # cost the paragraph and nothing else. Cancellation is not caught:
         # `CancelledError` is a `BaseException`, so a shutdown still propagates.
-        except Exception as exc:
+        except Exception:
+            # The exception's own text is a Python message about a provider, a
+            # timeout or a schema — written for whoever reads the logs, not for
+            # the operator, who only needs to know that the paragraph is missing
+            # and that nothing else changed.
+            logger.exception(
+                "explanation generation failed for %s in %s", facts.capability.id, facts.zone_id
+            )
             return self._flat(
                 facts,
                 catalog_version,
                 ExplanationStatus.UNAVAILABLE,
-                notice=f"No se pudo generar la explicación: {exc}",
+                notice=(
+                    "No se pudo generar la explicación en este intento. Se muestra la "
+                    "justificación determinista del motor; los candidatos y su orden no cambian."
+                ),
                 digest=digest,
             )
 

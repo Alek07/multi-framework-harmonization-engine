@@ -98,7 +98,7 @@ function detailOf(status: number, body: unknown): string {
         .join(' · ')
     }
   }
-  return `El servidor respondió ${status} sin detalle.`
+  return `El sistema ha rechazado la petición (código ${status}) sin dar más detalle.`
 }
 
 const http: AxiosInstance = axios.create({
@@ -125,11 +125,13 @@ http.interceptors.response.use(
       }
       if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
         throw new OfflineError(
-          `La petición a ${error.config?.url ?? BASE_URL} superó el tiempo de espera.`,
+          'El sistema ha tardado más de lo previsto en responder. Vuelve a intentarlo; si el ' +
+            'asistente se está ejecutando por primera vez, dale unos minutos más.',
         )
       }
       throw new OfflineError(
-        `No se pudo contactar con el motor en ${BASE_URL}${error.config?.url ?? ''}.`,
+        'No se ha podido contactar con el sistema. Comprueba que esté arrancado y vuelve a ' +
+          'intentarlo: no se pierde nada de lo que llevas hecho.',
       )
     }
     throw error

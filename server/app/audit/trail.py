@@ -26,6 +26,7 @@ from uuid import UUID
 
 from app.assets.schemas import AssetProfile
 from app.audit.schemas import AuditActor, AuditEventCreate, AuditEventType, AuditStage
+from app.core.wording import say
 from app.engine.schemas import (
     CapabilityGap,
     CapabilityGating,
@@ -137,7 +138,7 @@ def _mapping(trail: _Trail, zone: ZoneResolution) -> None:
     trail.add(
         AuditStage.MAPPING,
         AuditEventType.ZONE_DERIVED,
-        f"Zona {context.zone_id}: dominio {context.domain.value}, "
+        f"Zona {context.zone_id}: dominio {say(context.domain)}, "
         f"SL-objetivo {context.target_sl}",
         f"{context.derivation} La lectura de la zona es determinista y gobierna dos cosas: la "
         f"precedencia de marcos en los contradictorios y el bloque obligatorio por SL-objetivo.",
@@ -156,8 +157,8 @@ def _mapping(trail: _Trail, zone: ZoneResolution) -> None:
         f"Mapeo completado en {context.zone_id}: {len(zone.capabilities)} capacidad(es) "
         f"del catálogo",
         "Todas las capacidades del catálogo quedan registradas en la zona, con sus candidatos o "
-        "como hueco explícito. Ninguna se descarta ni se restringe: el RAG (M2) solo podrá "
-        "ampliar esta cobertura, nunca recortarla.",
+        "como hueco explícito. Ninguna se descarta ni se restringe: la pasada de recuperación "
+        "solo podrá ampliar esta cobertura, nunca recortarla.",
         zone_id=context.zone_id,
         payload={
             "capabilities": len(zone.capabilities),
@@ -236,18 +237,18 @@ def _conflict(trail: _Trail, conflict: Conflict) -> None:
     if conflict.requires_human_decision:
         event_type = AuditEventType.CONFLICT_ESCALATED
         decision = (
-            f"Conflicto {conflict.conflict_type.value} en «{label}» ({conflict.zone_id}) "
+            f"Conflicto de {say(conflict.conflict_type)} en «{label}» ({conflict.zone_id}) "
             f"elevado al humano"
         )
         note = (
             " El motor no lo resuelve por diseño: es una contradicción real entre marcos y la "
-            "elección es soberana del operador (UCM-16)."
+            "elección es soberana del operador."
         )
     else:
         event_type = AuditEventType.CONFLICT_RESOLVED
         decision = (
-            f"Conflicto {conflict.conflict_type.value} en «{label}» ({conflict.zone_id}) "
-            f"resuelto por {conflict.method.value}"
+            f"Conflicto de {say(conflict.conflict_type)} en «{label}» ({conflict.zone_id}) "
+            f"resuelto por {say(conflict.method)}"
         )
         note = (
             " Resolución independiente del orden de ingesta: depende de la regla declarada, no "
@@ -270,10 +271,10 @@ def _gap(trail: _Trail, stage: AuditStage, gap: CapabilityGap, note: str = "") -
     trail.add(
         stage,
         AuditEventType.GAP_DECLARED,
-        f"Hueco {gap.kind.value} en «{trail.label(gap.capability_id)}» ({gap.zone_id}): "
+        f"Hueco ({say(gap.kind)}) en «{trail.label(gap.capability_id)}» ({gap.zone_id}): "
         f"cobertura {gap.coverage}, residuo {gap.residual}",
-        f"{gap.rationale}{note} Se declara como hueco explícito y con su residuo: la invariante "
-        "medida del TFM es 0 omisiones silenciosas.",
+        f"{gap.rationale}{note} Se declara como hueco explícito y con su residuo: la meta "
+        "declarada es 0 omisiones silenciosas.",
         zone_id=gap.zone_id,
         capability_id=gap.capability_id,
         payload=gap.model_dump(mode="json"),
@@ -337,7 +338,7 @@ def _mechanism_excluded(trail: _Trail, excluded: GatingDecision) -> None:
         AuditEventType.MECHANISM_EXCLUDED,
         f"Mecanismo {excluded.control_id} excluido de "
         f"«{trail.label(excluded.capability_id)}» ({excluded.zone_id}): "
-        f"{excluded.outcome.value}",
+        f"{say(excluded.outcome)}",
         excluded.rationale,
         zone_id=excluded.zone_id,
         capability_id=excluded.capability_id,
@@ -352,7 +353,7 @@ def _capability_status(trail: _Trail, capability: CapabilityGating) -> None:
         AuditStage.GATING,
         AuditEventType.CAPABILITY_STATUS_SET,
         f"«{trail.label(capability.capability_id)}» en {capability.zone_id}: "
-        f"{capability.status.value} — la capacidad sigue exigida",
+        f"{say(capability.status)} — la capacidad sigue exigida",
         capability.rationale,
         zone_id=capability.zone_id,
         capability_id=capability.capability_id,
@@ -417,14 +418,14 @@ def _mandate(trail: _Trail, capability: CapabilityPriority) -> None:
 
 
 def _priority(trail: _Trail, capability: CapabilityPriority) -> None:
-    priority = capability.priority.value if capability.priority is not None else "sin prioridad"
+    priority = say(capability.priority) if capability.priority is not None else "sin prioridad"
     trail.add(
         AuditStage.PRIORITIZATION,
         AuditEventType.PRIORITY_ASSIGNED,
         f"«{trail.label(capability.capability_id)}» en {capability.zone_id}: Tier 1, "
         f"prioridad {priority}, fase {capability.phase}",
-        f"{capability.rationale} Escalas ordinales (beneficio {capability.benefit.value}, coste "
-        f"{capability.cost.value}): Gordon-Loeb en espíritu, sin cifras inventadas.",
+        f"{capability.rationale} Escalas ordinales (beneficio {say(capability.benefit)}, coste "
+        f"{say(capability.cost)}): Gordon-Loeb en espíritu, sin cifras inventadas.",
         zone_id=capability.zone_id,
         capability_id=capability.capability_id,
         payload=capability.model_dump(mode="json"),
@@ -437,8 +438,8 @@ def _outstanding(trail: _Trail, capability: CapabilityPriority) -> None:
         AuditEventType.MANDATE_OUTSTANDING,
         f"Mandato pendiente: «{trail.label(capability.capability_id)}» en {capability.zone_id}",
         f"{capability.rationale} El motor no puede dar por cumplido este mandato: el humano debe "
-        "cerrarlo con un mecanismo o con un control compensatorio justificado antes de que "
-        "«POST /baseline/compose» acepte la firma.",
+        "cerrarlo con un mecanismo o con un control compensatorio justificado antes de que se "
+        "admita la firma de la línea base.",
         zone_id=capability.zone_id,
         capability_id=capability.capability_id,
         payload=capability.model_dump(mode="json"),
@@ -472,8 +473,8 @@ def _run_completed(trail: _Trail, prioritization: ProfilePrioritization) -> None
         f"Ejecución completada: {len(prioritization.zones)} zona(s), bloque obligatorio "
         f"{'completo' if prioritization.tier_0_complete else 'incompleto'}",
         "El motor no compone ni firma: entrega opciones equivalentes, conflictos abiertos, "
-        "huecos declarados y hoja de ruta por fases para que el humano elija por zona y firme "
-        "(UCM-16). Todo lo registrado aquí es la entrada auditable de esa composición.",
+        "huecos declarados y hoja de ruta por fases para que el humano elija por zona y firme. "
+        "Todo lo registrado aquí es la entrada auditable de esa composición.",
         payload={
             "zones": [zone.zone.zone_id for zone in prioritization.zones],
             "tier_0_complete": prioritization.tier_0_complete,

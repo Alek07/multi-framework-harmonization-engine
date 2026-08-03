@@ -35,6 +35,7 @@ often the tail is actually accepted is a number for the evaluation to report
 from __future__ import annotations
 
 from app.core.config import settings
+from app.core.wording import say_all
 from app.engine.schemas import (
     CapabilityGap,
     CapabilityResolution,
@@ -215,7 +216,7 @@ class RetrievalService:
                 if hit.control_id in catalog_control_ids
                 else RetrievalRelation.WIDENS
             )
-            names = ", ".join(axis.value for axis in axes)
+            names = say_all(axes)
             candidates.append(
                 SetAsideCandidate(
                     control_id=hit.control_id,
@@ -246,7 +247,7 @@ class RetrievalService:
                 f"Ni el catálogo ni la recuperación ofrecen candidato para «"
                 f"{capability.capability.name}» en {capability.zone_id}. La capacidad sigue "
                 "exigida: se declara como hueco explícito para que el humano lo cierre con un "
-                "control compensatorio o lo acepte de forma justificada. El RAG amplía "
+                "control compensatorio o lo acepte de forma justificada. La recuperación amplía "
                 "cobertura, nunca la recorta: aquí no había nada que ampliar."
             ),
         )

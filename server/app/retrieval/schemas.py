@@ -45,6 +45,7 @@ from app.catalog.schemas import (
     Jurisdiction,
     MappingType,
 )
+from app.core.wording import say, say_all
 from app.engine.schemas import CapabilityGap, ZoneContext, ZoneDomain
 
 
@@ -108,17 +109,23 @@ class PayloadFilter(BaseModel):
         return active
 
     def describe(self) -> str:
-        """One line, in Spanish, for the operator and the log."""
+        """One line, in Spanish, for the operator and the log.
+
+        Written as a sentence rather than as the filter's literal shape: the set
+        notation and the bracketed enum lists this used to print (`jurisdicción ∈
+        ['US', 'EU']`) are the query, not what the query *means*, and the person
+        reading the trail is being asked to judge whether the lens was fair.
+        """
         if not self.is_active:
-            return "sin filtro de payload: la recuperación se hace sobre todo el índice"
+            return "sin filtro: la recuperación se hace sobre todo el catálogo indexado"
         parts: list[str] = []
         if self.jurisdictions:
-            parts.append(f"jurisdicción ∈ {[j.value for j in self.jurisdictions]}")
+            parts.append(f"solo jurisdicción {say_all(self.jurisdictions)}")
         if self.frameworks:
-            zone = f" (lectura {self.zone_domain.value})" if self.zone_domain else ""
-            parts.append(f"marco ∈ {[f.value for f in self.frameworks]}{zone}")
+            zone = f", en lectura {say(self.zone_domain)}" if self.zone_domain else ""
+            parts.append(f"solo los marcos {say_all(self.frameworks)}{zone}")
         if self.mapping_types:
-            parts.append(f"tipo de mapeo ∈ {[m.value for m in self.mapping_types]}")
+            parts.append(f"solo mapeos de tipo {say_all(self.mapping_types)}")
         return "; ".join(parts)
 
 

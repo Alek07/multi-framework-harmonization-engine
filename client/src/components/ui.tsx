@@ -6,6 +6,7 @@ export function Section({
   id,
   step,
   title,
+  hint,
   scope,
   dimmed,
   children,
@@ -13,6 +14,8 @@ export function Section({
   id: string
   step: number
   title: string
+  /** One sentence: what the operator does on this screen and why. */
+  hint?: string
   scope?: string
   dimmed?: boolean
   children: ReactNode
@@ -23,17 +26,25 @@ export function Section({
       className={`rounded-lg border border-line bg-surface px-7 py-6 ${dimmed ? 'opacity-60' : ''}`}
     >
       <div className="mb-1.5 flex flex-wrap items-baseline gap-2.5">
-        <span className="font-mono text-xs font-semibold text-ink-4">{step}</span>
+        <span className="rounded-sm bg-line-2 px-1.5 py-0.5 text-[10.5px] font-semibold text-ink-2">
+          Paso {step} de 5
+        </span>
         <h2 className="m-0 text-[17px] font-semibold">{title}</h2>
         {scope ? (
-          <span className="rounded-sm bg-[#eef0f2] px-[7px] py-0.5 font-mono text-[10px] font-medium text-ink-2">
+          <span className="rounded-sm bg-[#eef0f2] px-[7px] py-0.5 text-[10.5px] font-medium text-ink-2">
             {scope}
           </span>
         ) : null}
       </div>
+      {hint ? <p className="m-0 mb-4 text-[13px] leading-[1.55] text-ink-3">{hint}</p> : null}
       {children}
     </section>
   )
+}
+
+/** A quiet explanatory line under a control — never an error, never a status. */
+export function Hint({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <p className={`m-0 text-[11.5px] leading-[1.5] text-ink-4 ${className}`}>{children}</p>
 }
 
 export function Caps({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -44,20 +55,27 @@ export function Mono({ children, className = '' }: { children: ReactNode; classN
   return <span className={`font-mono ${className}`}>{children}</span>
 }
 
-/** A neutral identifier chip — control ids, versions, zone ids. */
+/**
+ * A small chip. Monospace by default because most of them carry an identifier;
+ * `prose` for the ones that carry words, where mono reads like a debug dump.
+ */
 export function Tag({
   children,
   className = 'bg-[#eef0f2] text-ink-2',
   title,
+  prose,
 }: {
   children: ReactNode
   className?: string
   title?: string
+  prose?: boolean
 }) {
   return (
     <span
       title={title}
-      className={`rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-medium ${className}`}
+      className={`rounded-sm px-1.5 py-0.5 text-[10px] font-medium ${
+        prose ? '' : 'font-mono'
+      } ${className}`}
     >
       {children}
     </span>

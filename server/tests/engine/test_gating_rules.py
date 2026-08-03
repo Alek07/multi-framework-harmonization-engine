@@ -151,4 +151,6 @@ def test_a_rule_whose_premises_do_not_hold_does_not_fire(gating_rules: GatingRul
 
 def test_an_unconditional_rule_still_states_its_ground(gating_rules: GatingRules) -> None:
     governance = next(r for r in gating_rules.rules if r.id == "GATE-SCOPE-GOVERNANCE")
-    assert governance.applies_when.evidence(ZONE, EMBEDDED) == ["applies_when=unconditional"]
+    assert governance.applies_when.evidence(ZONE, EMBEDDED) == [
+        "se aplica siempre, sin condición sobre el activo"
+    ]
