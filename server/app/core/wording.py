@@ -1,0 +1,118 @@
+"""How the engine's enum values are written in the Spanish text an operator reads.
+
+Every `rationale`, `decision` and `notice` the API returns is read by a human
+(language rule, CLAUDE.md §8). Interpolating an enum with `.value` put English
+snake_case identifiers — `no_effective_mechanism`, `coverage_weights`,
+`objective_without_mechanism` — inside otherwise-Spanish sentences. This module
+is the one lookup table that turns those into words.
+
+It is presentational and nothing else: it never decides, filters or orders. The
+identifiers stay the ones the ledger stores and the schemas declare; only the
+prose changes.
+
+Lookup is by the enum's *value* rather than by the enum type, deliberately: this
+module is imported by `engine`, `retrieval`, `baseline`, `delta` and `audit`, and
+importing every one of their schema modules back into `core` would close an
+import cycle for nothing.
+"""
+
+from collections.abc import Iterable
+from enum import Enum
+
+_WORDS: dict[str, str] = {
+    # --- zones (ZoneDomain) ---
+    "OT": "industrial (OT)",
+    "IT": "ofimático (IT)",
+    "HYBRID": "mixto IT/OT",
+    # --- conflicts (ConflictType, ResolutionMethod) ---
+    "overlap": "solape de alcance",
+    "granularity": "granularidad 1:N",
+    "contradiction": "contradicción real",
+    "collapsed": "colapso por capacidad",
+    "coverage_weights": "pesos de cobertura",
+    "framework_precedence": "precedencia de marco",
+    "safety_override": "override de seguridad de la planta",
+    # --- gaps (GapKind) ---
+    "no_candidate": "sin candidato",
+    "no_effective_mechanism": "sin mecanismo aplicable",
+    "partial_only": "solo cobertura parcial",
+    "residual_coverage": "cobertura residual",
+    # --- gating (GatingOutcome, CapabilityStatus) ---
+    "not_applicable": "no aplica",
+    "wrong_scope": "ámbito equivocado",
+    "objective_without_mechanism": "objetivo sin mecanismo",
+    "covered_by_mechanism": "cubierta por un mecanismo del activo",
+    "compensatory_required": "requiere control compensatorio",
+    "deferred_to_organizational_layer": "diferida a la capa organizativa",
+    # --- prioritisation (PriorityTier, OrdinalLevel, MandateSource) ---
+    "tier_0": "Tier 0",
+    "tier_1": "Tier 1",
+    "low": "baja",
+    "medium": "media",
+    "high": "alta",
+    "sl_target": "SL-objetivo de la zona",
+    "legal_obligation": "obligación legal",
+    # --- catalog (MappingType, ProvenanceSource, ControlType) ---
+    "total": "total",
+    "partial": "parcial",
+    "compensatory": "compensatorio",
+    "contextual": "contextual",
+    "official_crosswalk": "crosswalk oficial",
+    "author_judgment": "juicio del autor del catálogo",
+    "technical": "técnico",
+    "legal": "legal",
+    # --- retrieval (FilterAxis, RetrievalRelation, CandidateStatus) ---
+    "jurisdiction": "jurisdicción",
+    "zone": "zona",
+    "mapping_type": "tipo de mapeo",
+    "widens": "amplía la cobertura ofrecida",
+    "confirms_mapping": "confirma un mapeo del catálogo",
+    "eligible": "elegible",
+    "superseded": "apartado por una regla",
+    "contested": "en disputa",
+    # --- composition (ChoiceKind, SelectionOrigin) ---
+    "option_selected": "elección de un mecanismo",
+    "option_rejected": "descarte de un mecanismo",
+    "compensatory_declared": "declaración de un control compensatorio",
+    "gap_accepted": "aceptación de un hueco",
+    "catalog_mapping": "mapeo del catálogo",
+    "adopted_suggestion": "sugerencia adoptada",
+    # --- jurisdictions, where the raw value is not a word ---
+    "INTL-MARITIME": "internacional marítima",
+    "INTL": "internacional",
+    # --- the facts an explanation may lean on (EvidenceKey) ---
+    # `catalog_mapping`, `mapping_type` and `jurisdiction` are already above:
+    # `SelectionOrigin` and `FilterAxis` name the same things, and one word per
+    # concept is the point of the table.
+    "coverage_weight": "el peso de cobertura",
+    "mapping_provenance": "la procedencia del mapeo",
+    "neighbouring_mapping": "el mapeo a otra capacidad",
+    "similarity": "la similitud de texto",
+    "framework": "el marco",
+    "strength": "la exigencia declarada",
+    "control_text": "el texto del control",
+    "candidate_status": "lo que el núcleo dijo del candidato",
+    "zone_context": "la lectura de la zona",
+    # --- the asset premises a gating rule reads (TechNature) ---
+    "general_purpose_os": "sistema operativo de propósito general",
+    "networked": "conectado en red",
+    "hybrid_it_ot": "mezcla IT y OT",
+    "interactive_users": "usuarios que inician sesión",
+    "office_it_surface": "superficie ofimática",
+}
+
+
+def say(value: Enum | str) -> str:
+    """The Spanish words for one enum value, or the value itself if unmapped.
+
+    Falling back to the raw value rather than raising is deliberate: a new enum
+    member must never be able to break a response — the worst it can do is read
+    like an identifier for one release, which is visible and cheap to fix.
+    """
+    key = value.value if isinstance(value, Enum) else value
+    return _WORDS.get(str(key), str(key))
+
+
+def say_all(values: Iterable[Enum | str]) -> str:
+    """The same, over an iterable, joined for a sentence."""
+    return ", ".join(say(value) for value in values)

@@ -26,6 +26,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.assets.schemas import TechNature
 from app.catalog.schemas import Catalog
 from app.core.config import settings
+from app.core.wording import say
 from app.engine.rules import BACKEND_ROOT, RuleProvenance
 from app.engine.schemas import GatingOutcome, ZoneContext, ZoneDomain
 
@@ -73,13 +74,22 @@ class GatingCondition(BaseModel):
         human with an empty justification.
         """
         if not (self.domains or self.nature or self.safety_relevant is not None):
-            return ["applies_when=unconditional"]
+            return ["se aplica siempre, sin condición sobre el activo"]
 
-        found = [f"zone.domain={zone.domain.value}"] if self.domains else []
+        # Read as sentences rather than as the field paths they come from
+        # (`zone.domain=OT`, `nature.networked=true`): this list is the
+        # justification an operator is shown next to an excluded mechanism, and a
+        # justification written in schema paths cannot be judged.
+        found = [f"la zona es {say(zone.domain)}"] if self.domains else []
         if self.safety_relevant is not None:
-            found.append(f"zone.safety_relevant={str(zone.safety_relevant).lower()}")
+            found.append(
+                "la zona es relevante para la seguridad de las personas"
+                if zone.safety_relevant
+                else "la zona no es relevante para la seguridad de las personas"
+            )
         found.extend(
-            f"nature.{flag}={str(getattr(nature, flag)).lower()}" for flag in sorted(self.nature)
+            f"el activo {'tiene' if getattr(nature, flag) else 'no tiene'} {say(flag)}"
+            for flag in sorted(self.nature)
         )
         return found
 

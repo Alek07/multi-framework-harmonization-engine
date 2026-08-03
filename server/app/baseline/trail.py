@@ -36,6 +36,7 @@ from app.baseline.schemas import (
     SelectionOrigin,
     Signature,
 )
+from app.core.wording import say
 from app.engine.schemas import PriorityTier
 
 # The operator is the actor; this is the component that filed the entry for them.
@@ -135,7 +136,7 @@ def _ratified(
         ),
         rationale=(
             f"{signature.rationale} {RATIFICATION_NOTE} Estado del gating: "
-            f"{capability.status.value}; el mandato no figuraba entre los pendientes de la zona, "
+            f"{say(capability.status)}; el mandato no figuraba entre los pendientes de la zona, "
             "así que el motor lo daba por cubierto y la firma lo asume."
         ),
         zone_id=zone.zone_id,

@@ -36,6 +36,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 
 from app.assets.schemas import AssetProfile
 from app.audit.schemas import AuditEventRead, ChainVerification
+from app.core.wording import say
 from app.engine.schemas import CapabilityStatus, PriorityTier
 
 # Same rule as the ledger's: a justification is either written or the decision
@@ -87,13 +88,13 @@ class CompositionChoice(BaseModel):
         if self.kind is ChoiceKind.GAP_ACCEPTED:
             if self.control_id is not None:
                 raise ValueError(
-                    f"'{self.kind.value}' en {self.capability_id} nombra el control "
+                    f"La {say(self.kind)} en {self.capability_id} nombra el control "
                     f"'{self.control_id}': aceptar un hueco es aceptar que no hay mecanismo"
                 )
             return self
         if not self.control_id:
             raise ValueError(
-                f"'{self.kind.value}' en {self.capability_id} no dice sobre qué control decide"
+                f"La {say(self.kind)} en {self.capability_id} no dice sobre qué control decide"
             )
         return self
 
@@ -114,7 +115,9 @@ class ComposeRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    run_id: UUID = Field(description="Identificador de la ejecución devuelta por POST /candidates.")
+    run_id: UUID = Field(
+        description="Identificador de la ejecución del motor de la que salieron las opciones."
+    )
     profile: AssetProfile | None = Field(
         default=None, description="Perfil revisado. Excluyente con 'profile_id'."
     )

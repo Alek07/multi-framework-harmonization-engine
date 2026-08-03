@@ -56,6 +56,7 @@ from app.catalog.loader import get_catalog
 from app.catalog.schemas import Catalog
 from app.core.config import settings
 from app.core.exceptions import AppException, ConflictError
+from app.core.wording import say
 from app.engine.schemas import (
     CapabilityGating,
     CapabilityPriority,
@@ -162,7 +163,8 @@ class BaselineCompositionService:
             raise CompositionRequestError(
                 f"La bitácora no tiene ninguna ejecución con identificador '{request.run_id}'. "
                 "Una composición se encadena a la ejecución del motor de la que salieron las "
-                "opciones: obtenga una con POST /candidates."
+                "opciones: vuelva a pedir los candidatos del perfil y componga sobre esa "
+                "ejecución."
             )
 
         run_profile = recorded[0].profile_id
@@ -252,7 +254,7 @@ class BaselineCompositionService:
             key = (choice.zone_id, choice.capability_id, choice.kind.value, choice.control_id)
             if key in seen:
                 raise CompositionRequestError(
-                    f"La decisión '{choice.kind.value}' sobre {choice.capability_id} en "
+                    f"La decisión de {say(choice.kind)} sobre {choice.capability_id} en "
                     f"{choice.zone_id} está repetida. Una decisión repetida no es una decisión "
                     "distinta: registrarla dos veces haría ilegible la bitácora."
                 )
@@ -318,10 +320,9 @@ class BaselineCompositionService:
             raise CompositionConflictError(
                 "No se puede firmar: el bloque obligatorio está incompleto. Quedan "
                 f"{len(open_mandates)} mandato(s) sin cerrar — {', '.join(open_mandates)}. "
-                "Cada uno se cierra eligiendo un mecanismo ('option_selected'), declarando un "
-                "control compensatorio ('compensatory_declared') o aceptando el hueco por escrito "
-                "('gap_accepted'). Tier 0 no se prioriza: se completa, y nada obligatorio puede "
-                "quedar omitido en silencio."
+                "Cada uno se cierra de una de tres formas: eligiendo un mecanismo, declarando un "
+                "control compensatorio o aceptando el hueco por escrito. Tier 0 no se prioriza: "
+                "se completa, y nada obligatorio puede quedar omitido en silencio."
             )
 
     # --- assembling the signed baseline ---------------------------------------
@@ -470,8 +471,8 @@ class BaselineCompositionService:
             text = f"{where}: {', '.join(parts)} por decisión del humano."
             if capability.adopted_control_ids:
                 text += (
-                    f" {capability.adopted_control_ids} no está(n) mapeado(s) a esta capacidad "
-                    "en el catálogo: es una adopción de sugerencia, registrada como tal."
+                    f" {', '.join(capability.adopted_control_ids)} no está(n) mapeado(s) a esta "
+                    "capacidad en el catálogo: es una adopción de sugerencia, registrada como tal."
                 )
             if capability.outstanding:
                 text += " Cierra un mandato que el motor no podía cerrar solo."
@@ -484,7 +485,7 @@ class BaselineCompositionService:
             )
         return (
             f"{where}: sin mecanismo en la capa del activo, ratificado el cierre del motor "
-            f"({gating.status.value}). {gating.rationale}"
+            f"({say(gating.status)}). {gating.rationale}"
         )
 
     def _zone_rationale(
@@ -497,7 +498,7 @@ class BaselineCompositionService:
         ratified = sum(1 for c in composed if c.ratified_control_ids)
         gaps = sum(1 for c in composed if c.gap_accepted)
         return (
-            f"Zona {zone.zone.zone_id} ({zone.zone.domain.value}, SL-objetivo "
+            f"Zona {zone.zone.zone_id} ({say(zone.zone.domain)}, SL-objetivo "
             f"{zone.zone.target_sl}): bloque obligatorio completo con {len(zone.tier_0)} "
             f"capacidad(es). {decided} decidida(s) explícitamente por el humano, {ratified} "
             f"ratificada(s) al firmar, {gaps} hueco(s) aceptado(s) por escrito. "
@@ -525,9 +526,7 @@ class BaselineCompositionService:
     def _gating_exclusions(self, gating: ProfileGating) -> dict[tuple[str, str, str], str]:
         """(zone, capability, control) -> outcome, for the mechanisms gating ruled out."""
         return {
-            (decision.zone_id, decision.capability_id, decision.control_id): (
-                decision.outcome.value
-            )
+            (decision.zone_id, decision.capability_id, decision.control_id): say(decision.outcome)
             for decision in gating.decisions
         }
 

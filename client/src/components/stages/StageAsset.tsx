@@ -29,9 +29,9 @@ import {
   type NatureField,
   type ParseNote,
 } from '../../api/types'
-import { CONSEQUENCE_SCALE, NATURE } from '../../lib/labels'
+import { CASE_TYPE, CONSEQUENCE_SCALE, FR_MEANING, NATURE, fieldLabel } from '../../lib/labels'
 import { useComposition } from '../../state/composition'
-import { Caps, Notice, PrimaryButton, Section, Tag } from '../ui'
+import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../ui'
 
 const INPUT =
   'rounded-[5px] border border-line bg-surface-2 px-2.5 py-1.5 text-xs text-ink outline-accent'
@@ -40,20 +40,24 @@ function EvidenceList({ notes }: { notes: ParseNote[] }) {
   if (notes.length === 0) return null
   return (
     <div className="flex flex-col gap-1.5">
-      <Caps>Evidencia — de qué frase sale cada campo</Caps>
+      <Caps>De qué frase tuya sale cada dato</Caps>
+      <Hint className="mb-0.5">
+        «Lo dices tú» significa que la frase lo afirma literalmente. «Lo deduce» significa que el
+        asistente lo ha supuesto a partir del contexto: revísalo con especial atención.
+      </Hint>
       {notes.map((note, index) => (
         <div
           key={`${note.field}-${index}`}
           className="rounded-md border border-line-2 bg-surface-2 px-3 py-2 text-[11.5px] leading-[1.5]"
         >
           <div className="flex flex-wrap items-baseline gap-2">
-            <span className="font-mono text-[10.5px] font-semibold text-accent">{note.field}</span>
+            <span className="text-[11px] font-semibold text-accent">{fieldLabel(note.field)}</span>
             <Tag
               className={
                 note.kind === 'stated' ? 'bg-ok-tint text-ok-ink' : 'bg-warn-tint text-warn-ink'
               }
             >
-              {note.kind === 'stated' ? 'dicho' : 'inferido'}
+              {note.kind === 'stated' ? 'lo dices tú' : 'lo deduce el asistente'}
             </Tag>
           </div>
           <div className="mt-1 text-ink-3 italic">«{note.evidence}»</div>
@@ -89,13 +93,14 @@ function Identity({ draft }: { draft: AssetProfileDraft }) {
         />
       </div>
       <div>
-        <Caps className="mb-2">Caso</Caps>
+        <Caps className="mb-2">Tipo de activo</Caps>
         <div className="flex gap-1.5">
           {(['PURE_OT', 'HYBRID_IT_OT'] as CaseType[]).map((value) => (
             <button
               key={value}
               type="button"
               disabled={signed}
+              title={CASE_TYPE[value].note}
               onClick={() =>
                 patchDraft(
                   (next) => {
@@ -104,16 +109,17 @@ function Identity({ draft }: { draft: AssetProfileDraft }) {
                   { path: 'case', from: model?.case ?? '—', to: value },
                 )
               }
-              className={`cursor-pointer rounded-[5px] border px-3 py-1.5 font-mono text-[11px] font-semibold ${
+              className={`cursor-pointer rounded-[5px] border px-3 py-1.5 text-[11.5px] font-semibold ${
                 draft.case === value
                   ? 'border-accent bg-accent-tint text-accent'
                   : 'border-line bg-surface-2 text-ink-3'
               }`}
             >
-              {value}
+              {CASE_TYPE[value].label}
             </button>
           ))}
         </div>
+        <Hint className="mt-1.5">Determina qué marcos se consideran aplicables al activo.</Hint>
       </div>
     </div>
   )
@@ -125,8 +131,8 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
 
   return (
     <>
-      <div className="mb-2 flex items-baseline justify-between">
-        <Caps>Zonas y vector SL-T (clic en una celda para corregir)</Caps>
+      <div className="mb-1 flex items-baseline justify-between">
+        <Caps>Zonas y nivel de seguridad exigido</Caps>
         <button
           type="button"
           disabled={signed}
@@ -149,12 +155,28 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
           + añadir zona
         </button>
       </div>
+      <Hint className="mb-2.5">
+        Una zona es una parte del activo con un mismo nivel de exposición y de exigencia. El{' '}
+        <b>nivel objetivo</b> va de 1 (protección frente a errores casuales) a 4 (frente a un
+        atacante con muchos recursos y tiempo). Las siete columnas siguientes permiten afinar ese
+        nivel por familia de requisitos; si no lo sabes, déjalas como están. Pulsa una celda para
+        subir su valor; al pasar de 4 vuelve a «sin declarar».
+      </Hint>
 
       <div className="mb-4 grid items-center gap-1 text-xs [grid-template-columns:190px_54px_repeat(7,44px)_auto_28px]">
-        <span />
-        <span className="text-center font-mono text-[10.5px] font-semibold text-ink-4">SL-T</span>
+        <span className="text-[10.5px] font-semibold text-ink-4">Zona</span>
+        <span
+          title="Nivel de seguridad objetivo de la zona, de 1 a 4"
+          className="text-center text-[10.5px] font-semibold text-ink-4"
+        >
+          Nivel
+        </span>
         {FR_FIELDS.map((fr) => (
-          <span key={fr} className="text-center font-mono text-[10.5px] font-semibold text-ink-4">
+          <span
+            key={fr}
+            title={FR_MEANING[fr]}
+            className="cursor-help text-center text-[10.5px] font-semibold text-ink-4"
+          >
             {fr}
           </span>
         ))}
@@ -170,6 +192,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
               <input
                 value={zone.id}
                 disabled={signed}
+                title="Nombre corto de la zona; aparecerá en el registro de decisiones"
                 onChange={(event) =>
                   patchDraft((next) => {
                     next.zones[zoneIndex].id = event.target.value.toUpperCase()
@@ -181,7 +204,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
                 type="button"
                 disabled={signed}
                 onClick={() => correctTargetSL(zoneIndex, ((zone.target_sl ?? 0) % 4) + 1)}
-                title="SL objetivo de la zona (1–4)"
+                title="Nivel de seguridad objetivo de la zona, de 1 a 4. Pulsa para cambiarlo."
                 className={`h-[30px] cursor-pointer rounded-[5px] border font-mono text-[13px] font-semibold ${
                   corrected(`zones[${zone.id}].target_sl`)
                     ? 'border-accent bg-accent-tint text-accent'
@@ -198,6 +221,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
                     key={fr}
                     type="button"
                     disabled={signed}
+                    title={`${FR_MEANING[fr]} — nivel exigido en esta zona. Pulsa para cambiarlo.`}
                     onClick={() => correctSL(zoneIndex, fr)}
                     className={`h-[30px] cursor-pointer rounded-[5px] border font-mono text-[13px] font-semibold ${
                       mark
@@ -215,7 +239,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
               <button
                 type="button"
                 disabled={signed || draft.zones.length <= 1}
-                title="quitar zona"
+                title="Quitar esta zona"
                 onClick={() =>
                   patchDraft((next) => {
                     next.zones.splice(zoneIndex, 1)
@@ -260,7 +284,11 @@ function Criticality({ draft }: { draft: AssetProfileDraft }) {
 
   return (
     <>
-      <Caps className="mt-4 mb-2">Criticidad — consecuencia física</Caps>
+      <Caps className="mt-4 mb-1">Qué pasa en el mundo físico si esto falla</Caps>
+      <Hint className="mb-2">
+        No es la importancia del equipo, sino el daño real que se produciría: fuga, sobrepresión,
+        parada de servicio, riesgo para personas.
+      </Hint>
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-1.5">
           {(Object.keys(CONSEQUENCE_SCALE) as ConsequenceScale[]).map((scale) => (
@@ -279,11 +307,17 @@ function Criticality({ draft }: { draft: AssetProfileDraft }) {
             </button>
           ))}
           {corrections.some((c) => c.path === 'criticality.scale') ? (
-            <span className="text-[11px] font-semibold text-accent">◆ corregido</span>
+            <span className="text-[11px] font-semibold text-accent">◆ corregido por ti</span>
           ) : null}
         </div>
-        {text('physical_consequence', 'consecuencia física, p. ej. overpressure_rupture_leak')}
-        {text('threat_model', 'modelo de amenaza citado, p. ej. ATTACK_for_ICS')}
+        {text(
+          'physical_consequence',
+          'Consecuencia concreta, p. ej. «sobrepresión y rotura de línea con fuga de gas»',
+        )}
+        {text(
+          'threat_model',
+          'Modelo de amenaza de referencia, p. ej. «MITRE ATT&CK for ICS» (si no usas ninguno, indícalo)',
+        )}
       </div>
     </>
   )
@@ -294,8 +328,8 @@ function Conduits({ draft }: { draft: AssetProfileDraft }) {
 
   return (
     <>
-      <div className="mb-2 flex items-baseline justify-between">
-        <Caps>Conductos</Caps>
+      <div className="mb-1 flex items-baseline justify-between">
+        <Caps>Enlaces entre zonas</Caps>
         <button
           type="button"
           disabled={signed}
@@ -310,14 +344,19 @@ function Conduits({ draft }: { draft: AssetProfileDraft }) {
           }
           className="cursor-pointer rounded-[5px] border border-line-strong bg-transparent px-2.5 py-1 text-[11px] font-semibold text-ink-2 hover:border-accent hover:text-accent"
         >
-          + añadir conducto
+          + añadir enlace
         </button>
       </div>
+      <Hint className="mb-2">
+        Por dónde se comunican unas zonas con otras, y qué protege ese paso (cortafuegos, equipo de
+        salto, diodo de datos…).
+      </Hint>
 
       <div className="flex flex-col gap-1.5">
         {draft.conduits.length === 0 ? (
           <span className="text-xs text-ink-4">
-            El texto no describe ningún conducto. Un activo aislado es legítimo.
+            Tu descripción no menciona ningún enlace entre zonas. Un activo aislado es una respuesta
+            válida: no hace falta inventarse uno.
           </span>
         ) : null}
         {draft.conduits.map((conduit, index) => (
@@ -325,6 +364,7 @@ function Conduits({ draft }: { draft: AssetProfileDraft }) {
             <input
               value={conduit.id}
               disabled={signed}
+              title="Nombre corto del enlace"
               onChange={(event) =>
                 patchDraft((next) => {
                   next.conduits[index].id = event.target.value.toUpperCase()
@@ -335,7 +375,7 @@ function Conduits({ draft }: { draft: AssetProfileDraft }) {
             <input
               value={conduit.endpoints.join(', ')}
               disabled={signed}
-              placeholder="extremos, separados por comas"
+              placeholder="Zonas que conecta, separadas por comas"
               onChange={(event) =>
                 patchDraft((next) => {
                   next.conduits[index].endpoints = event.target.value
@@ -349,7 +389,7 @@ function Conduits({ draft }: { draft: AssetProfileDraft }) {
             <input
               value={conduit.control ?? ''}
               disabled={signed}
-              placeholder="control, p. ej. jump_host"
+              placeholder="Qué protege el paso, p. ej. «equipo de salto»"
               onChange={(event) =>
                 patchDraft((next) => {
                   next.conduits[index].control = event.target.value || null
@@ -360,7 +400,7 @@ function Conduits({ draft }: { draft: AssetProfileDraft }) {
             <button
               type="button"
               disabled={signed}
-              title="quitar conducto"
+              title="Quitar este enlace"
               onClick={() =>
                 patchDraft((next) => {
                   next.conduits.splice(index, 1)
@@ -382,10 +422,10 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
 
   return (
     <>
-      <p className="m-0 mb-4 text-[12.5px] text-ink-3">
+      <p className="m-0 mb-4 text-[12.5px] leading-[1.55] text-ink-3">
         {source === 'manual'
-          ? 'Perfil a mano: nada viene del modelo, todo lo declara el operador. La UI no valida semántica; comprueba que no falte nada.'
-          : 'Todo campo es editable. Un campo corregido queda marcado ◆ y viaja al motor dentro del AssetProfile de esta ejecución; el borrador del modelo no es nunca la entrada. La UI no valida semántica: comprueba que no falte nada.'}
+          ? 'Estás rellenando la ficha a mano: nada de lo que hay aquí lo ha propuesto el asistente. No se comprueba si los valores son acertados —eso lo decides tú—, solo que no falte ninguno.'
+          : 'Todo se puede cambiar. Lo que corrijas queda marcado con ◆ y es tu versión, no la del asistente, la que se usa para calcular. No se comprueba si los valores son acertados —eso lo decides tú—, solo que no falte ninguno.'}
       </p>
 
       <Identity draft={draft} />
@@ -393,18 +433,24 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
 
       <div className="grid grid-cols-2 gap-5">
         <div>
-          <Caps className="mb-2">Naturaleza del activo</Caps>
+          <Caps className="mb-1">Cómo es el activo por dentro</Caps>
+          <Hint className="mb-2">
+            Pulsa para alternar entre <b>sí</b>, <b>no</b> y <b>sin declarar</b>. Estas respuestas
+            deciden qué controles tienen sentido en este activo, así que dejar una sin declarar es
+            preferible a adivinarla.
+          </Hint>
           <div className="flex flex-wrap gap-1.5">
             {(Object.keys(NATURE) as NatureField[]).map((field) => {
               const value = draft.nature[field]
               const mark = corrections.some((c) => c.path === `nature.${field}`)
+              const state = value === true ? 'sí' : value === false ? 'no' : 'sin declarar'
               return (
                 <button
                   key={field}
                   type="button"
                   disabled={signed}
                   onClick={() => correctNature(field)}
-                  title="sí → no → sin declarar"
+                  title={`${NATURE[field].note} — ahora: ${state}`}
                   className={`cursor-pointer rounded-[5px] border px-2.5 py-1.5 text-xs font-semibold ${
                     mark ? 'border-accent' : 'border-line'
                   } ${
@@ -415,7 +461,7 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
                         : 'bg-surface-2 text-ink-5'
                   }`}
                 >
-                  {value === true ? '■' : value === false ? '□' : '·'} {NATURE[field]}{' '}
+                  {value === true ? '■' : value === false ? '□' : '·'} {NATURE[field].label}{' '}
                   {mark ? '◆' : ''}
                 </button>
               )
@@ -428,7 +474,10 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
           <Conduits draft={draft} />
           {draft.unmapped.length > 0 ? (
             <>
-              <Caps className="mt-4 mb-2">Sin sitio en el esquema — reportado, no descartado</Caps>
+              <Caps className="mt-4 mb-1">Lo que dijiste y no encaja en ningún campo</Caps>
+              <Hint className="mb-2">
+                No se ha descartado: queda aquí a la vista para que decidas si hace falta algo más.
+              </Hint>
               <ul className="m-0 flex list-none flex-col gap-1 p-0">
                 {draft.unmapped.map((statement, index) => (
                   <li
@@ -446,9 +495,17 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
 
       {missing.length > 0 ? (
         <div className="mt-4">
-          <Notice tone="warn" label="FALTA">
-            El perfil no está completo. Rellena estos campos antes de pedir candidatos:{' '}
-            <span className="font-mono text-[11.5px]">{missing.join(', ')}</span>
+          <Notice tone="warn" label="FALTAN DATOS">
+            <div className="mb-1.5">
+              Faltan {missing.length} dato(s) por rellenar antes de poder continuar. No se ponen
+              valores por defecto a propósito: un nivel de seguridad que nadie ha decidido produciría
+              una línea base que nadie ha decidido.
+            </div>
+            <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5 text-[12px]">
+              {missing.map((path) => (
+                <li key={path}>{fieldLabel(path)}</li>
+              ))}
+            </ul>
           </Notice>
         </div>
       ) : null}
@@ -478,25 +535,20 @@ export function StageAsset() {
       <Section
         id="s1"
         step={1}
-        title="El activo — descripción y perfil"
-        scope="activo completo — no depende de la zona"
+        title="Describe el activo con tus palabras"
+        hint="Cuenta qué es el activo, qué controla, cómo está conectado y quién lo usa. El asistente leerá tu texto y rellenará una ficha con lo que haya entendido, señalando de qué frase sale cada dato. No decide nada: solo lee."
+        scope="afecta a todo el activo"
       >
-        <p className="m-0 mb-4 text-[12.5px] text-ink-3">
-          Un único input: la descripción en texto libre. De aquí nace el{' '}
-          <span className="font-mono">AssetProfile</span> de esta baseline (
-          <span className="font-mono">POST /asset/parse</span>). El modelo extrae; no decide.
-        </p>
-
         <div className="grid grid-cols-2 items-start gap-5">
           <div className="flex flex-col gap-2.5">
-            <Caps>Descripción — texto libre</Caps>
+            <Caps>Tu descripción</Caps>
             {!descriptionLocked ? (
               <>
                 <textarea
                   value={description}
                   disabled={signed || parsing}
                   onChange={(event) => setDescription(event.target.value)}
-                  placeholder="Describe el activo: qué es, qué controla, cómo se conecta, quién lo toca…"
+                  placeholder="Por ejemplo: «Estación de regulación y medida de un gasoducto. Un PLC gobierna las válvulas de corte y un SCADA en Windows las supervisa desde la sala de control. El SCADA está en la red corporativa y el mantenimiento entra por VPN dos veces al mes. Una fuga afectaría a una zona habitada.»"
                   className="min-h-[220px] w-full resize-y rounded-md border border-line-strong bg-surface-2 px-3.5 py-3 text-[13.5px] leading-[1.6] text-ink outline-accent"
                 />
                 <div className="flex flex-wrap items-center gap-3.5">
@@ -505,7 +557,7 @@ export function StageAsset() {
                     disabled={signed || parsing || description.trim() === ''}
                     onClick={() => void runParse()}
                   >
-                    Extraer perfil · POST /asset/parse
+                    {parsing ? 'Analizando tu descripción…' : 'Analizar la descripción'}
                   </PrimaryButton>
                   <button
                     type="button"
@@ -513,12 +565,13 @@ export function StageAsset() {
                     onClick={startManualDraft}
                     className="cursor-pointer border-none bg-transparent p-0 text-[12.5px] text-accent underline disabled:opacity-50"
                   >
-                    introducir perfil a mano
+                    prefiero rellenar la ficha yo mismo
                   </button>
                 </div>
                 {parsing ? (
-                  <span className="animate-blink font-mono text-xs font-medium text-warn">
-                    el modelo está decodificando en CPU — esto tarda minutos
+                  <span className="animate-blink text-xs font-medium text-warn">
+                    El asistente se ejecuta en este equipo, sin enviar nada fuera. Por eso tarda
+                    unos minutos: puedes dejar la pestaña abierta.
                   </span>
                 ) : null}
               </>
@@ -534,47 +587,45 @@ export function StageAsset() {
                     onClick={unlockDescription}
                     className="cursor-pointer rounded-[5px] border border-line-strong bg-transparent px-3 py-1.5 text-xs font-semibold text-ink-2 hover:border-accent hover:text-accent"
                   >
-                    editar descripción
+                    Editar la descripción
                   </button>
                   <span className="text-[11px] text-ink-4">
-                    editarla invalida el perfil extraído hasta volver a parsear
+                    Si la cambias, tendrás que volver a analizarla para actualizar la ficha.
                   </span>
                 </div>
               </>
             )}
 
             {parseError ? (
-              <Notice tone="alert" label="PARSE">
+              <Notice tone="alert" label="NO SE PUDO ANALIZAR">
                 {parseError}
               </Notice>
             ) : null}
           </div>
 
           <div className="flex flex-col gap-2">
-            <Caps>
-              AssetProfile — borrador extraído por{' '}
-              {parseResult?.provenance.model ?? 'el modelo local'}
-            </Caps>
+            <Caps>Lo que el asistente ha entendido</Caps>
             {!draft ? (
-              <div className="rounded-md border border-dashed border-line-strong px-4 py-7 text-center text-[12.5px] text-ink-4">
-                El borrador aparecerá aquí campo a campo, con la frase de la que sale cada valor.
+              <div className="rounded-md border border-dashed border-line-strong px-4 py-7 text-center text-[12.5px] leading-[1.5] text-ink-4">
+                Aquí aparecerá, dato a dato, lo que el asistente haya sacado de tu texto, junto con
+                la frase concreta de la que sale cada uno.
               </div>
             ) : null}
             {draft && source === 'manual' ? (
-              <div className="rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px] text-ink-3">
-                Perfil a mano: el modelo no ha intervenido, así que no hay evidencia que mostrar.
-                Rellena los campos abajo; lo que falte se lista en rojo.
+              <div className="rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px] leading-[1.5] text-ink-3">
+                Estás rellenando la ficha a mano, así que no hay nada que el asistente haya
+                interpretado. Complétala abajo: lo que falte se avisa al final.
               </div>
             ) : null}
             {parseResult ? (
               <>
                 <div className="flex flex-wrap gap-1">
-                  <Tag>{parseResult.profile_id}</Tag>
-                  <Tag>{parseResult.provenance.attempts} intento(s)</Tag>
-                  <Tag title="SHA-256 del texto de origen">
-                    src:{parseResult.provenance.source_sha256.slice(0, 8)}
+                  <Tag className="bg-warn-tint text-warn-ink">
+                    revísalo antes de seguir
                   </Tag>
-                  <Tag className="bg-warn-tint text-warn-ink">revisión humana obligatoria</Tag>
+                  <Tag title="Identificador con el que este activo aparecerá en el registro de decisiones">
+                    {parseResult.profile_id}
+                  </Tag>
                 </div>
                 {draft ? <EvidenceList notes={draft.notes} /> : null}
               </>
@@ -586,20 +637,23 @@ export function StageAsset() {
       <Section
         id="s2"
         step={1}
-        title="Revisión y corrección — el humano decide"
-        scope="activo completo — no depende de la zona"
+        title="Revisa y corrige la ficha"
+        hint="Manda lo que tú dejes escrito aquí. Corrige lo que el asistente haya entendido mal y completa lo que falte: a partir de esta ficha se calculan todos los controles del paso siguiente."
+        scope="afecta a todo el activo"
       >
         {draft ? (
           <Review draft={draft} />
         ) : (
           <p className="m-0 text-[13px] text-ink-4">
-            Pendiente: describe el activo y extrae el perfil, o introdúcelo a mano.
+            Primero describe el activo arriba y pulsa «Analizar la descripción», o elige rellenar la
+            ficha tú mismo.
           </p>
         )}
         {profile ? (
-          <div className="mt-4 text-[11.5px] text-ink-4">
-            Perfil listo: <span className="font-mono">{profile.id}</span> · {profile.zones.length}{' '}
-            zona(s) · caso <span className="font-mono">{profile.case}</span>
+          <div className="mt-4 rounded-md border border-ok-line bg-ok-tint px-3.5 py-2.5 text-[12.5px] text-ok-ink">
+            ✓ La ficha está completa: {profile.zones.length} zona(s) · tipo{' '}
+            {CASE_TYPE[profile.case].label}. Ya puedes pasar al paso 2 y ver los controles
+            disponibles.
           </div>
         ) : null}
       </Section>

@@ -2,19 +2,71 @@
  * Etapa 2 — candidates: the central contribution, on screen.
  *
  * A crosswalk translates (A ≈ B). What this stage shows is every equivalent
- * option for a capability *in this zone* — framework, jurisdiction, strength,
- * mapping type, coverage weight, tier — next to each other, with the engine's
- * reason for each one and no recommendation attached. Underneath, the gating
- * panel: what was left out of this zone and why, which is a deliverable of the
- * baseline rather than noise.
+ * option for a requirement *in this zone* — framework, jurisdiction, strength,
+ * how much it covers, where the equivalence comes from — next to each other,
+ * with the engine's reason for each one and no recommendation attached.
+ * Underneath, what was left out of this zone and why, which is a deliverable of
+ * the baseline rather than noise.
+ *
+ * The copy names things the way the operator does: requisito, control, nivel.
+ * The engine's own vocabulary (`mapping_type`, `tier_0`, rule ids) lives in the
+ * label maps and in tooltips, never in a visible label.
  */
 
 import { useEffect } from 'react'
 
-import { GATING_OUTCOME, RETRIEVAL_STATUS, ZONE_DOMAIN } from '../../lib/labels'
+import {
+  GATING_OUTCOME,
+  MAPPING_TYPE,
+  PROVENANCE,
+  RETRIEVAL_STATUS,
+  TIER,
+  ZONE_DOMAIN,
+} from '../../lib/labels'
 import { useActiveZone, useComposition } from '../../state/composition'
 import { CapabilityCard } from '../candidates/CapabilityCard'
-import { Caps, Notice, PrimaryButton, Section, Tag } from '../ui'
+import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../ui'
+
+/** Read once, and the rest of the screen becomes readable. */
+function Legend() {
+  return (
+    <div className="mb-4 rounded-md border border-line-2 bg-surface-2 px-3.5 py-3">
+      <Caps className="mb-2">Cómo leer las opciones</Caps>
+      <div className="grid gap-x-6 gap-y-1.5 text-[11.5px] leading-[1.5] text-ink-3 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
+        {(['total', 'partial', 'compensatory', 'contextual'] as const).map((type) => (
+          <div key={type}>
+            <span className="mr-1.5 text-accent">{MAPPING_TYPE[type].glyph}</span>
+            <b>{MAPPING_TYPE[type].label}</b> — {MAPPING_TYPE[type].note}
+          </div>
+        ))}
+        <div>
+          <span className="mr-1.5 inline-block h-2.5 w-4 rounded-[2px] border border-solid border-[#7d7466] align-middle" />
+          <b>{PROVENANCE.official_crosswalk.label}</b> — {PROVENANCE.official_crosswalk.note}
+        </div>
+        <div>
+          <span className="mr-1.5 inline-block h-2.5 w-4 rounded-[2px] border border-dashed border-[#b5ad9d] align-middle" />
+          <b>{PROVENANCE.author_judgment.label}</b> — {PROVENANCE.author_judgment.note}
+        </div>
+        <div>
+          <span className="mr-1.5 rounded-sm bg-ink px-1.5 py-0.5 text-[9.5px] font-bold text-white">
+            {TIER.tier_0.label}
+          </span>
+          {TIER.tier_0.note}
+        </div>
+        <div>
+          <span className="mr-1.5 rounded-sm border border-ink-5 px-1.5 py-0.5 text-[9.5px] font-bold text-ink-2">
+            {TIER.tier_1.label}
+          </span>
+          {TIER.tier_1.note}
+        </div>
+      </div>
+      <Hint className="mt-2.5">
+        Las opciones no vienen ordenadas por «cuál es mejor», ni se oculta ninguna: se agrupan por
+        cuánto cubren y, dentro de cada grupo, por marco. La elección es tuya.
+      </Hint>
+    </div>
+  )
+}
 
 function GatingPanel() {
   const zone = useActiveZone()
@@ -24,12 +76,15 @@ function GatingPanel() {
 
   return (
     <div className="mt-6 border-t border-line-2 pt-4">
-      <Caps className="mb-2.5">
-        Gating de la zona {zone.zone.zone_id} — exclusiones justificadas (entregable, no ruido)
-      </Caps>
+      <Caps className="mb-1">Controles descartados en esta zona, y por qué</Caps>
+      <Hint className="mb-2.5">
+        Esta lista forma parte del entregable: justifica ante un auditor por qué un control del
+        catálogo no aparece en la línea base. Descartar un <b>control</b> nunca elimina el{' '}
+        <b>requisito</b> que había detrás.
+      </Hint>
       {decisions.length === 0 ? (
         <p className="m-0 text-[12.5px] text-ink-4">
-          Ninguna regla de gating excluyó un mecanismo en esta zona.
+          En esta zona no se ha descartado ningún control: todos los del catálogo son aplicables.
         </p>
       ) : (
         <div className="flex flex-col gap-1.5">
@@ -46,19 +101,21 @@ function GatingPanel() {
                   {decision.control_id}
                 </span>
                 <span
-                  className={`flex-none rounded-sm px-[7px] py-0.5 font-mono text-[10px] font-semibold ${outcome.className}`}
+                  title={outcome.note}
+                  className={`flex-none cursor-help rounded-sm px-[7px] py-0.5 text-[10px] font-semibold ${outcome.className}`}
                 >
                   {outcome.label}
                 </span>
-                <span className="text-ink-3">
-                  {decision.capability_id} · {decision.rationale}
-                </span>
+                <span className="text-ink-3">{decision.rationale}</span>
                 {decision.evidence.length > 0 ? (
-                  <span className="font-mono text-[10px] text-ink-4">
-                    {decision.evidence.join(' · ')}
+                  <span
+                    title="En qué se basa la exclusión"
+                    className="text-[11px] text-ink-4"
+                  >
+                    ({decision.evidence.join(' · ')})
                   </span>
                 ) : null}
-                <Tag title="regla de gating declarada">{decision.rule_id}</Tag>
+                <Tag title={`Regla aplicada: ${decision.rule_id}`}>regla documentada</Tag>
               </div>
             )
           })}
@@ -74,9 +131,11 @@ function Roadmap() {
 
   return (
     <div className="mt-6 border-t border-line-2 pt-4">
-      <Caps className="mb-2.5">
-        Hoja de ruta por fases — la fase 0 es el bloque obligatorio y no es un ranking
-      </Caps>
+      <Caps className="mb-1">Plan de implantación por fases</Caps>
+      <Hint className="mb-2.5">
+        En qué orden conviene abordar el trabajo. La primera fase es el bloque obligatorio: no es
+        una clasificación de importancia, es lo que tiene que estar completo.
+      </Hint>
       <div className="flex flex-col gap-1.5">
         {zone.phases.map((phase) => (
           <div
@@ -84,10 +143,13 @@ function Roadmap() {
             className="rounded-[5px] border border-line-2 bg-surface-2 px-3 py-2 text-[12.5px]"
           >
             <div className="flex flex-wrap items-baseline gap-2">
-              <span className="font-mono text-[11px] font-semibold">fase {phase.index}</span>
+              <span className="text-[11.5px] font-semibold">Fase {phase.index + 1}</span>
               <span className="font-semibold">{phase.name}</span>
-              <Tag className={phase.tier === 'tier_0' ? 'bg-ink text-white' : 'bg-[#eef0f2] text-ink-2'}>
-                {phase.tier === 'tier_0' ? 'T0' : 'T1'}
+              <Tag
+                title={TIER[phase.tier].note}
+                className={phase.tier === 'tier_0' ? 'bg-ink text-white' : 'bg-[#eef0f2] text-ink-2'}
+              >
+                {TIER[phase.tier].label}
               </Tag>
             </div>
             <div className="mt-1 font-mono text-[11px] text-ink-3">
@@ -132,10 +194,10 @@ export function StageCandidates() {
 
   if (!ready) {
     return (
-      <Section id="s3" step={2} title="Candidatos por capacidad">
+      <Section id="s3" step={2} title="Elige los controles de cada requisito">
         <p className="m-0 text-[13px] text-ink-4">
-          Pendiente: la etapa 1 tiene que dejar un perfil.{' '}
-          {missing.length > 0 ? `Faltan ${missing.length} campo(s) del borrador.` : ''}
+          Antes hay que completar la ficha del activo en el paso 1.
+          {missing.length > 0 ? ` Todavía faltan ${missing.length} dato(s).` : ''}
         </p>
       </Section>
     )
@@ -145,30 +207,28 @@ export function StageCandidates() {
     <Section
       id="s3"
       step={2}
-      title="Candidatos por capacidad"
+      title="Elige los controles de cada requisito"
+      hint="Para cada requisito de esta zona verás, unas al lado de otras, todas las opciones equivalentes que ofrecen los distintos marcos. Marca la que vas a implantar y escribe por qué: esa razón es la que quedará registrada."
       scope={zone ? `${ZONE_DOMAIN[zone.zone.domain]} · ${zone.zone.zone_id}` : undefined}
     >
       {zone ? (
-        <div className="m-0 mb-2.5 text-xs text-ink-3 italic">{zone.zone.derivation}</div>
+        <div className="m-0 mb-3 rounded-md border border-line-2 bg-surface-2 px-3.5 py-2.5 text-[12px] leading-[1.5] text-ink-3">
+          <b>Por qué esta zona es así:</b> {zone.zone.derivation}
+        </div>
       ) : null}
 
-      <p className="m-0 mb-3.5 text-[12.5px] text-ink-3">
-        Orden determinista: <span className="font-mono">mapping_type</span> (total → partial →
-        compensatory → contextual) y, dentro, marco en el orden fijo del catálogo. Nada se ordena
-        por «mejor». Borde <b>sólido</b> = crosswalk oficial · borde <b>punteado</b> = juicio del
-        autor.
-      </p>
+      <Legend />
 
       {candidatesLoading ? (
-        <p className="m-0 font-mono text-xs text-ink-4">
-          ejecutando el núcleo determinista y la pasada de recuperación… la primera consulta de
-          cada arranque carga el modelo de embeddings (~1,1 GB) y tarda más que las siguientes.
-        </p>
+        <Notice tone="muted">
+          Calculando las opciones de cada requisito. La primera vez después de arrancar el sistema
+          tarda más porque se cargan los datos de búsqueda; las siguientes son cuestión de segundos.
+        </Notice>
       ) : null}
 
       {candidatesError ? (
         <div className="mb-3.5">
-          <Notice tone="alert" label="MOTOR">
+          <Notice tone="alert" label="NO SE PUDO CALCULAR">
             {candidatesError}{' '}
             <button
               type="button"
@@ -184,9 +244,10 @@ export function StageCandidates() {
       {candidates && candidates.retrieval.status !== 'ok' ? (
         <div className="mb-3.5">
           <Notice tone="muted">
-            {RETRIEVAL_STATUS[candidates.retrieval.status]} —{' '}
-            {candidates.retrieval.notice ?? ''} Se muestran los candidatos deterministas del
-            catálogo. El flujo continúa: la recuperación solo amplía, nunca restringe.
+            {RETRIEVAL_STATUS[candidates.retrieval.status]}
+            {candidates.retrieval.notice ? ` — ${candidates.retrieval.notice}` : ''} Se muestran
+            igualmente todas las opciones del catálogo: la búsqueda solo sirve para <i>añadir</i>{' '}
+            sugerencias, nunca para quitar opciones. Puedes continuar con normalidad.
           </Notice>
         </div>
       ) : null}
@@ -201,14 +262,12 @@ export function StageCandidates() {
         <>
           {zone.outstanding_capability_ids.length > 0 ? (
             <div className="mb-3.5">
-              <Notice tone="warn" label="TIER 0">
-                El motor no pudo cerrar por sí solo{' '}
-                {zone.outstanding_capability_ids.length} mandato(s) de esta zona:{' '}
-                <span className="font-mono">
-                  {zone.outstanding_capability_ids.join(', ')}
-                </span>
-                . Se cierran eligiendo un mecanismo, declarando uno compensatorio o aceptando el
-                hueco por escrito.
+              <Notice tone="warn" label="TE TOCA DECIDIR">
+                Hay {zone.outstanding_capability_ids.length} requisito(s) obligatorio(s) de esta
+                zona que el sistema no puede cerrar por sí solo:{' '}
+                <span className="font-mono">{zone.outstanding_capability_ids.join(', ')}</span>. Se
+                cierran de una de estas tres formas: eligiendo un control, declarando una medida
+                compensatoria, o aceptando por escrito que quedará sin cubrir.
               </Notice>
             </div>
           ) : null}
@@ -228,15 +287,13 @@ export function StageCandidates() {
           <GatingPanel />
           <Roadmap />
 
-          <div className="mt-6 flex items-center gap-3 border-t border-line-2 pt-4">
+          <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-line-2 pt-4">
             <PrimaryButton onClick={() => void loadCandidates()}>
-              Recalcular candidatos · POST /candidates
+              Volver a calcular las opciones
             </PrimaryButton>
-            <span className="text-[11.5px] text-ink-4">
-              Cada ejecución escribe sus decisiones en la bitácora ({candidates?.audit_events ?? 0}{' '}
-              eventos en la última) y devuelve un{' '}
-              <span className="font-mono">run_id</span> nuevo:{' '}
-              <span className="font-mono">{candidates?.run_id.slice(0, 8)}</span>.
+            <span className="max-w-[560px] text-[11.5px] leading-[1.5] text-ink-4">
+              Tus decisiones no se pierden al recalcular. Cada cálculo queda anotado en el registro
+              del paso 5 ({candidates?.audit_events ?? 0} anotaciones en el último).
             </span>
           </div>
         </>

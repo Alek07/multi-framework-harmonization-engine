@@ -12,6 +12,7 @@
 
 import { useState } from 'react'
 
+import { CHOICE_KIND } from '../lib/labels'
 import { useComposition } from '../state/composition'
 import { Checkbox, PrimaryButton } from './ui'
 
@@ -45,19 +46,20 @@ export function SignDialog({ open, onClose }: { open: boolean; onClose: () => vo
         aria-label="Firmar baseline"
         className="w-full max-w-[560px] rounded-[10px] bg-surface px-7 py-6 shadow-[0_20px_60px_rgba(24,34,48,.3)]"
       >
-        <h3 className="m-0 mb-1 text-base font-semibold">Firmar baseline</h3>
-        <p className="m-0 mb-3.5 text-[12.5px] text-ink-3">
-          Resumen no editable de lo que se va a registrar:
+        <h3 className="m-0 mb-1 text-base font-semibold">Firmar la línea base</h3>
+        <p className="m-0 mb-3.5 text-[12.5px] leading-[1.5] text-ink-3">
+          Esto es lo que va a quedar registrado con tu nombre. No se puede editar desde aquí: si
+          algo no cuadra, cierra este cuadro y corrígelo en el paso 2.
         </p>
 
         <div className="mb-4 grid grid-cols-2 gap-2 rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px]">
-          <Row label="Mecanismos elegidos" value={count('option_selected')} />
-          <Row label="Controles compensatorios declarados" value={count('compensatory_declared')} />
-          <Row label="Opciones descartadas (conflictos)" value={count('option_rejected')} />
-          <Row label="Huecos aceptados" value={count('gap_accepted')} />
-          <Row label="Correcciones al perfil" value={corrections.length} />
+          <Row label={CHOICE_KIND.option_selected} value={count('option_selected')} />
+          <Row label={CHOICE_KIND.compensatory_declared} value={count('compensatory_declared')} />
+          <Row label={CHOICE_KIND.option_rejected} value={count('option_rejected')} />
+          <Row label={CHOICE_KIND.gap_accepted} value={count('gap_accepted')} />
+          <Row label="Correcciones a la ficha del activo" value={corrections.length} />
           <Row
-            label="Tier 0 (mandatos cerrados)"
+            label="Requisitos obligatorios decididos"
             value={`${progress.tier0Done}/${progress.tier0Total}`}
           />
         </div>
@@ -66,13 +68,13 @@ export function SignDialog({ open, onClose }: { open: boolean; onClose: () => vo
           <input
             value={operator}
             onChange={(event) => setOperator(event.target.value)}
-            placeholder="Nombre del firmante"
+            placeholder="Tu nombre y apellidos"
             className="rounded-[5px] border border-line-strong px-2.5 py-2 text-[13px] outline-accent"
           />
           <input
             value={role}
             onChange={(event) => setRole(event.target.value)}
-            placeholder="Rol"
+            placeholder="Tu cargo o responsabilidad"
             className="rounded-[5px] border border-line-strong px-2.5 py-2 text-[13px] outline-accent"
           />
         </div>
@@ -80,18 +82,19 @@ export function SignDialog({ open, onClose }: { open: boolean; onClose: () => vo
         <textarea
           value={rationale}
           onChange={(event) => setRationale(event.target.value)}
-          placeholder="Por qué esta línea base es la adecuada para el activo y sus zonas…"
+          placeholder="Explica por qué esta línea base es la adecuada para este activo y sus zonas. Es la justificación global de la firma…"
           className="mb-3 min-h-[64px] w-full resize-y rounded-[5px] border border-line-strong px-2.5 py-2 text-[13px] outline-accent"
         />
 
-        <label className="mb-4 flex cursor-pointer items-start gap-2.5 text-[12.5px] text-ink-2">
+        <label className="mb-4 flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-[1.5] text-ink-2">
           <Checkbox
             checked={accepted}
             onClick={() => setAccepted(!accepted)}
-            label="acepto que las decisiones queden registradas de forma inmutable"
+            label="acepto que las decisiones queden registradas de forma permanente"
           />
-          Declaro que he revisado las elecciones, los huecos aceptados y los conflictos resueltos, y
-          acepto que queden registrados de forma inmutable.
+          He revisado los controles que he elegido, los requisitos que quedan sin cubrir y los
+          conflictos que he resuelto. Entiendo que, una vez firmado, el registro no se puede
+          modificar ni borrar.
         </label>
 
         {signError ? (
@@ -106,7 +109,7 @@ export function SignDialog({ open, onClose }: { open: boolean; onClose: () => vo
             onClick={onClose}
             className="cursor-pointer rounded-md border border-line-strong bg-transparent px-4 py-2 text-[13px] text-ink-2 hover:border-ink hover:text-ink"
           >
-            Cancelar
+            Volver sin firmar
           </button>
           <PrimaryButton
             testId="confirm-sign"
@@ -124,7 +127,7 @@ export function SignDialog({ open, onClose }: { open: boolean; onClose: () => vo
               })
             }}
           >
-            {signing ? 'Firmando…' : 'Firmar y registrar'}
+            {signing ? 'Firmando…' : 'Firmar y dejar constancia'}
           </PrimaryButton>
         </div>
       </div>

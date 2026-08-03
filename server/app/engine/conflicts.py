@@ -19,6 +19,7 @@ declared rules and deterministic tie-breakers, never from list position.
 from __future__ import annotations
 
 from app.catalog.schemas import Capability, MappingType
+from app.core.wording import say
 from app.engine.rules import Contradiction, ResolutionStrategy, RuleSet
 from app.engine.schemas import (
     CandidateOption,
@@ -110,7 +111,7 @@ def _apply_framework_precedence(
         option.status = CandidateStatus.SUPERSEDED
         option.rule_id = rule.id
         option.status_reason = (
-            f"No prevalece en la zona {zone.zone_id} (dominio {zone.domain.value}): "
+            f"No prevalece en la zona {zone.zone_id} (dominio {say(zone.domain)}): "
             f"la precedencia declarada sitúa {prevailing.framework.value} por delante de "
             f"{option.framework.value}. Se mantiene visible como alternativa descartada, "
             "no se elimina."
@@ -118,7 +119,7 @@ def _apply_framework_precedence(
     prevailing.rule_id = rule.id
     prevailing.status_reason = (
         f"Prevalece en la zona {zone.zone_id} por precedencia de contexto "
-        f"({zone.domain.value}), no por ser el control más exigente."
+        f"({say(zone.domain)}), no por ser el control más exigente."
     )
 
     return Conflict(
@@ -217,7 +218,7 @@ def _detect_granularity(
         return []
 
     detail = ", ".join(
-        f"{o.control.official_id} ({o.mapping_type.value}, cobertura {o.coverage_weight})"
+        f"{o.control.official_id} (mapeo {say(o.mapping_type)}, cobertura {o.coverage_weight})"
         for o in sorted(pieces, key=lambda o: o.control_id)
     )
     return [

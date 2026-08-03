@@ -85,20 +85,24 @@ class CandidatesRequest(BaseModel):
     retrieval: bool = Field(
         default=True,
         description=(
-            "Ejecutar la pasada RAG (UCM-13). Desactivarla no recorta la línea base: deja "
-            "solo los candidatos del catálogo y se declara en 'retrieval.status'."
+            "Ejecutar la búsqueda de controles similares. Desactivarla no recorta la línea "
+            "base: deja solo los candidatos del catálogo, y la respuesta lo declara."
         ),
     )
     lens: PayloadFilter | None = Field(
         default=None,
         description=(
-            "Lente declarada sobre el índice (jurisdicción, marco, tipo de mapeo). El motor "
-            "nunca la aplica por iniciativa propia; lo que aparta se devuelve en 'set_aside'."
+            "Lente declarada sobre la búsqueda (jurisdicción, marco, tipo de mapeo). El motor "
+            "nunca la aplica por iniciativa propia, y lo que aparta se devuelve igualmente, "
+            "marcado como apartado."
         ),
     )
     explain: ExplainScope | None = Field(
         default=None,
-        description="Capacidades a explicar con el LLM (UCM-14). Presentacional, opcional.",
+        description=(
+            "Capacidades para las que se pide una explicación del asistente. Es presentacional "
+            "y opcional: no altera el orden ni la selección."
+        ),
     )
 
 

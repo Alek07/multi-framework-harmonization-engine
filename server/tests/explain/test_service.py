@@ -130,7 +130,7 @@ async def test_an_ungrounded_citation_is_withheld(case: Case) -> None:
 
     explanation = result.explanation(suggestion.control_id)
     assert explanation.status is ExplanationStatus.WITHHELD
-    assert explanation.notice and "catalog_mapping" in explanation.notice
+    assert explanation.notice and "mapeo del catálogo" in explanation.notice
     assert explanation.text == suggestion.fallback
 
 
@@ -233,7 +233,11 @@ async def test_a_provider_that_raises_costs_the_prose_and_nothing_else(case: Cas
 
     assert result.offered_control_ids == case.offered
     assert all(e.status is ExplanationStatus.UNAVAILABLE for e in result.explanations)
-    assert result.provenance.notice and "se cayó" in result.provenance.notice
+    # The operator is told the paragraph is missing, not *how* the provider broke:
+    # the exception's own text is written for whoever reads the logs.
+    assert result.provenance.notice and "No se pudo generar" in result.provenance.notice
+    assert "se cayó" not in result.provenance.notice
+    assert "RuntimeError" not in result.provenance.notice
 
 
 # --- switched off, and nothing to explain -------------------------------------

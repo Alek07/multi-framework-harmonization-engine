@@ -36,6 +36,7 @@ from app.assets.schemas import AssetProfile, Zone
 from app.catalog.loader import get_catalog
 from app.catalog.schemas import Capability, Catalog, Framework, Jurisdiction, MappingType
 from app.core.exceptions import AppException
+from app.core.wording import say, say_all
 from app.delta.schemas import (
     CapabilityDelta,
     CapabilityRegionView,
@@ -159,13 +160,15 @@ class RegionalDeltaService:
         mappings, and the lens is what makes it auditable.
         """
         label = self._label(region, index)
+        offered = sorted(allowed, key=lambda jurisdiction: jurisdiction.value)
         return PayloadFilter(
             jurisdictions=[j for j in Jurisdiction if j in allowed],
             rationale=(
                 f"Lectura «{label}»: se ofrecen los controles de jurisdicción "
-                f"{sorted(j.value for j in allowed)}. Las lecturas son acumulativas — "
-                "«+EU» es la lectura estadounidense más la capa de obligación europea, no un "
-                "catálogo paralelo. Lo que esta lente aparta se devuelve en 'set_aside'."
+                f"{say_all(offered)}. Las lecturas son "
+                "acumulativas — «+EU» es la lectura estadounidense más la capa de obligación "
+                "europea, no un catálogo paralelo. Lo que esta lente aparta se devuelve "
+                "igualmente, marcado como apartado: apartar no es descartar."
             ),
         )
 
@@ -295,7 +298,7 @@ class RegionalDeltaService:
         else:
             rationale = (
                 f"{control.official_id} ({control.framework.value}, {control.jurisdiction.value}) "
-                f"añade mecanismo: mapeo {option.mapping_type.value} de peso "
+                f"añade mecanismo: mapeo {say(option.mapping_type)} de peso "
                 f"{option.coverage_weight} sobre «{resolution.capability.name}». La lectura "
                 f"anterior no lo ofrecía. Exigencia declarada: «{control.strength}»."
             )
@@ -389,7 +392,7 @@ class RegionalDeltaService:
             1 for c in capabilities if c.changed and not c.changes_coverage
         )
         return (
-            f"Delta regional sobre {zone.zone_id} ({zone.domain.value}, SL-objetivo "
+            f"Delta regional sobre {zone.zone_id} ({say(zone.domain)}, SL-objetivo "
             f"{zone.target_sl}), lecturas {labels}: {len(changed)} de "
             f"{len(capabilities)} capacidades cambian y en {len(gaps)} el hueco depende de la "
             f"región. De las que cambian, {obligations} lo hacen añadiendo obligación sin mover "
@@ -398,8 +401,8 @@ class RegionalDeltaService:
             "núcleo por cobertura parcial o residual vienen del terreno común y salen iguales "
             "en todas las lecturas: se muestran por lectura, pero no se cuentan como "
             "regionales. Las lecturas son acumulativas: «+EU» es la lectura anterior más la "
-            "capa europea, nunca un catálogo paralelo. Una sola zona por consulta; N zonas son "
-            "trabajo futuro declarado."
+            "capa europea, nunca un catálogo paralelo. La comparación se hace sobre una sola "
+            "zona: para el resto del activo, repítala zona a zona."
         )
 
     # --- catalog facts --------------------------------------------------------

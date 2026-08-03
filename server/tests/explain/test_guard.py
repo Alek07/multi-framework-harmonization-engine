@@ -83,7 +83,8 @@ def test_citing_evidence_the_candidate_does_not_have_is_withheld() -> None:
 
     assert verdict.passed is False
     assert verdict.ungrounded == (EvidenceKey.SIMILARITY,)
-    assert verdict.reason and "similarity" in verdict.reason
+    # The key is named in the operator's words; the enum stays in `ungrounded`.
+    assert verdict.reason and "la similitud de texto" in verdict.reason
 
 
 def test_a_subset_of_the_allowed_evidence_is_grounded() -> None:

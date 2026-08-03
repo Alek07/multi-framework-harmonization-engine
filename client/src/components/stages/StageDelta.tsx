@@ -9,20 +9,19 @@
  * question.
  *
  * The question is asked about *this* asset — the one described upstairs in free
- * text and reviewed by the operator — because `POST /delta` carries the reviewed
- * profile inline, like the other engine endpoints. A delta that could only be
- * asked about the profiles frozen in the repository would be a demo of the
- * frozen profiles.
+ * text and reviewed by the operator — because the request carries the reviewed
+ * profile inline. A delta that could only be asked about the profiles frozen in
+ * the repository would be a demo of the frozen profiles.
  *
- * One bound is declared rather than hidden: one zone per call is the scope of
- * UCM-17, and N zones at once is future work.
+ * One bound is declared rather than hidden: one zone at a time, and the screen
+ * says so in the operator's words instead of naming the issue that scoped it.
  */
 
 import { useEffect } from 'react'
 
-import { FRAMEWORK, MAPPING_TYPE } from '../../lib/labels'
+import { FRAMEWORK, JURISDICTION_SHORT, MAPPING_TYPE, coverageText } from '../../lib/labels'
 import { DELTA_ORDERS, useComposition } from '../../state/composition'
-import { Caps, Notice, Section, Tag } from '../ui'
+import { Caps, Hint, Notice, Section, Tag } from '../ui'
 
 function Column({
   title,
@@ -86,14 +85,14 @@ export function StageDelta() {
       <Section
         id="s4"
         step={3}
-        title="Delta regional — lecturas acumulativas"
-        scope="una zona por consulta"
+        title="Compara qué exige cada región"
+        scope="una zona cada vez"
         dimmed
       >
         <p className="m-0 text-[13px] text-ink-4">
           {profile
-            ? 'El delta se calcula sobre una zona concreta. Pasa por la etapa 2 para que el motor derive las zonas del activo y vuelve aquí.'
-            : 'Pendiente: la etapa 1 tiene que dejar un perfil del activo.'}
+            ? 'La comparación se hace sobre una zona concreta. Pasa por el paso 2 para que el sistema identifique las zonas del activo y vuelve aquí.'
+            : 'Antes hay que completar la ficha del activo en el paso 1.'}
         </p>
       </Section>
     )
@@ -105,57 +104,61 @@ export function StageDelta() {
     <Section
       id="s4"
       step={3}
-      title={`Delta regional — ${regions[0]} vs. +${second}`}
-      scope={`${profile?.id} · ${zoneId}`}
+      title={`Qué añade ${JURISDICTION_SHORT[second]} sobre ${JURISDICTION_SHORT[regions[0]]}`}
+      hint={`Esta pantalla responde a una sola pregunta: si además de responder ante ${JURISDICTION_SHORT[regions[0]]} tuvieras que responder ante ${JURISDICTION_SHORT[second]}, ¿qué tendrías que añadir en esta zona? La segunda lectura incluye la primera; no son dos listas independientes.`}
+      scope={zoneId ?? undefined}
     >
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="mb-1.5 flex flex-wrap items-center gap-2">
         {DELTA_ORDERS.map((option, index) => (
           <button
             key={option.label}
             type="button"
+            title={`Leer primero ${JURISDICTION_SHORT[option.regions[0]]} y añadir después ${JURISDICTION_SHORT[option.regions[1]]}`}
             onClick={() => setDeltaOrder(index)}
-            className={`cursor-pointer rounded-[5px] border px-3 py-1.5 font-mono text-[11px] font-semibold ${
+            className={`cursor-pointer rounded-[5px] border px-3 py-1.5 text-[11.5px] font-semibold ${
               deltaOrder === index
                 ? 'border-accent bg-accent-tint text-accent'
                 : 'border-line bg-surface-2 text-ink-3'
             }`}
           >
-            {option.label}
+            {JURISDICTION_SHORT[option.regions[0]]} y luego {JURISDICTION_SHORT[option.regions[1]]}
           </button>
         ))}
         {candidates ? (
           <select
             value={zoneId ?? ''}
+            aria-label="Zona a comparar"
             onChange={(event) => setZoneId(event.target.value)}
-            className="rounded-[5px] border border-line bg-surface-2 px-2 py-1.5 font-mono text-[11px] text-ink-2"
+            className="rounded-[5px] border border-line bg-surface-2 px-2 py-1.5 text-[11.5px] text-ink-2"
           >
             {candidates.zones.map((zone) => (
               <option key={zone.zone.zone_id} value={zone.zone.zone_id}>
-                {zone.zone.zone_id}
+                Zona {zone.zone.zone_id}
               </option>
             ))}
           </select>
         ) : null}
-        <span className="text-[11.5px] text-ink-4">
-          El orden importa: las lecturas son acumulativas, no dos catálogos paralelos.
-        </span>
       </div>
+      <Hint className="mb-3">
+        El orden cambia la pregunta, no el catálogo: «EE. UU. y luego UE» te dice qué añade Europa a
+        un operador estadounidense, y al revés.
+      </Hint>
 
       {deltaLoading ? (
-        <p className="m-0 font-mono text-xs text-ink-4">leyendo la zona bajo cada lente…</p>
+        <p className="m-0 text-xs text-ink-4">Comparando la zona bajo cada normativa…</p>
       ) : null}
       {deltaError ? (
-        <Notice tone="alert" label="DELTA">
+        <Notice tone="alert" label="NO SE PUDO COMPARAR">
           {deltaError}
         </Notice>
       ) : null}
 
       {delta ? (
         <>
-          <p className="m-0 mb-3 text-[12.5px] text-ink-3">{delta.rationale}</p>
+          <p className="m-0 mb-3 text-[12.5px] leading-[1.55] text-ink-3">{delta.rationale}</p>
 
           <div className="grid grid-cols-3 gap-3.5">
-            <Column title={`COMÚN · ${regions.join(' ∩ ')}`} tone="neutral">
+            <Column title="LO QUE EXIGEN LAS DOS" tone="neutral">
               {delta.capabilities
                 .filter((capability) => capability.common_control_ids.length > 0)
                 .map((capability) => (
@@ -165,7 +168,7 @@ export function StageDelta() {
                 ))}
             </Column>
 
-            <Column title={`AÑADE +${second}`} tone="accent">
+            <Column title={`LO QUE AÑADE ${JURISDICTION_SHORT[second].toUpperCase()}`} tone="accent">
               {delta.capabilities.flatMap((capability) =>
                 capability.added.map((requirement) => (
                   <Entry
@@ -175,23 +178,26 @@ export function StageDelta() {
                     <span className="font-semibold">
                       {FRAMEWORK[requirement.framework].label} {requirement.official_id}
                     </span>{' '}
-                    · {MAPPING_TYPE[requirement.mapping_type].label} · {requirement.strength}
+                    <span title={MAPPING_TYPE[requirement.mapping_type].note}>
+                      · {MAPPING_TYPE[requirement.mapping_type].label}
+                    </span>{' '}
+                    · exigencia {requirement.strength}
                     <div className="mt-0.5">{requirement.rationale}</div>
                   </Entry>
                 )),
               )}
               {delta.changed_capability_ids.length === 0 ? (
-                <div className="text-[12.5px] text-ink-3">
-                  Ninguna capacidad cambia entre lecturas en esta zona. Es un resultado, no una
-                  ausencia de resultado.
+                <div className="text-[12.5px] leading-[1.5] text-ink-3">
+                  En esta zona no cambia nada entre una normativa y otra. Es una conclusión válida y
+                  útil: significa que lo compuesto sirve para ambas.
                 </div>
               ) : null}
             </Column>
 
-            <Column title="HUECOS POR REGIÓN" tone="alert">
+            <Column title="LO QUE QUEDA SIN CUBRIR" tone="alert">
               {delta.regional_gap_capability_ids.length === 0 ? (
-                <div className="text-[12.5px] text-ink-3">
-                  La jurisdicción no abre ni cierra ningún hueco en esta zona.
+                <div className="text-[12.5px] leading-[1.5] text-ink-3">
+                  Cambiar de región no deja ningún requisito sin cubrir en esta zona.
                 </div>
               ) : null}
               {delta.capabilities
@@ -214,9 +220,11 @@ export function StageDelta() {
           </div>
 
           <div className="mt-3.5 rounded-md border border-line-2 p-3.5">
-            <Caps className="mb-2">
-              Divergencia de exigencia — misma capacidad, distinto strength
-            </Caps>
+            <Caps className="mb-1">Mismo requisito, distinto grado de exigencia</Caps>
+            <Hint className="mb-2">
+              Requisitos que ambas normativas piden, pero con distinta dureza o distintas opciones
+              disponibles.
+            </Hint>
             {delta.capabilities
               .filter((capability) => capability.changed)
               .map((capability) => (
@@ -230,31 +238,43 @@ export function StageDelta() {
                   <span className="text-ink-3">
                     {capability.regions.map((view) => (
                       <span key={view.region} className="mr-3 inline-block">
-                        <b className="text-ink">{view.label}</b> · cobertura{' '}
-                        {view.coverage.toFixed(2)} · {view.offered_control_ids.length} opción(es)
+                        <b className="text-ink">{view.label}</b> · cubre{' '}
+                        {coverageText(view.coverage)} con {view.offered_control_ids.length}{' '}
+                        opción(es)
                         {view.set_aside_control_ids.length > 0 ? (
-                          <span className="text-ink-4">
+                          <span
+                            className="text-ink-4"
+                            title="Controles que esta normativa no considera aplicables aquí"
+                          >
                             {' '}
-                            · apartadas: {view.set_aside_control_ids.join(', ')}
+                            · fuera de esta lectura: {view.set_aside_control_ids.join(', ')}
                           </span>
                         ) : null}
                       </span>
                     ))}
                     {capability.changes_coverage ? (
-                      <Tag className="bg-accent-tint text-accent">mueve la cobertura</Tag>
+                      <Tag
+                        className="bg-accent-tint text-accent"
+                        title="Con la otra normativa cambia cuánto queda cubierto"
+                      >
+                        cambia la cobertura
+                      </Tag>
                     ) : (
-                      <Tag className="bg-warn-tint text-warn-ink">
-                        cambia la exigencia, no la cobertura
+                      <Tag
+                        className="bg-warn-tint text-warn-ink"
+                        title="Se cubre lo mismo, pero una normativa lo exige con más dureza que la otra"
+                      >
+                        se cubre igual, se exige distinto
                       </Tag>
                     )}
                   </span>
                 </div>
               ))}
-            <div className="mt-2 text-[11.5px] text-ink-4">
-              Las lentes declaradas de cada lectura:{' '}
+            <div className="mt-2.5 text-[11.5px] leading-[1.5] text-ink-4">
+              <b>Criterio de cada lectura:</b>{' '}
               {delta.lenses.map((lens, index) => (
-                <span key={index} className="mr-2 font-mono">
-                  [{delta.regions[index]}] {lens.rationale}
+                <span key={index} className="mr-2">
+                  [{JURISDICTION_SHORT[delta.regions[index]]}] {lens.rationale}
                 </span>
               ))}
             </div>

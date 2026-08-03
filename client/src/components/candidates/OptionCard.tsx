@@ -16,7 +16,14 @@ import type {
   Mapping,
   RetrievedControl,
 } from '../../api/types'
-import { FRAMEWORK, MAPPING_TYPE } from '../../lib/labels'
+import {
+  CANDIDATE_STATUS,
+  FRAMEWORK,
+  FRAMEWORK_NOTE,
+  JURISDICTION_SHORT,
+  MAPPING_TYPE,
+  PROVENANCE,
+} from '../../lib/labels'
 
 interface Common {
   control: FrameworkControl
@@ -78,13 +85,22 @@ function Shell({
           {picked ? '✓' : ''}
         </span>
         <span
-          className={`rounded-sm px-1.5 py-0.5 text-[10px] font-semibold ${framework.className}`}
+          title={FRAMEWORK_NOTE[control.framework]}
+          className={`cursor-help rounded-sm px-1.5 py-0.5 text-[10px] font-semibold ${framework.className}`}
         >
           {framework.label}
         </span>
-        <span className="font-mono text-xs font-semibold">{control.official_id}</span>
-        <span className="rounded-sm bg-[#eef0f2] px-1.5 py-0.5 font-mono text-[10px] font-medium text-ink-2">
-          {control.jurisdiction}
+        <span
+          title="Referencia del control dentro de su norma"
+          className="font-mono text-xs font-semibold"
+        >
+          {control.official_id}
+        </span>
+        <span
+          title="Ámbito normativo al que responde este control"
+          className="rounded-sm bg-[#eef0f2] px-1.5 py-0.5 text-[10px] font-medium text-ink-2"
+        >
+          {JURISDICTION_SHORT[control.jurisdiction]}
         </span>
       </div>
 
@@ -93,8 +109,11 @@ function Shell({
         {control.paraphrased_description}
       </div>
       <div className="flex flex-wrap items-center gap-2.5 text-[11.5px] text-ink-2">{meta}</div>
-      <div className="font-mono text-[10px] text-ink-4">
-        strength: {control.strength} · {control.id}
+      <div
+        className="text-[10px] text-ink-4"
+        title={`Referencia interna en el catálogo: ${control.id}`}
+      >
+        Exigencia del control: {control.strength}
       </div>
 
       {banner}
@@ -103,16 +122,16 @@ function Shell({
         <div className="rounded-[5px] border border-dashed border-line-dashed bg-surface-4 px-2.5 py-[7px]">
           <div className="text-[10.5px] font-semibold text-ink-4">
             {explanation.status === 'generated'
-              ? 'Explicación de IA — presentacional; no altera el orden ni la selección'
-              : 'Justificación determinista del motor'}
+              ? 'Explicación del asistente — solo para ayudarte a leer; no cambia el orden ni marca preferencias'
+              : 'Explicación del sistema'}
           </div>
           <div className="mt-1 text-xs leading-[1.5] text-ink-3">{explanation.text}</div>
           {explanation.notice ? (
-            <div className="mt-1 font-mono text-[10px] text-warn">{explanation.notice}</div>
+            <div className="mt-1 text-[10px] text-warn">{explanation.notice}</div>
           ) : null}
           {explanation.basis.length > 0 ? (
-            <div className="mt-1 font-mono text-[10px] text-ink-4">
-              evidencia: {explanation.basis.join(', ')}
+            <div className="mt-1 text-[10px] text-ink-4">
+              Se basa en: {explanation.basis.join(', ')}
             </div>
           ) : null}
         </div>
@@ -123,22 +142,26 @@ function Shell({
 
 function MappingMeta({ mapping }: { mapping: Mapping }) {
   const type = MAPPING_TYPE[mapping.type]
+  const provenance = PROVENANCE[mapping.provenance.source]
   const authored = mapping.provenance.source === 'author_judgment'
   return (
     <>
-      <span>
+      <span title={type.note} className="cursor-help">
         <span className="text-accent">{type.glyph}</span> {type.label}
       </span>
-      <span className="font-mono text-[11px] font-semibold">
-        peso {mapping.coverage_weight.toFixed(1)}
+      <span
+        title="Parte del requisito que este control cubre por sí solo"
+        className="text-[11px] font-semibold"
+      >
+        cubre {Math.round(mapping.coverage_weight * 100)} %
       </span>
       <span
-        title={mapping.provenance.note}
-        className={`rounded-sm border px-1.5 py-px text-[10px] font-semibold ${
+        title={`${provenance.note}${mapping.provenance.note ? ` — ${mapping.provenance.note}` : ''}`}
+        className={`cursor-help rounded-sm border px-1.5 py-px text-[10px] font-semibold ${
           authored ? 'border-dashed text-warn' : 'border-solid text-[#1d6f4c]'
         }`}
       >
-        {mapping.provenance.source}
+        {provenance.label}
       </span>
     </>
   )
@@ -169,19 +192,22 @@ export function CatalogOption({
         <>
           <MappingMeta mapping={option.mapping} />
           {option.status !== 'eligible' ? (
-            <span className="font-mono text-[10px] font-semibold text-alert-ink">
-              {option.status}
+            <span
+              title={CANDIDATE_STATUS[option.status].note}
+              className="cursor-help text-[10px] font-semibold text-alert-ink"
+            >
+              {CANDIDATE_STATUS[option.status].label}
             </span>
           ) : null}
         </>
       }
       banner={
         option.status_reason ? (
-          <div className="rounded-[5px] bg-surface-2 px-2.5 py-1.5 text-[11px] leading-[1.45] text-ink-3">
+          <div
+            className="rounded-[5px] bg-surface-2 px-2.5 py-1.5 text-[11px] leading-[1.45] text-ink-3"
+            title={option.rule_id ? `Regla aplicada: ${option.rule_id}` : undefined}
+          >
             {option.status_reason}
-            {option.rule_id ? (
-              <span className="ml-1 font-mono text-[10px] text-ink-4">· {option.rule_id}</span>
-            ) : null}
           </div>
         ) : undefined
       }
@@ -217,13 +243,21 @@ export function RetrievedOption({
       origin="retrieval"
       meta={
         <>
-          <span className="rounded-sm border border-dashed border-warn px-1.5 py-px text-[10px] font-semibold text-warn">
-            sugerencia RAG
+          <span
+            title="No es una equivalencia del catálogo: es un control parecido que se te ofrece por si encaja. Adoptarlo es decisión tuya."
+            className="cursor-help rounded-sm border border-dashed border-warn px-1.5 py-px text-[10px] font-semibold text-warn"
+          >
+            sugerencia, no equivalencia
           </span>
-          <span className="font-mono text-[11px]">score {hit.score.toFixed(3)}</span>
+          <span
+            title={`Grado de parecido calculado: ${hit.score.toFixed(3)}`}
+            className="cursor-help text-[11px]"
+          >
+            parecido {Math.round(hit.score * 100)} %
+          </span>
           {hit.mapped_capability_ids.length > 0 ? (
             <span className="text-[11px] text-ink-3">
-              mapeado en: {hit.mapped_capability_ids.join(', ')}
+              ya asociado a: {hit.mapped_capability_ids.join(', ')}
             </span>
           ) : null}
         </>
