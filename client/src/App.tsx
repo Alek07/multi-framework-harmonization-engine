@@ -22,7 +22,7 @@ import { StageDelta } from './components/stages/StageDelta'
 import { StageSign } from './components/stages/StageSign'
 import { GhostButton, PrimaryButton } from './components/ui'
 import { CompositionProvider } from './state/CompositionProvider'
-import { useComposition, type Step } from './state/composition'
+import { useComposition, type Step, type StepLocks } from './state/composition'
 
 const STEP_LABELS: Record<Step, string> = {
   1: 'Describir el activo',
@@ -57,8 +57,54 @@ function BackendDown() {
   )
 }
 
+/**
+ * Forward and back, in the order the argument is made.
+ *
+ * A step whose input does not exist yet is offered disabled with the missing
+ * piece written underneath, not hidden: the operator has to be able to see where
+ * the flow goes and what unlocks it, and a button that vanishes teaches neither.
+ */
+function StepNav({
+  step,
+  goToStep,
+  stepLocks,
+}: {
+  step: Step
+  goToStep: (step: Step) => void
+  stepLocks: StepLocks
+}) {
+  const next = step < 5 ? ((step + 1) as Step) : null
+  const lock = next ? stepLocks[next] : null
+
+  return (
+    <div className="mt-1 flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        {step > 1 ? (
+          <GhostButton onClick={() => goToStep((step - 1) as Step)}>
+            ← {step - 1}. {STEP_LABELS[(step - 1) as Step]}
+          </GhostButton>
+        ) : (
+          <span />
+        )}
+        {next ? (
+          <PrimaryButton
+            onClick={() => goToStep(next)}
+            disabled={Boolean(lock)}
+            title={lock ?? undefined}
+          >
+            {next}. {STEP_LABELS[next]} →
+          </PrimaryButton>
+        ) : (
+          <span />
+        )}
+      </div>
+      {lock ? <div className="self-end text-right text-[11.5px] text-ink-4">{lock}</div> : null}
+    </div>
+  )
+}
+
 function Composition() {
-  const { backendUp, step, goToStep, signed, baseline } = useComposition()
+  const { backendUp, step, goToStep, stepLocks, signed, baseline } = useComposition()
   const [signOpen, setSignOpen] = useState(false)
 
   if (backendUp === false) return <BackendDown />
@@ -88,22 +134,7 @@ function Composition() {
           {step === 4 ? <StageSign onOpenSign={() => setSignOpen(true)} /> : null}
           {step === 5 ? <StageAudit /> : null}
 
-          <div className="mt-1 flex items-center justify-between">
-            {step > 1 ? (
-              <GhostButton onClick={() => goToStep((step - 1) as Step)}>
-                ← {step - 1}. {STEP_LABELS[(step - 1) as Step]}
-              </GhostButton>
-            ) : (
-              <span />
-            )}
-            {step < 5 ? (
-              <PrimaryButton onClick={() => goToStep((step + 1) as Step)}>
-                {step + 1}. {STEP_LABELS[(step + 1) as Step]} →
-              </PrimaryButton>
-            ) : (
-              <span />
-            )}
-          </div>
+          <StepNav step={step} goToStep={goToStep} stepLocks={stepLocks} />
         </main>
       </div>
 

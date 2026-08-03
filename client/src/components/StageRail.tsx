@@ -151,7 +151,7 @@ function ZoneCards() {
 }
 
 export function StageRail() {
-  const { step, goToStep, candidates, profile, progress, signed } = useComposition()
+  const { step, goToStep, stepLocks, candidates, profile, progress, signed } = useComposition()
   const [openTip, setOpenTip] = useState<Step | null>(null)
 
   const hasProfile = Boolean(profile)
@@ -174,28 +174,46 @@ export function StageRail() {
       <Caps className="px-2.5 pt-1.5 pb-2">Pasos</Caps>
       {([1, 2, 3, 4, 5] as Step[]).map((n) => {
         const current = step === n
+        const locked = stepLocks[n]
         const blocked = n === 4 && !signed && progress.blockers.length > 0
-        const mark = done[n] ? '✓' : blocked ? '!' : '○'
-        const state = done[n]
-          ? 'completado'
-          : blocked
-            ? 'pendiente: quedan cosas por resolver'
-            : 'sin completar'
+        const mark = locked ? '·' : done[n] ? '✓' : blocked ? '!' : '○'
+        const state = locked
+          ? `todavía no disponible — ${locked}`
+          : done[n]
+            ? 'completado'
+            : blocked
+              ? 'pendiente: quedan cosas por resolver'
+              : 'sin completar'
         return (
           <div key={n} className="flex flex-col">
             <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 aria-current={current}
+                aria-disabled={Boolean(locked)}
+                disabled={Boolean(locked)}
+                data-locked={locked ? 'true' : undefined}
                 title={`Paso ${n} — ${STEP_NAMES[n]} · ${state}`}
                 onClick={() => goToStep(n)}
-                className={`flex flex-1 cursor-pointer items-center gap-2 rounded-md border-none px-2.5 py-[7px] text-[12.5px] hover:bg-[#eceae4] ${
-                  current ? 'bg-line-2 font-semibold text-ink' : 'bg-transparent font-medium text-ink-2'
+                className={`flex flex-1 items-center gap-2 rounded-md border-none px-2.5 py-[7px] text-[12.5px] ${
+                  locked
+                    ? 'cursor-default bg-transparent font-medium text-ink-5'
+                    : `cursor-pointer hover:bg-[#eceae4] ${
+                        current
+                          ? 'bg-line-2 font-semibold text-ink'
+                          : 'bg-transparent font-medium text-ink-2'
+                      }`
                 }`}
               >
                 <span
                   className={`w-4 flex-none text-center font-mono text-[11px] font-semibold ${
-                    done[n] ? 'text-ok' : blocked ? 'text-alert' : 'text-[#b0b7c1]'
+                    locked
+                      ? 'text-[#c7cbd1]'
+                      : done[n]
+                        ? 'text-ok'
+                        : blocked
+                          ? 'text-alert'
+                          : 'text-[#b0b7c1]'
                   }`}
                 >
                   {mark}
@@ -217,6 +235,11 @@ export function StageRail() {
             {openTip === n ? (
               <div className="mx-2.5 my-0.5 mb-1.5 rounded-md border border-line bg-surface px-2.5 py-2 text-[11px] leading-[1.5] text-ink-3">
                 {STEP_TIPS[n]}
+                {locked ? (
+                  <div className="mt-1.5 border-t border-line-2 pt-1.5 font-medium text-ink-4">
+                    Aún no puedes entrar aquí: {locked}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>

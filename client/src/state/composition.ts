@@ -33,6 +33,46 @@ import type {
 export type Step = 1 | 2 | 3 | 4 | 5
 
 /**
+ * Why each step is not reachable yet, or `null` when it is.
+ *
+ * The five steps are one argument told in order, and a step whose input does not
+ * exist yet has nothing honest to show: the candidates screen with no profile,
+ * the regional comparison with no zones, the trail before a single decision. The
+ * locks say *what is missing* rather than merely refusing, so the sentence is
+ * shown wherever the step is offered — rail, tooltip, forward button.
+ */
+export type StepLocks = Record<Step, string | null>
+
+/**
+ * The gate, derived from the state and nothing else.
+ *
+ * Step 2 needs a complete profile — a draft with holes in it would run through
+ * the core as a baseline nobody decided. Steps 3 to 5 need the engine run: they
+ * all read `CandidatesResponse`, and the trail of step 5 shows the decisions
+ * taken over it. Signing does not close anything: after it the whole flow stays
+ * readable, which is what makes the record auditable.
+ */
+export function stepLocksFor(input: {
+  /** A started draft — parsed from the description or opened by hand. */
+  hasDraft: boolean
+  missing: string[]
+  candidates: CandidatesResponse | null
+}): StepLocks {
+  const profileReady = !input.hasDraft
+    ? 'Primero describe el activo en el paso 1: todo lo demás se compone sobre su ficha.'
+    : input.missing.length > 0
+      ? `Falta(n) ${input.missing.length} dato(s) por rellenar en la ficha del activo (paso 1).`
+      : null
+  const composing =
+    profileReady ??
+    (input.candidates === null
+      ? 'Todavía no hay opciones calculadas: pasa por el paso 2 y espera a que el sistema las calcule.'
+      : null)
+
+  return { 1: null, 2: profileReady, 3: composing, 4: composing, 5: composing }
+}
+
+/**
  * Where the profile came from.
  *
  * There is no third source, and in particular there is no picker of profiles
@@ -86,7 +126,9 @@ export interface CompositionApi {
   // --- session ---------------------------------------------------------------
   backendUp: boolean | null
   step: Step
+  /** Ignores a locked step: the gate is enforced here, not only in the rail. */
   goToStep: (step: Step) => void
+  stepLocks: StepLocks
   zoneId: string | null
   setZoneId: (zoneId: string) => void
   focusRequest: string | null
