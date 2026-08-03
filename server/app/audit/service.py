@@ -136,3 +136,17 @@ class AuditService:
     async def verify_run(self, run_id: UUID) -> ChainVerification:
         """Verify one run's slice. It starts mid-ledger, so genesis is not expected."""
         return verify_chain(await self.repository.by_run(run_id), expect_genesis=False)
+
+    async def verify_baseline(self, baseline_id: UUID) -> ChainVerification:
+        """Verify the slice behind one baseline — what `GET /baseline/{id}/audit-log` serves.
+
+        The endpoint promises *full traceability*, and a list of events is only
+        worth that promise if it can be checked. Same reading as `verify_run`: the
+        slice starts wherever that baseline's first run started, so genesis is not
+        expected. A slice that skips a sequence number is not a break either — the
+        ledger interleaves runs — so what is verified here is each event's own
+        digest and its link to the event it was written after.
+        """
+        return verify_chain(
+            await self.repository.trail_for_baseline(baseline_id), expect_genesis=False
+        )

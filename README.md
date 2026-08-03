@@ -21,7 +21,31 @@ versionados).
 | `server/data/profiles/` | Perfiles de activo escritos a mano (entradas congeladas de validación) |
 | `server/app/parse/` | Pasada IA 1: texto libre → borrador de `AssetProfile` (revisado por el operador) |
 | `server/app/retrieval/` | Pasada IA 2: recuperación de candidatos sobre Qdrant, con filtrado por payload — solo amplía cobertura |
+| `server/app/api/` | Superficie cerrada de la API: dependencias y ensamblado de los cinco endpoints |
 | `client/` | React + Vite + TypeScript: UI de una vista (composición soberana) |
+
+## API
+
+Superficie **cerrada**: cinco endpoints. Cualquier endpoint adicional es *scope creep* salvo
+justificación escrita, y la lista se declara como dato en `server/app/api/router.py` para que una
+prueba pueda comprobarlo (`tests/api/test_surface.py`).
+
+| Endpoint | Función |
+| -- | -- |
+| `POST /asset/parse` | Texto libre → borrador de `AssetProfile`, revisable (nada se inventa) |
+| `POST /candidates` | Perfil → opciones equivalentes por capacidad y zona, lado a lado |
+| `POST /baseline/compose` | Elecciones del humano → línea base firmada |
+| `GET /baseline/{id}/audit-log` | Trazabilidad completa, con verificación de la cadena |
+| `GET /delta?regions=US,EU` | Delta regional para una zona del perfil |
+
+`GET /api/v1/health` no forma parte de la superficie: es la sonda de vida del `healthcheck` de
+compose, no una función del motor.
+
+La composición soberana (UCM-16) y el delta regional (UCM-17) tienen aquí su **contrato firme** —
+esquema de petición y respuesta, validación y OpenAPI — y responden `501` mientras se implementa su
+lógica: la petición se valida de verdad, así que una composición mal formada es `422` antes de
+llegar al `501`. La documentación interactiva vive en `http://localhost:8000/docs` y es el plan B
+declarado de la demo si se recorta la UI.
 
 ## Desarrollo
 

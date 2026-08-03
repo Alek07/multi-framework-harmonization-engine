@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager, suppress
 
 from fastapi import APIRouter, FastAPI
 
+from app.api.router import api_router
 from app.core.config import settings
 from app.core.database import init_db
 from app.core.exceptions import register_exception_handlers
@@ -92,10 +93,13 @@ def create_app() -> FastAPI:
     def health_check() -> dict[str, str]:
         return {"status": "ok"}
 
-    api_router = APIRouter()
-    api_router.include_router(health_router, tags=["health"])
+    root_router = APIRouter()
+    root_router.include_router(health_router, tags=["health"])
+    # The five endpoints of §7.4, declared as data in `app/api/router.py` so that
+    # a sixth one cannot appear without the surface test noticing (invariant 4).
+    root_router.include_router(api_router())
 
-    app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(root_router, prefix=settings.API_V1_PREFIX)
     return app
 
 

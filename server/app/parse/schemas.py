@@ -233,6 +233,27 @@ class AssetProfileDraft(BaseModel):
     )
 
 
+class AssetParseRequest(BaseModel):
+    """Body of `POST /asset/parse` (UCM-15): the operator's own description.
+
+    `profile_id` is optional and it is a *key*, not an observation: given, it is
+    used verbatim so a second parse of a corrected description lands on the same
+    identifier and the audit log reads as one asset. Left out, it is derived from
+    the name the model extracted (`completion.profile_id_for`).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    description: str = Field(
+        min_length=1,
+        description="Descripción libre del activo, tal y como la escribe el operador.",
+    )
+    profile_id: str | None = Field(
+        default=None,
+        description="Identificador a asignar al perfil. Si se omite, se deriva del nombre.",
+    )
+
+
 class ParseProvenance(BaseModel):
     """Everything needed to replay this parse on another machine (UCM-22).
 
