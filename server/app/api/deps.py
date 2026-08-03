@@ -35,6 +35,7 @@ from app.baseline.service import BaselineCompositionService
 from app.candidates.service import CandidatesService
 from app.core.database import get_db
 from app.core.exceptions import AppException
+from app.delta.service import RegionalDeltaService
 from app.parse.service import AssetParseService
 
 
@@ -63,10 +64,16 @@ def composition_service() -> BaselineCompositionService:
     return BaselineCompositionService()
 
 
+@lru_cache(maxsize=1)
+def delta_service() -> RegionalDeltaService:
+    return RegionalDeltaService()
+
+
 AuditDep = Annotated[AuditService, Depends(audit_service)]
 ParseDep = Annotated[AssetParseService, Depends(parse_service)]
 CandidatesDep = Annotated[CandidatesService, Depends(candidates_service)]
 CompositionDep = Annotated[BaselineCompositionService, Depends(composition_service)]
+DeltaDep = Annotated[RegionalDeltaService, Depends(delta_service)]
 
 
 def requested_profile(profile: AssetProfile | None, profile_id: str | None) -> AssetProfile:

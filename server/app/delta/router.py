@@ -1,13 +1,16 @@
-"""UCM-15 - `GET /delta?regions=US,EU`: the regional delta for the demo zone.
+"""UCM-15/UCM-17 - `GET /delta?regions=US,EU`: the regional delta for the demo zone.
 
-The logic is UCM-17's. What this ticket fixes is the contract, and the route
-validates it for real: an unknown region, a single region, an unknown profile or a
-zone the profile does not declare are all 422 today. A well-formed request reaches
-501, which says the endpoint exists and the logic is the next ticket.
+UCM-15 fixed the contract; UCM-17 fills it in. The route validates the query and
+hands over: an unknown region, a single region, a repeated one, an unknown profile
+or a zone the profile does not declare are all 422 before any work is done.
 
 `regions` is read both ways — `?regions=US,EU` and `?regions=US&regions=EU` — for
 one reason: the first is the form written into the PRD and the ticket, and an API
 that documents a URL it cannot parse is worse than one that accepts two spellings.
+
+The order of the regions is meaningful and is not sorted away. The readings are
+cumulative — `US,EU` means "the US reading, then the same plus the European
+obligation overlay" — so `EU,US` asks a different, equally legitimate question.
 """
 
 from __future__ import annotations
@@ -16,29 +19,17 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, status
 
-from app.api.deps import requested_profile
+from app.api.deps import DeltaDep, requested_profile
 from app.catalog.schemas import Jurisdiction
-from app.core.exceptions import AppException, NotImplementedYetError
+from app.core.exceptions import AppException
 from app.core.schemas import Message
 from app.delta.schemas import RegionalDelta
 
 router = APIRouter(tags=["delta"])
 
-DELTA_PENDING = (
-    "El delta regional se implementa en UCM-17. El contrato de esta consulta es firme y ya se "
-    "valida: lo que falta es la lógica, no el endpoint. La superficie de la API sigue cerrada "
-    "en cinco endpoints."
-)
-
 
 class RegionsQueryError(AppException):
     """The `regions` query does not describe a comparison the engine can make."""
-
-    status_code = 422
-
-
-class UnknownZoneError(AppException):
-    """The profile does not declare the zone the delta was asked about."""
 
     status_code = 422
 
@@ -78,15 +69,18 @@ def parse_regions(raw: list[str]) -> list[Jurisdiction]:
     response_model=RegionalDelta,
     status_code=status.HTTP_200_OK,
     summary="Delta regional (p. ej. US vs. +EU) para una zona del perfil",
-    responses={
-        422: {"model": Message, "description": "Regiones, perfil o zona inválidos."},
-        501: {"model": Message, "description": "Pendiente de UCM-17 (contrato ya validado)."},
-    },
+    responses={422: {"model": Message, "description": "Regiones, perfil o zona inválidos."}},
 )
 async def regional_delta(
+    service: DeltaDep,
     regions: Annotated[
         list[str],
-        Query(description="Jurisdicciones a comparar, p. ej. 'US,EU'. Mínimo dos, sin repetir."),
+        Query(
+            description=(
+                "Jurisdicciones a comparar en orden, p. ej. 'US,EU'. Mínimo dos, sin repetir. "
+                "Las lecturas son acumulativas: la segunda es la primera más esa región."
+            )
+        ),
     ],
     profile_id: Annotated[
         str, Query(description="Perfil congelado en el repositorio, p. ej. 'PROFILE-A'.")
@@ -101,14 +95,12 @@ async def regional_delta(
         ),
     ],
 ) -> RegionalDelta:
-    """Read one zone under each jurisdiction's lens and report what changes (UCM-17)."""
-    parse_regions(regions)
-    profile = requested_profile(None, profile_id)
+    """Read one zone under each region's cumulative lens and report what changes.
 
-    declared = [zone.id for zone in profile.zones]
-    if zone_id not in declared:
-        raise UnknownZoneError(
-            f"El perfil '{profile.id}' no declara la zona '{zone_id}'. Zonas: {declared}."
-        )
-
-    raise NotImplementedYetError(DELTA_PENDING)
+    The zone is checked by the service — it is the one that knows what a zone has
+    to be to be read — so the route only turns the query into the engine's own
+    types and gets out of the way.
+    """
+    return service.delta(
+        requested_profile(None, profile_id), zone_id, parse_regions(regions)
+    )

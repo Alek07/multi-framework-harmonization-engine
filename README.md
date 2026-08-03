@@ -24,6 +24,7 @@ versionados).
 | `server/app/api/` | Superficie cerrada de la API: dependencias y ensamblado de los cinco endpoints |
 | `server/app/candidates/` | Opciones equivalentes por capacidad y zona: núcleo + RAG + explicaciones |
 | `server/app/baseline/` | Composición soberana: elecciones del humano, verificación de Tier 0 y firma |
+| `server/app/delta/` | Delta regional: una zona leída bajo cada región, de forma acumulativa |
 | `client/` | React + Vite + TypeScript: UI de una vista (composición soberana) |
 
 ## API
@@ -43,11 +44,8 @@ prueba pueda comprobarlo (`tests/api/test_surface.py`).
 `GET /api/v1/health` no forma parte de la superficie: es la sonda de vida del `healthcheck` de
 compose, no una función del motor.
 
-El delta regional (UCM-17) tiene aquí su **contrato firme** — esquema de petición y respuesta,
-validación y OpenAPI — y responde `501` mientras se implementa su lógica: la consulta se valida de
-verdad, así que una región desconocida es `422` antes de llegar al `501`. La documentación
-interactiva vive en `http://localhost:8000/docs` y es el plan B declarado de la demo si se recorta
-la UI.
+La documentación interactiva vive en `http://localhost:8000/docs` y es el plan B declarado de la
+demo si se recorta la UI.
 
 ### Composición soberana
 
@@ -66,6 +64,25 @@ La firma se ancla a la ejecución del motor de la que salieron las opciones: se 
 ejecución que la bitácora no ha visto, una de otro perfil, una ya firmada, y una calculada con
 versiones de catálogo o reglas distintas de las que rigen ahora. Componer y firmar es
 **determinista y sin IA**: se puede hacer con Ollama y Qdrant apagados.
+
+### Delta regional
+
+`GET /delta?regions=US,EU&profile_id=PROFILE-B&zone_id=Z-ENG-STATION` lee **una zona** bajo cada
+región y muestra qué cambia. Las lecturas son **acumulativas**: «+EU» es la lectura estadounidense
+*más* la capa de obligación europea, nunca un catálogo paralelo en el que un operador europeo no
+tuviera CIS ni CSF. Toda jurisdicción que no está en comparación es terreno común y aparece en
+todas las lecturas (IEC 62443 como estándar OT común, IMO como marítimo), así que la unión de las
+lecturas es siempre el catálogo entero. Lo que cada lente aparta se devuelve con nombre.
+
+El resultado sobre la zona de la demo: de 24 capacidades, **5 cambian** — gobernanza, roles,
+cadena de suministro, concienciación y notificación de incidentes — y las cinco lo hacen
+**añadiendo obligación sin mover la cobertura**. Todos los mapeos de NIS2 del catálogo son
+`contextual` con peso bajo, así que un operador estadounidense cubre la notificación de incidentes
+con CSF RS.CO-02 como buena práctica y uno sujeto a NIS2 debe *además* el Art. 23 con plazos de
+24 h / 72 h / 1 mes. La diferencia regional de este catálogo es sobre todo **legal, no técnica**, y
+decirlo así es el resultado, no una carencia. El delta lee mapeos autorizados, no distancias entre
+vectores: también funciona con Ollama y Qdrant apagados, y no escribe en la bitácora (es una
+*vista*; lo que se registra es la composición que informa).
 
 ## Desarrollo
 

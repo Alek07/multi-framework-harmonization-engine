@@ -1,12 +1,14 @@
-"""UCM-15 - The baseline endpoints: a live trail, and a contract waiting for UCM-16.
+"""UCM-15/UCM-16 - The baseline endpoints: the trail, and the shape of a composition.
 
-Two different things are asserted here, and the difference is the point of the
-ticket. `GET /baseline/{id}/audit-log` works today and is tested as a working
-endpoint. `POST /baseline/compose` has no body yet — its logic is UCM-16, which
-this ticket blocks — so what is tested is that the *contract* is already doing its
-job: a malformed composition is rejected before it would ever reach the ledger,
-and a well-formed one gets 501 rather than 404. An endpoint that answered 404
-would say the surface is still open to change, which is false.
+Two different things are asserted here. `GET /baseline/{id}/audit-log` is tested
+as the working endpoint it is. For `POST /baseline/compose`, what is tested is the
+*request contract* — the rules a body has to satisfy before the engine will look
+at it at all — while what the composition actually does lives in `test_compose.py`.
+
+Keeping them apart is deliberate: these bodies quote a `run_id` the ledger has
+never seen, so anything that gets past Pydantic is refused for that reason and for
+no other. A test that asserted 422 without knowing which of the two rejections it
+was measuring would pass for the wrong reason the day one of them broke.
 """
 
 from __future__ import annotations
