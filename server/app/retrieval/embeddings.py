@@ -32,6 +32,7 @@ kind of unchecked claim the rest of this project refuses to make.
 
 from __future__ import annotations
 
+import logging
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -42,6 +43,8 @@ from app.core.exceptions import AppException
 
 if TYPE_CHECKING:  # pragma: no cover - import cost is paid lazily at runtime
     from sentence_transformers import SentenceTransformer
+
+logger = logging.getLogger(__name__)
 
 # app/retrieval/embeddings.py -> parents[2] == backend root (server/)
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
@@ -114,9 +117,19 @@ class Encoder:
 def get_encoder() -> Encoder:
     """Load the pinned model once per process, on CPU, with threads pinned.
 
-    Loading is deliberately lazy: the model is ~1.1 GB and is downloaded on first
-    use, and the API must be able to come up on a machine that is still fetching
-    it (the same reasoning as the Ollama digest check in UCM-12).
+    Loading is lazy — the model is ~1.1 GB and is downloaded on first use, and the
+    API must be able to come up on a machine that is still fetching it (the same
+    reasoning as the Ollama digest check in UCM-12) — but lazy is *when*, not
+    *whether*: the startup task warms it (`CatalogIndex.warm`) so the cost is not
+    paid inside an operator's request.
+
+    The cached model is loaded **offline first**. A load that is allowed to reach
+    the Hub does so on every start even when the weights are already on disk,
+    which costs a round-trip on the critical path and, worse, makes a cold start
+    behave differently with and without network — not something a project whose
+    third invariant is reproducibility should leave to chance. The networked load
+    remains as the fallback, which is what the first run on a fresh machine
+    needs.
     """
     try:
         import torch
@@ -132,18 +145,30 @@ def get_encoder() -> Encoder:
     if not cache.is_absolute():
         cache = BACKEND_ROOT / cache
 
-    try:
-        model = SentenceTransformer(
+    def load(*, offline: bool) -> SentenceTransformer:
+        return SentenceTransformer(
             settings.EMBEDDING_MODEL,
             device="cpu",
             cache_folder=str(cache),
+            local_files_only=offline,
         )
-    except Exception as exc:
-        raise EmbeddingUnavailableError(
-            f"No se pudo cargar el modelo de embeddings '{settings.EMBEDDING_MODEL}': {exc}. "
-            "En el primer arranque necesita red para descargarlo (~1,1 GB); después se sirve "
-            f"desde la caché en {cache}."
-        ) from exc
+
+    try:
+        model = load(offline=True)
+        logger.info("Embeddings: %s cargado desde la caché local", settings.EMBEDDING_MODEL)
+    except Exception:
+        try:
+            model = load(offline=False)
+            logger.info(
+                "Embeddings: %s descargado (primer uso); las siguientes cargas son locales",
+                settings.EMBEDDING_MODEL,
+            )
+        except Exception as exc:
+            raise EmbeddingUnavailableError(
+                f"No se pudo cargar el modelo de embeddings '{settings.EMBEDDING_MODEL}': {exc}. "
+                "En el primer arranque necesita red para descargarlo (~1,1 GB); después se sirve "
+                f"desde la caché en {cache}."
+            ) from exc
 
     dimension = model.get_embedding_dimension()
     if dimension != settings.EMBEDDING_DIM:

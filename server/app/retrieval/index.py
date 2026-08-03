@@ -238,6 +238,23 @@ class CatalogIndex:
         self._ready = True
         return True
 
+    def warm(self) -> None:
+        """Load the embedding model now, so no operator's request has to.
+
+        `ensure` only loads it when it has to *build* the collection. On every
+        start after the first the collection is already there, `ensure` returns
+        early, and the ~1.1 GB of weights are then deserialised inside whichever
+        `POST /candidates` happens to arrive first — a minute of waiting on the
+        one call the operator is watching, once per process, for no reason.
+
+        So this is called from the startup task, in the same background thread
+        and with the same best-effort contract: retrieval widens candidate
+        coverage and never gates it, so a failure here costs a slow first query,
+        never a baseline. One trivial encode is enough — the cost is the load,
+        not the arithmetic.
+        """
+        self.encoder.encode_query("warmup")
+
     def _populate(self) -> None:
         """Encode every control and write the collection from scratch."""
         controls = sorted(self.catalog.controls, key=lambda c: c.id)

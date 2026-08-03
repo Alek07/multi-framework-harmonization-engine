@@ -5,7 +5,13 @@ from __future__ import annotations
 from app.catalog.schemas import Catalog
 from app.core.config import settings
 from app.retrieval.embeddings import capability_text, control_text
-from app.retrieval.index import build_payloads, catalog_digest, collection_name, point_id
+from app.retrieval.index import (
+    CatalogIndex,
+    build_payloads,
+    catalog_digest,
+    collection_name,
+    point_id,
+)
 
 
 def test_every_control_is_indexed(catalog: Catalog) -> None:
@@ -83,3 +89,36 @@ def test_point_ids_are_stable_across_rebuilds(catalog: Catalog) -> None:
 
     assert first == second
     assert len(set(first.values())) == len(first)
+
+
+class _RecordingEncoder:
+    """Stands in for the model: records that it was asked to encode, nothing more."""
+
+    def __init__(self) -> None:
+        self.queries: list[str] = []
+
+    def encode_query(self, text: str) -> list[float]:
+        self.queries.append(text)
+        return [0.0] * settings.EMBEDDING_DIM
+
+    def encode_passages(self, texts: list[str]) -> list[list[float]]:  # pragma: no cover
+        return [[0.0] * settings.EMBEDDING_DIM for _ in texts]
+
+
+def test_warming_loads_the_model_without_touching_qdrant(catalog: Catalog) -> None:
+    """The startup task's warm-up: the weights, and only the weights.
+
+    `ensure` loads the model only when it has to *build* the collection, so on
+    every start after the first the ~1.1 GB would be deserialised inside the
+    operator's first `POST /candidates`. `warm` is what moves that cost to
+    startup, and it must do it without needing Qdrant — the two are separate
+    failures and the index may legitimately be up before the vector store is.
+    """
+    encoder = _RecordingEncoder()
+    index = CatalogIndex(catalog=catalog, client=None, encoder=encoder)
+
+    index.warm()
+
+    assert encoder.queries, "warm() did not reach the encoder, so it warms nothing"
+    # No collection was created, counted or queried: `client` was never resolved.
+    assert index._client is None
