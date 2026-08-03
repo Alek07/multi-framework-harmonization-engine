@@ -1,0 +1,362 @@
+"""UCM-15 - `POST /candidates`: every option, side by side, and none of them missing.
+
+The endpoint is where the central contribution becomes visible, so the assertions
+below are about the invariants rather than about the plumbing:
+
+* every capability of the catalog appears in every zone, with a candidate or with
+  a declared gap — silent omissions target zero (invariant 2);
+* the RAG pass only ever *adds* to what the catalog offered, and a machine where
+  Qdrant is down still gets the whole deterministic result, with the degradation
+  named in the response;
+* the engine's decisions are in the append-only ledger before the response leaves,
+  under the `run_id` the human's composition will chain onto (invariant 5);
+* the explanation layer, when asked for, changes what the operator *reads* and
+  nothing about which candidates are offered or in what order (UCM-14, P1).
+"""
+
+from __future__ import annotations
+
+from typing import Any
+from uuid import UUID
+
+from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.audit.repository import AuditRepository
+from app.audit.schemas import AuditActor
+from app.audit.service import AuditService
+from app.candidates.service import CandidatesService
+from app.catalog.schemas import Catalog
+from tests.api.conftest import PREFIX
+
+URL = f"{PREFIX}/candidates"
+
+
+def ask(client: TestClient, **body: Any) -> dict[str, Any]:
+    response = client.post(URL, json={"profile_id": "PROFILE-A", **body})
+    assert response.status_code == 200, response.text
+    return dict(response.json())
+
+
+def every_capability(body: dict[str, Any]) -> list[dict[str, Any]]:
+    return [capability for zone in body["zones"] for capability in zone["capabilities"]]
+
+
+# --- the shape of an answer ---------------------------------------------------
+
+
+def test_a_profile_comes_back_as_options_per_capability_and_zone(
+    client: TestClient, offline_candidates: CandidatesService, catalog: Catalog
+) -> None:
+    body = ask(client)
+
+    assert body["profile_id"] == "PROFILE-A"
+    assert [zone["zone"]["zone_id"] for zone in body["zones"]] == ["Z-OT-CORRIDOR", "Z-SIS"]
+    for zone in body["zones"]:
+        assert len(zone["capabilities"]) == len(catalog.capabilities)
+
+
+def test_the_versions_that_governed_the_run_travel_with_it(
+    client: TestClient, offline_candidates: CandidatesService, catalog: Catalog
+) -> None:
+    """Reproducibility is a property of the answer, not of the deployment (invariant 3)."""
+    body = ask(client)
+
+    assert body["catalog_version"] == catalog.catalog_version
+    assert body["rules_version"]
+    assert body["gating_version"]
+    assert body["prioritization_version"]
+
+
+def test_every_option_is_shown_with_what_makes_it_comparable(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """Side by side means framework, jurisdiction, strength, mapping type, weight."""
+    options = [
+        option
+        for capability in every_capability(ask(client))
+        for option in capability["resolution"]["options"]
+    ]
+    assert options
+
+    sample = options[0]
+    assert {"framework", "jurisdiction", "strength"} <= set(sample["control"])
+    assert {"type", "coverage_weight", "provenance"} <= set(sample["mapping"])
+    assert sample["status"] in {"eligible", "superseded", "contested"}
+
+
+def test_a_superseded_candidate_is_marked_and_still_offered(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """The core never deletes a candidate, and neither does the API on its way out."""
+    for capability in every_capability(ask(client)):
+        for option in capability["resolution"]["options"]:
+            if option["status"] == "superseded":
+                assert option["control"]["id"] in capability["offered_control_ids"]
+                assert option["status_reason"]
+                return
+    raise AssertionError("profile A should supersede at least one candidate by precedence")
+
+
+# --- invariant 2: nothing is dropped, nothing is silent -----------------------
+
+
+def test_a_capability_without_candidates_declares_a_gap(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    for capability in every_capability(ask(client)):
+        if capability["offered_control_ids"]:
+            continue
+        declared = (
+            capability["resolution"]["gap"]
+            or capability["gating"]["gap"]
+            or (capability["retrieval"] or {}).get("gap")
+        )
+        assert declared, f"{capability['capability_id']} has no candidate and no declared gap"
+        assert declared["rationale"]
+
+
+def test_gating_removes_mechanisms_and_never_the_requirement(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    for capability in every_capability(ask(client)):
+        assert capability["gating"]["required"] is True
+
+
+def test_retrieval_only_widens_what_the_catalog_offered(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    body = ask(client)
+    assert body["retrieval"]["status"] == "ok"
+    assert body["retrieval"]["suggestions"] > 0
+
+    for capability in every_capability(body):
+        offered = capability["offered_control_ids"]
+        mapped = [option["control"]["id"] for option in capability["resolution"]["options"]]
+        assert offered[: len(mapped)] == mapped
+
+
+def test_switching_retrieval_off_leaves_the_catalog_candidates_intact(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    widened = ask(client)
+    catalog_only = ask(client, retrieval=False)
+
+    assert catalog_only["retrieval"]["status"] == "disabled"
+    assert catalog_only["retrieval"]["notice"]
+    for zone in catalog_only["zones"]:
+        for capability in zone["capabilities"]:
+            assert capability["retrieval"] is None
+            mapped = [o["control"]["id"] for o in capability["resolution"]["options"]]
+            assert capability["offered_control_ids"] == mapped
+
+    # And what was widened really was an addition, never a replacement.
+    assert len(_all_offered(widened)) >= len(_all_offered(catalog_only))
+
+
+def _all_offered(body: dict[str, Any]) -> list[str]:
+    return [c for capability in every_capability(body) for c in capability["offered_control_ids"]]
+
+
+def test_a_declared_lens_reports_everything_it_set_aside(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """Apartar no es descartar: a lens is auditable or it is a silent narrowing."""
+    body = ask(client, lens={"jurisdictions": ["EU"], "rationale": "lectura europea"})
+
+    assert body["retrieval"]["set_aside"] > 0
+    set_aside = [
+        candidate
+        for capability in every_capability(body)
+        for candidate in capability["retrieval"]["set_aside"]
+    ]
+    assert all(candidate["excluded_by"] for candidate in set_aside)
+    assert all(candidate["rationale"] for candidate in set_aside)
+
+
+# --- degradation is declared, never silent ------------------------------------
+
+
+def test_a_machine_without_qdrant_still_gets_the_deterministic_baseline(
+    client: TestClient, candidates_without_index: CandidatesService
+) -> None:
+    body = ask(client)
+
+    assert body["retrieval"]["status"] == "unavailable"
+    assert "índice del catálogo no está disponible" in body["retrieval"]["notice"]
+    assert body["zones"]
+    assert any(capability["offered_control_ids"] for capability in every_capability(body))
+
+
+def test_explanations_are_not_attempted_without_the_retrieval_pass(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    body = ask(
+        client,
+        retrieval=False,
+        explain={"zone_id": "Z-SIS", "capability_ids": ["CAP-PR-MFA"]},
+    )
+    assert body["explanations_notice"]
+    assert all(capability["explanations"] is None for capability in every_capability(body))
+
+
+# --- invariant 5: the run is on the record ------------------------------------
+
+
+async def test_the_engine_run_is_in_the_ledger_before_the_response_leaves(
+    client: TestClient, offline_candidates: CandidatesService, db: AsyncSession
+) -> None:
+    body = ask(client)
+
+    assert body["audit_events"] > 0
+    events = await AuditRepository(db).by_run(UUID(body["run_id"]))
+    assert len(events) == body["audit_events"]
+    assert {event.actor for event in events} == {AuditActor.ENGINE}
+
+
+async def test_the_recorded_run_is_a_chain_that_verifies(
+    client: TestClient, offline_candidates: CandidatesService, db: AsyncSession
+) -> None:
+    body = ask(client)
+    verification = await AuditService(AuditRepository(db)).verify_run(UUID(body["run_id"]))
+    assert verification.valid, verification.detail
+
+
+async def test_the_rag_pass_is_recorded_as_an_engine_decision_too(
+    client: TestClient, offline_candidates: CandidatesService, db: AsyncSession
+) -> None:
+    body = ask(client)
+    stages = {event.stage.value for event in await AuditRepository(db).by_run(UUID(body["run_id"]))}
+    assert "retrieval" in stages
+
+
+async def test_two_calls_are_two_runs(
+    client: TestClient, offline_candidates: CandidatesService, db: AsyncSession
+) -> None:
+    first, second = ask(client), ask(client)
+    assert first["run_id"] != second["run_id"]
+
+
+# --- UCM-14: the explanation layer is presentational --------------------------
+
+
+def test_explanations_are_returned_only_for_the_capabilities_asked_about(
+    client: TestClient, explainable: dict[str, Any]
+) -> None:
+    body = ask(
+        client,
+        explain={
+            "zone_id": explainable["zone_id"],
+            "capability_ids": [explainable["capability_id"]],
+        },
+    )
+
+    explained = [c for c in every_capability(body) if c["explanations"] is not None]
+    assert len(explained) == 1
+    assert explained[0]["capability_id"] == explainable["capability_id"]
+    assert explained[0]["zone_id"] == explainable["zone_id"]
+
+
+def test_an_explanation_never_adds_drops_or_reorders_a_candidate(
+    client: TestClient, explainable: dict[str, Any]
+) -> None:
+    body = ask(
+        client,
+        explain={
+            "zone_id": explainable["zone_id"],
+            "capability_ids": [explainable["capability_id"]],
+        },
+    )
+    capability = next(c for c in every_capability(body) if c["explanations"] is not None)
+    explanations = capability["explanations"]
+
+    assert explanations["presentational"] is True
+    assert [e["control_id"] for e in explanations["explanations"]] == explainable["offered"]
+    assert capability["offered_control_ids"] == explainable["offered"]
+    assert all(e["status"] == "generated" for e in explanations["explanations"])
+
+
+def test_an_unknown_zone_in_the_explain_scope_is_refused(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    response = client.post(
+        URL,
+        json={
+            "profile_id": "PROFILE-A",
+            "explain": {"zone_id": "Z-NOPE", "capability_ids": ["CAP-PR-MFA"]},
+        },
+    )
+    assert response.status_code == 422
+    assert "Z-NOPE" in response.json()["detail"]
+
+
+def test_an_unknown_capability_in_the_explain_scope_is_refused(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    response = client.post(
+        URL,
+        json={
+            "profile_id": "PROFILE-A",
+            "explain": {"zone_id": "Z-SIS", "capability_ids": ["CAP-NOPE"]},
+        },
+    )
+    assert response.status_code == 422
+    assert "CAP-NOPE" in response.json()["detail"]
+
+
+def test_an_empty_explain_scope_is_refused(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """"Explain nothing" is not a request; "explain everything" is not a default."""
+    response = client.post(
+        URL,
+        json={"profile_id": "PROFILE-A", "explain": {"zone_id": "Z-SIS", "capability_ids": []}},
+    )
+    assert response.status_code == 422
+
+
+# --- naming the profile -------------------------------------------------------
+
+
+def test_an_inline_profile_is_accepted(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    from app.assets.loader import get_profile
+
+    response = client.post(
+        URL, json={"profile": get_profile("PROFILE-B").model_dump(mode="json")}
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["profile_id"] == "PROFILE-B"
+
+
+def test_naming_the_profile_twice_is_refused(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    from app.assets.loader import get_profile
+
+    response = client.post(
+        URL,
+        json={
+            "profile": get_profile("PROFILE-B").model_dump(mode="json"),
+            "profile_id": "PROFILE-A",
+        },
+    )
+    assert response.status_code == 422
+    assert "no ambos" in response.json()["detail"]
+
+
+def test_not_naming_the_profile_at_all_is_refused(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    response = client.post(URL, json={})
+    assert response.status_code == 422
+    assert "Falta el perfil" in response.json()["detail"]
+
+
+def test_an_unknown_profile_id_is_refused(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    response = client.post(URL, json={"profile_id": "PROFILE-Z"})
+    assert response.status_code == 422
+    assert "PROFILE-Z" in response.json()["detail"]
