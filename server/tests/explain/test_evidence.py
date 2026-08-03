@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import pytest
 
+from app.catalog.schemas import ProvenanceSource
 from app.engine.schemas import ProfileResolution
 from app.explain.evidence import fact_sheet, facts_for
 from app.explain.schemas import CandidateOrigin, EvidenceKey
@@ -81,6 +82,33 @@ def test_the_sheet_lists_every_candidate_with_its_citable_evidence(case: Case) -
 def test_the_sheet_is_the_same_for_the_same_inputs(case: Case) -> None:
     """A prompt that varied run to run would make the prose irreproducible."""
     assert fact_sheet(case.facts) == fact_sheet(case.facts)
+
+
+def test_the_model_is_never_asked_to_translate_an_identifier(case: Case) -> None:
+    """Sheet 1.0.0 printed `author_judgment`; the 7B rendered it "autorización
+    internacional", promoting the catalog author's judgement to an official
+    authorisation. The fix is to hand it the Spanish label, so the raw enum values
+    must not appear in the sheet at all."""
+    sheet = fact_sheet(case.facts)
+
+    for identifier in ("author_judgment", "official_crosswalk", "INTL", "not_applicable"):
+        assert identifier not in sheet
+
+
+def test_an_author_judgment_says_it_is_not_a_crosswalk(case: Case) -> None:
+    """The distinction the catalog is built on has to survive into the prompt."""
+    authored = [
+        candidate
+        for candidate in case.facts.candidates
+        if candidate.mapping is not None
+        and candidate.mapping.provenance.source is ProvenanceSource.AUTHOR_JUDGMENT
+    ]
+    assert authored, "profile A should offer at least one author-judged mapping"
+
+    sheet = fact_sheet(case.facts)
+    assert "juicio del autor del catálogo (no es un crosswalk oficial)" in sheet
+    for candidate in authored:
+        assert "juicio del autor" in candidate.fallback
 
 
 def test_a_gap_has_nothing_to_explain(gap_case: Case) -> None:

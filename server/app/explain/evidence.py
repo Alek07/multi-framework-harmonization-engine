@@ -21,7 +21,9 @@ deterministic:
 
 The fact sheet is Spanish because the model writes Spanish for the operator, and
 its shape is fixed: same inputs, same sheet, so the same prompt reaches the model
-on every machine (invariant 3).
+on every machine (invariant 3). It is versioned for the same reason the prompt is
+— it is an input of the prose, and two runs that read differently have to be
+explainable by something written down.
 """
 
 from __future__ import annotations
@@ -30,15 +32,68 @@ from dataclasses import dataclass, field
 
 from app.catalog.schemas import (
     Capability,
+    ControlType,
     Framework,
     FrameworkControl,
     Jurisdiction,
     Mapping,
     MappingType,
+    ProvenanceSource,
 )
 from app.engine.schemas import CandidateOption, CandidateStatus, CapabilityResolution, ZoneContext
 from app.explain.schemas import CandidateOrigin, EvidenceKey
 from app.retrieval.schemas import CapabilityRetrieval, RetrievedControl
+
+# Version of the sheet, recorded in `ExplanationProvenance` next to the prompt's.
+#
+# 1.0.0 printed the catalog's enum values verbatim — `author_judgment`,
+# `official_crosswalk`, `INTL` — and left the model to render them in Spanish. It
+# rendered `author_judgment` + `INTL` as "procedente de una autorización
+# internacional", which turns the catalog author's own judgment into an official
+# international authorisation: the exact distinction the catalog is built on,
+# inverted, in prose that reads as fact. The guard cannot catch it — the citation
+# is grounded and there is no verdict in the sentence — so the fix is upstream:
+# 1.1.0 hands the model the Spanish label instead of an English identifier to
+# translate.
+SHEET_TEMPLATE_VERSION = "1.1.0"
+
+# Vocabulary the model copies rather than invents. Catalog content is Spanish by
+# convention (§ language rule); these are the enum values the same rule was never
+# applied to, because until now nothing read them out loud.
+PROVENANCE_LABELS: dict[ProvenanceSource, str] = {
+    ProvenanceSource.OFFICIAL_CROSSWALK: "crosswalk oficial",
+    ProvenanceSource.AUTHOR_JUDGMENT: (
+        "juicio del autor del catálogo (no es un crosswalk oficial)"
+    ),
+}
+
+JURISDICTION_LABELS: dict[Jurisdiction, str] = {
+    Jurisdiction.US: "Estados Unidos",
+    Jurisdiction.EU: "Unión Europea",
+    Jurisdiction.INTL: "internacional",
+    Jurisdiction.INTL_MARITIME: "internacional marítima",
+}
+
+MAPPING_TYPE_LABELS: dict[MappingType, str] = {
+    MappingType.TOTAL: "total",
+    MappingType.PARTIAL: "parcial",
+    MappingType.COMPENSATORY: "compensatorio",
+    MappingType.CONTEXTUAL: "contextual",
+}
+
+CONTROL_TYPE_LABELS: dict[ControlType, str] = {
+    ControlType.TECHNICAL: "técnico",
+    ControlType.LEGAL: "legal",
+}
+
+# What the deterministic core already decided about a candidate. Never a quality
+# judgement — `superseded` is a declared precedence rule having fired, and the
+# candidate is still on screen.
+STATUS_LABELS: dict[CandidateStatus, str] = {
+    CandidateStatus.ELIGIBLE: "elegible",
+    CandidateStatus.SUPERSEDED: "desplazado por la precedencia de marco de la zona",
+    CandidateStatus.CONTESTED: "en contradicción real, escalada al humano",
+}
 
 # Evidence every candidate carries, whatever its origin: the control is in the
 # catalog, so its framework, jurisdiction, strength and paraphrase are all facts.
@@ -218,12 +273,14 @@ def _catalog_fallback(option: CandidateOption, resolution: CapabilityResolution)
     provenance = mapping.provenance
     text = (
         f"Candidato del catálogo: {control.official_id} ({control.framework.value}, "
-        f"{control.jurisdiction.value}) está mapeado a «{resolution.capability.name}» con un "
-        f"mapeo {mapping.mapping_type.value} de peso {mapping.coverage_weight:g}, procedencia "
-        f"{provenance.source.value} ({provenance.jurisdiction.value})."
+        f"jurisdicción {JURISDICTION_LABELS[control.jurisdiction]}) está mapeado a "
+        f"«{resolution.capability.name}» con un mapeo "
+        f"{MAPPING_TYPE_LABELS[mapping.mapping_type]} de peso {mapping.coverage_weight:g}, "
+        f"procedencia: {PROVENANCE_LABELS[provenance.source]}, "
+        f"{JURISDICTION_LABELS[provenance.jurisdiction]}."
     )
     if option.status is not CandidateStatus.ELIGIBLE:
-        text += f" El núcleo lo marcó como {option.status.value}"
+        text += f" El núcleo lo marcó como {STATUS_LABELS[option.status]}"
         text += f": {option.status_reason}" if option.status_reason else "."
     return text
 
@@ -264,8 +321,9 @@ def _candidate_lines(position: int, candidate: CandidateFacts) -> list[str]:
     lines = [
         f"CANDIDATO {position} [origen={candidate.origin.value}] control_id={control.id}",
         f"  identificador oficial: {control.official_id} — {control.title}",
-        f"  marco: {control.framework.value} · jurisdicción: {control.jurisdiction.value} · "
-        f"fuerza: {control.strength} · tipo: {control.control_type.value}",
+        f"  marco: {control.framework.value} · jurisdicción: "
+        f"{JURISDICTION_LABELS[control.jurisdiction]} · fuerza: {control.strength} · "
+        f"tipo de control: {CONTROL_TYPE_LABELS[control.control_type]}",
         f"  paráfrasis: {control.paraphrased_description}",
     ]
 
@@ -273,9 +331,16 @@ def _candidate_lines(position: int, candidate: CandidateFacts) -> list[str]:
         mapping = candidate.mapping
         provenance = mapping.provenance
         lines.append(
-            f"  mapeo del catálogo: tipo={mapping.mapping_type.value} "
-            f"peso={mapping.coverage_weight:g} procedencia={provenance.source.value} "
-            f"({provenance.jurisdiction.value})"
+            f"  mapeo del catálogo: tipo {MAPPING_TYPE_LABELS[mapping.mapping_type]}, "
+            f"peso {mapping.coverage_weight:g}"
+        )
+        # On its own line and spelled out: the difference between a published
+        # crosswalk and the catalog author's judgement is the one thing an
+        # explanation must not blur, and a 7B asked to translate
+        # `author_judgment` produced "autorización internacional" (sheet 1.0.0).
+        lines.append(
+            f"  procedencia del mapeo: {PROVENANCE_LABELS[provenance.source]}, "
+            f"{JURISDICTION_LABELS[provenance.jurisdiction]}"
         )
         if provenance.note:
             lines.append(f"  nota de procedencia: {provenance.note}")
@@ -283,7 +348,7 @@ def _candidate_lines(position: int, candidate: CandidateFacts) -> list[str]:
         lines.append("  mapeo del catálogo: ninguno para esta capacidad (es una sugerencia)")
 
     if candidate.mapped_capability_ids:
-        types = ", ".join(sorted({t.value for t in candidate.mapping_types}))
+        types = ", ".join(sorted({MAPPING_TYPE_LABELS[t] for t in candidate.mapping_types}))
         lines.append(
             f"  mapeado en el catálogo a: {', '.join(candidate.mapped_capability_ids)}"
             + (f" (tipos: {types})" if types else "")
@@ -294,7 +359,9 @@ def _candidate_lines(position: int, candidate: CandidateFacts) -> list[str]:
 
     if candidate.status is not None and candidate.status is not CandidateStatus.ELIGIBLE:
         reason = f" — {candidate.status_reason}" if candidate.status_reason else ""
-        lines.append(f"  estado según el núcleo determinista: {candidate.status.value}{reason}")
+        lines.append(
+            f"  estado según el núcleo determinista: {STATUS_LABELS[candidate.status]}{reason}"
+        )
 
     lines.append(f"  evidencia citable: {', '.join(key.value for key in candidate.allowed)}")
     return lines

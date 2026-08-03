@@ -18,6 +18,8 @@ from pydantic_ai.models.function import FunctionModel
 
 from app.core.config import settings
 from app.engine.schemas import ProfileResolution
+from app.explain.evidence import SHEET_TEMPLATE_VERSION
+from app.explain.prompt import PROMPT_VERSION
 from app.explain.schemas import CandidateExplanation, ExplanationStatus
 from app.explain.service import CandidateExplanationService
 from app.parse.ollama import ModelUnavailableError
@@ -292,7 +294,9 @@ async def test_the_provenance_pins_how_the_prose_was_produced(case: Case) -> Non
     assert provenance.model == settings.LLM_MODEL
     assert provenance.temperature == settings.LLM_TEMPERATURE == 0.0
     assert provenance.seed == settings.LLM_SEED
-    assert provenance.prompt_version == "0.1.0"
+    # Both inputs of the prose are pinned: the instructions and the fact sheet.
+    assert provenance.prompt_version == PROMPT_VERSION
+    assert provenance.sheet_template_version == SHEET_TEMPLATE_VERSION
     assert provenance.catalog_version == case.catalog_version
     assert provenance.attempts == 1
 

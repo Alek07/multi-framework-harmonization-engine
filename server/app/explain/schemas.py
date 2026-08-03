@@ -177,6 +177,11 @@ class ExplanationProvenance(BaseModel):
     # for the tag it actually served, and an unverified run has none to report.
     model_digest: str | None = None
     prompt_version: str
+    # The fact sheet is as much an input of the prose as the instructions are:
+    # the same candidates rendered differently produce different sentences. It is
+    # versioned alongside the prompt for the same reason retrieval versions its
+    # own text template (`RetrievalProvenance.text_template_version`).
+    sheet_template_version: str
     temperature: float
     seed: int
     top_p: float

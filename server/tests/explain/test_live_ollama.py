@@ -12,9 +12,18 @@ candidates for the same capability will, sooner or later, start comparing them.
 * how often the guard had to withhold is *printed*, not hidden behind a pass:
   that number is the honest measure of how well the prompt holds, and it belongs
   in the evaluation (UCM-18), not in a green tick.
+
+The tests here run over the stand-in ranker's candidates, which is enough for
+everything above — the prose is the model's, whatever produced the list. The last
+test is marked `rag` as well and runs the whole chain against Qdrant and e5-base
+(`uv run pytest -m "llm and rag" -s`), because one claim does need it: the
+similarity figures the model repeats are only worth reading if they are the ones
+the shipped retriever would put in front of the operator.
 """
 
 from __future__ import annotations
+
+import sys
 
 import pytest
 
@@ -23,6 +32,13 @@ from app.explain.service import CandidateExplanationService
 from tests.explain.conftest import Case
 
 pytestmark = pytest.mark.llm
+
+# A Windows console defaults to cp1252, which cannot encode the guillemets and
+# accents the catalog is written in — the print would raise and take a ten-minute
+# run's output with it. The whole point of this file is to *read* what the model
+# wrote, so stdout is switched to UTF-8 instead of the prose being flattened.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")  # type: ignore[union-attr]
 
 
 @pytest.fixture
@@ -63,6 +79,10 @@ async def test_the_model_explains_every_candidate_and_only_them(
     assert [e.control_id for e in result.explanations] == case.offered
     assert all(e.text.strip() for e in result.explanations)
     assert result.provenance.model_digest
+    # Without this the test passes on a total model failure: fail-open leaves the
+    # candidates and their deterministic text in place, which is the contract but
+    # is not what *this* file is here to check.
+    assert result.generated, "the live model produced no usable explanation at all"
 
 
 async def test_the_explanations_are_reproducible(
@@ -100,3 +120,27 @@ async def test_what_the_guard_had_to_withhold_is_reported(
 
     # The candidate list is what must survive the model, not the prose.
     assert result.offered_control_ids == case.offered
+
+
+@pytest.mark.rag
+async def test_the_whole_chain_over_the_real_index(
+    service: CandidateExplanationService, live_case: Case
+) -> None:
+    """Catalog → core → Qdrant/e5 → 7B, with nothing stood in for.
+
+    The point of running the real retriever here is the numbers: an explanation
+    that quotes a similarity is only checkable if that similarity is the one the
+    operator would see. It also exercises the case the stand-in ranker cannot
+    produce — real neighbours, in the order real vectors put them.
+    """
+    result = await service.explain_capability(
+        live_case.resolution, live_case.retrieval, live_case.catalog_version, live_case.zone
+    )
+    report(result)
+
+    assert [e.control_id for e in result.explanations] == live_case.offered
+    assert result.generated, "the live model produced no usable explanation at all"
+    # Cosine similarities from e5-base, not a token-overlap stand-in.
+    scores = [c.score for c in live_case.facts.candidates if c.score is not None]
+    print(f"\nsimilitudes reales: {[round(score, 3) for score in scores]}")
+    assert scores and all(0.0 <= score <= 1.0 for score in scores)

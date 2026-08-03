@@ -87,6 +87,24 @@ def case(resolution_a: ProfileResolution, retrieval_a: ProfileRetrieval) -> Case
 
 
 @pytest.fixture(scope="session")
+def live_case(case: Case) -> Case:
+    """The same capability as `case`, with candidates from Qdrant + e5-base.
+
+    Only for tests marked `rag`: it loads the real embedding model and queries the
+    real index, which the rest of the suite must never do. It exists because the
+    similarity figures the model repeats in its prose are only meaningful if they
+    are the ones the shipped retriever would actually show the operator — the
+    stand-in ranker's numbers are a property of the test, not of the system.
+    """
+    return Case(
+        resolution=case.resolution,
+        retrieval=RetrievalService().retrieve_capability(case.resolution),
+        zone=case.zone,
+        catalog_version=case.catalog_version,
+    )
+
+
+@pytest.fixture(scope="session")
 def gap_case(catalog: Catalog, resolution_a: ProfileResolution) -> Case:
     """A capability with no candidate at all: the explicit gap of UCM-13."""
     zone = resolution_a.zones[0]

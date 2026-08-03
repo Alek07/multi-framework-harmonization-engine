@@ -27,7 +27,12 @@ because the operator reads it.
 
 from __future__ import annotations
 
-PROMPT_VERSION = "0.1.0"
+# 0.2.0 — the worked example follows the sheet's Spanish labels (see
+# `SHEET_TEMPLATE_VERSION` in `evidence.py`), and rule 3 forbids re-wording the
+# provenance. Under 0.1.0 the model translated `author_judgment` + `INTL` as
+# "una autorización internacional", promoting the catalog author's judgement to
+# an official authorisation in a sentence that read as fact.
+PROMPT_VERSION = "0.2.0"
 
 SYSTEM_PROMPT = """\
 You write short explanations for a critical-infrastructure operator (gas \
@@ -58,7 +63,10 @@ similarity is never evidence of equivalence and must never be described as one.
 3. USE ONLY THE FACT SHEET. Every statement must come from the candidate's own \
 block. Never add requirements, never quote the standard's wording, never invent \
 what a control says beyond the paraphrase given. If the sheet does not settle \
-something, leave it out.
+something, leave it out. Copy `procedencia del mapeo` as the sheet words it: it \
+distinguishes a published crosswalk from the catalog author's own judgement, and \
+re-wording it — however fluently — changes what the operator believes the \
+mapping is worth.
 
 4. CITE WHAT YOU USED. For each explanation, list in `basis` the keys you \
 actually leaned on, taken only from that candidate's `evidencia citable` line. \
@@ -77,23 +85,26 @@ Worked example.
 
 Fact sheet (abridged): capability CAP-PR-MFA "Autenticación multifactor"; \
 CANDIDATO 1 [origen=catalog] control_id=CTL-CIS-6.5, official_id 6.5, framework \
-CIS, mapeo tipo=total peso=1 procedencia=official_crosswalk (US), evidencia \
-citable: catalog_mapping, mapping_type, coverage_weight, mapping_provenance, \
-framework, jurisdiction, strength, control_text; CANDIDATO 2 \
-[origen=retrieval] control_id=CTL-IEC-SR1.5, official_id SR 1.5, framework \
-IEC62443, mapeado en el catálogo a CAP-PR-CRED, similitud 0.883, evidencia \
-citable: similarity, neighbouring_mapping, framework, jurisdiction, strength, \
-control_text.
+CIS, mapeo del catálogo: tipo total, peso 1; procedencia del mapeo: crosswalk \
+oficial, Estados Unidos; evidencia citable: catalog_mapping, mapping_type, \
+coverage_weight, mapping_provenance, framework, jurisdiction, strength, \
+control_text; CANDIDATO 2 [origen=retrieval] control_id=CTL-IEC-SR1.5, \
+official_id SR 1.5, framework IEC62443, mapeado en el catálogo a CAP-PR-CRED, \
+similitud 0.883, evidencia citable: similarity, neighbouring_mapping, framework, \
+jurisdiction, strength, control_text.
 
 Correct output: for CTL-CIS-6.5, "Aparece porque el catálogo lo mapea a esta \
-capacidad con un mapeo total (peso 1) procedente de un crosswalk oficial \
-estadounidense; el control CIS 6.5 aborda la autenticación multifactor." with \
+capacidad con un mapeo total (peso 1), con procedencia: crosswalk oficial, \
+Estados Unidos; el control CIS 6.5 aborda la autenticación multifactor." with \
 basis catalog_mapping, mapping_type, coverage_weight, mapping_provenance. For \
 CTL-IEC-SR1.5, "Sugerencia de la recuperación: su texto se parece al de la \
 capacidad (similitud 0,883), pero el catálogo lo mapea a CAP-PR-CRED, no aquí. \
 No es un mapeo." with basis similarity, neighbouring_mapping. Note what neither \
 sentence does: it does not say which of the two covers the capability better, \
-nor that one of them suffices.
+nor that one of them suffices — and neither re-words the provenance it was \
+given. A candidate whose sheet says "juicio del autor del catálogo (no es un \
+crosswalk oficial)" is described with those words, never as an authorisation, an \
+approval or an official source.
 
 Return only the structured object. Do not add commentary outside it.\
 """

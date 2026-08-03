@@ -34,7 +34,13 @@ from app.core.config import settings
 from app.core.exceptions import AppException
 from app.engine.schemas import CapabilityResolution, ZoneContext, ZoneResolution
 from app.explain.agent import ExplainAgent, explain_agent
-from app.explain.evidence import CandidateFacts, CapabilityFacts, fact_sheet, facts_for
+from app.explain.evidence import (
+    SHEET_TEMPLATE_VERSION,
+    CandidateFacts,
+    CapabilityFacts,
+    fact_sheet,
+    facts_for,
+)
 from app.explain.guard import screen
 from app.explain.prompt import PROMPT_VERSION, user_prompt
 from app.explain.schemas import (
@@ -260,6 +266,7 @@ class CandidateExplanationService:
             model=settings.LLM_MODEL,
             model_digest=digest,
             prompt_version=PROMPT_VERSION,
+            sheet_template_version=SHEET_TEMPLATE_VERSION,
             temperature=settings.LLM_TEMPERATURE,
             seed=settings.LLM_SEED,
             top_p=settings.LLM_TOP_P,

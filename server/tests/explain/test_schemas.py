@@ -24,7 +24,8 @@ from app.explain.schemas import (
 
 PROVENANCE = ExplanationProvenance(
     model="qwen2.5:7b-instruct-q4_K_M",
-    prompt_version="0.1.0",
+    prompt_version="0.2.0",
+    sheet_template_version="1.1.0",
     temperature=0.0,
     seed=42,
     top_p=1.0,
