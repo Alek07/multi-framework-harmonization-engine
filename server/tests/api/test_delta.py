@@ -1,73 +1,287 @@
-"""UCM-15 - `GET /delta`: the query is validated today, the reading lands in UCM-17.
+"""UCM-15/UCM-17 - `GET /delta`: one zone, two readings, and what changes between them.
 
-The logic is the next ticket's. What is asserted here is that the contract is not
-a placeholder: an unknown jurisdiction, a single region, a repeated one, an
-unknown profile and a zone the profile does not declare are all refused *before*
-the 501, and both spellings of `regions` that the PRD and the ticket use are
-accepted.
+The query validation was written with the contract in UCM-15 and still stands. The
+rest asserts the reading itself, and it is written about the claims the demo makes:
+
+* **The `+` is cumulative.** "+EU" is the US reading *plus* the European obligation
+  overlay — never a parallel catalog in which a European operator has no CIS and no
+  CSF. Every jurisdiction not under comparison is common ground in both readings.
+* **A lens sets candidates aside, it never deletes them.** The US reading reports
+  the NIS2 articles it left out, by name, before "+EU" adds them.
+* **What +EU adds is exigencia, not coverage** — and the response has to say so.
+  Every NIS2 mapping in this catalog is contextual with a low weight, so a delta
+  that only reported coverage would look empty when it is not, and one that only
+  reported the extra control would suggest a technical gap that does not exist.
+* **Nothing regional is invented.** The gaps the deterministic core declares from
+  the common ground are identical in both readings and are not counted as regional.
+
+Everything here runs offline: the delta reads authored mappings, not vectors.
 """
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.audit.repository import AuditRepository
 from app.delta.router import RegionsQueryError, parse_regions
 from tests.api.conftest import PREFIX
 
 URL = f"{PREFIX}/delta"
-DEMO = {"profile_id": "PROFILE-A", "zone_id": "Z-OT-CORRIDOR"}
+# The demo zone and region pair fixed in UCM-3: the engineering station is where
+# the US<->EU divergence is real and legible, not the pure OT corridor.
+DEMO = {"regions": "US,EU", "profile_id": "PROFILE-B", "zone_id": "Z-ENG-STATION"}
+
+# What UCM-3 named as the capabilities that carry the delta.
+NIS2_CAPABILITIES = {
+    "CAP-GOV-RISK",
+    "CAP-GOV-ROLES",
+    "CAP-GOV-SUPPLY",
+    "CAP-PR-AWARENESS",
+    "CAP-RS-REPORT",
+}
 
 
-def test_the_url_the_prd_writes_is_the_url_the_api_parses(client: TestClient) -> None:
-    """`?regions=US,EU` — an API that documents a URL it cannot read is worse than two spellings."""
-    response = client.get(URL, params={"regions": "US,EU", **DEMO})
+def ask(client: TestClient, **params: Any) -> dict[str, Any]:
+    response = client.get(URL, params={**DEMO, **params})
+    assert response.status_code == 200, response.text
+    return dict(response.json())
 
-    assert response.status_code == 501
-    assert "UCM-17" in response.json()["detail"]
+
+# --- the reading --------------------------------------------------------------
+
+
+def test_the_demo_zone_reads_under_both_regions(client: TestClient) -> None:
+    body = ask(client)
+
+    assert body["profile_id"] == "PROFILE-B"
+    assert body["zone"]["zone_id"] == "Z-ENG-STATION"
+    assert body["regions"] == ["US", "EU"]
+    assert len(body["capabilities"]) == 24
+
+
+def test_the_readings_are_cumulative_over_common_ground(client: TestClient) -> None:
+    """"+EU" is the US reading plus NIS2 — not a catalog where Europe has no CIS."""
+    body = ask(client)
+
+    assert body["common_jurisdictions"] == ["INTL", "INTL-MARITIME"]
+    for capability in body["capabilities"]:
+        us, plus_eu = capability["regions"]
+        assert us["label"] == "US"
+        assert plus_eu["label"] == "+EU"
+        assert us["jurisdictions"] == ["US", "INTL", "INTL-MARITIME"]
+        assert plus_eu["jurisdictions"] == ["US", "EU", "INTL", "INTL-MARITIME"]
+        # Cumulative by construction: the later reading never loses a candidate.
+        assert set(us["offered_control_ids"]) <= set(plus_eu["offered_control_ids"])
+
+
+def test_each_reading_declares_the_lens_it_used(client: TestClient) -> None:
+    body = ask(client)
+
+    assert len(body["lenses"]) == 2
+    assert body["lenses"][0]["jurisdictions"] == ["US", "INTL", "INTL-MARITIME"]
+    assert all("acumulativas" in lens["rationale"] for lens in body["lenses"])
+
+
+def test_the_delta_falls_on_the_capabilities_ucm3_named(client: TestClient) -> None:
+    body = ask(client)
+
+    assert set(body["changed_capability_ids"]) == NIS2_CAPABILITIES
+    assert len(body["unchanged_capability_ids"]) == 24 - len(NIS2_CAPABILITIES)
+
+
+def test_what_plus_eu_adds_is_obligation_and_not_coverage(client: TestClient) -> None:
+    """The finding of the demo, and the one a coverage number alone would hide."""
+    body = ask(client)
+
+    for capability_id in body["changed_capability_ids"]:
+        capability = next(
+            c for c in body["capabilities"] if c["capability_id"] == capability_id
+        )
+        us, plus_eu = capability["regions"]
+
+        assert capability["added"], capability_id
+        assert capability["changes_coverage"] is False
+        assert us["coverage"] == plus_eu["coverage"]
+        for added in capability["added"]:
+            assert added["framework"] == "NIS2"
+            assert added["jurisdiction"] == "EU"
+            assert added["mapping_type"] == "contextual"
+            assert added["changes_coverage"] is False
+            assert added["strength"]
+            assert "exigencia, no mecanismo" in added["rationale"]
+
+
+def test_the_notification_deadlines_are_the_headline_of_the_delta(
+    client: TestClient,
+) -> None:
+    """NIS2 Art. 23: 24 h / 72 h / one month over a capability CSF already covers."""
+    capability = next(
+        c
+        for c in ask(client)["capabilities"]
+        if c["capability_id"] == "CAP-RS-REPORT"
+    )
+    added = capability["added"][0]
+
+    assert added["official_id"] == "Art. 23"
+    assert "24h/72h" in added["strength"]
+    assert "CTL-CSF-RSCO02" in capability["common_control_ids"]
+    assert "obligación legal" in capability["rationale"]
+
+
+def test_an_unchanged_capability_says_so_plainly(client: TestClient) -> None:
+    body = ask(client)
+    capability = next(
+        c
+        for c in body["capabilities"]
+        if c["capability_id"] in body["unchanged_capability_ids"]
+    )
+
+    assert capability["added"] == []
+    assert capability["changed"] is False
+    assert "idéntica en todas las lecturas" in capability["rationale"]
+
+
+# --- nothing is restricted, nothing is invented -------------------------------
+
+
+def test_the_first_reading_reports_what_its_lens_set_aside(client: TestClient) -> None:
+    """Apartar no es descartar: the US reading names the NIS2 articles it left out."""
+    body = ask(client)
+
+    for capability_id in body["changed_capability_ids"]:
+        capability = next(
+            c for c in body["capabilities"] if c["capability_id"] == capability_id
+        )
+        us, plus_eu = capability["regions"]
+        assert us["set_aside_control_ids"], capability_id
+        assert set(us["set_aside_control_ids"]) == set(plus_eu["only_here_control_ids"])
+        assert plus_eu["set_aside_control_ids"] == []
+        assert "Apartar" in us["rationale"]
+
+
+def test_the_starting_reading_contributes_nothing_exclusive(client: TestClient) -> None:
+    """It is the baseline of the comparison: everything it offers, "+EU" offers too."""
+    for capability in ask(client)["capabilities"]:
+        us = capability["regions"][0]
+        assert us["only_here_control_ids"] == []
+        assert "lectura de partida" in us["rationale"]
+
+
+def test_the_union_of_the_readings_is_the_whole_catalog_offer(client: TestClient) -> None:
+    """A jurisdiction not under comparison is common ground, never a dropped one."""
+    body = ask(client)
+
+    for capability in body["capabilities"]:
+        offered = set(capability["regions"][-1]["offered_control_ids"])
+        set_aside = set(capability["regions"][-1]["set_aside_control_ids"])
+        assert set_aside == set()
+        assert offered >= set(capability["common_control_ids"])
+
+
+def test_a_gap_that_both_readings_share_is_not_a_regional_gap(client: TestClient) -> None:
+    """Partial coverage comes from the common ground; calling it regional would be false."""
+    body = ask(client)
+
+    assert body["regional_gap_capability_ids"] == []
+    with_gaps = [
+        c["capability_id"]
+        for c in body["capabilities"]
+        if any(view["gap"] is not None for view in c["regions"])
+    ]
+    assert with_gaps, "the core declares residual gaps in this zone"
+    for capability_id in with_gaps:
+        capability = next(
+            c for c in body["capabilities"] if c["capability_id"] == capability_id
+        )
+        # Same gap under both readings — which is exactly why it is not regional.
+        kinds = {
+            view["gap"]["kind"] if view["gap"] else None for view in capability["regions"]
+        }
+        assert len(kinds) == 1
+
+
+async def test_a_delta_is_a_view_and_writes_nothing(
+    client: TestClient, db: AsyncSession
+) -> None:
+    """It decides nothing and belongs to no run, so it belongs in no ledger entry."""
+    ask(client)
+    assert await AuditRepository(db).count() == 0
+
+
+def test_the_delta_needs_no_ai_at_all(client: TestClient) -> None:
+    """No candidates fixture, no index, no model: it reads authored mappings."""
+    body = ask(client)
+    assert body["catalog_version"]
+    assert body["rules_version"]
+
+
+# --- the order of the regions is the question being asked ---------------------
+
+
+def test_reversing_the_regions_asks_a_different_question(client: TestClient) -> None:
+    forward = ask(client, regions="US,EU")
+    backward = ask(client, regions="EU,US")
+
+    assert [r["label"] for r in forward["capabilities"][0]["regions"]] == ["US", "+EU"]
+    assert [r["label"] for r in backward["capabilities"][0]["regions"]] == ["EU", "+US"]
+    # Same union, different starting point — and the delta lands elsewhere.
+    assert set(backward["changed_capability_ids"]) != set(forward["changed_capability_ids"])
+
+
+# --- the query contract (UCM-15) ----------------------------------------------
 
 
 def test_repeated_query_parameters_are_read_the_same_way(client: TestClient) -> None:
-    response = client.get(URL, params=[("regions", "US"), ("regions", "EU"), *DEMO.items()])
-    assert response.status_code == 501
+    response = client.get(
+        URL,
+        params=[
+            ("regions", "US"),
+            ("regions", "EU"),
+            ("profile_id", "PROFILE-B"),
+            ("zone_id", "Z-ENG-STATION"),
+        ],
+    )
+    assert response.status_code == 200
 
 
 def test_a_single_region_is_not_a_delta(client: TestClient) -> None:
-    response = client.get(URL, params={"regions": "US", **DEMO})
+    response = client.get(URL, params={**DEMO, "regions": "US"})
     assert response.status_code == 422
     assert "al menos dos" in response.json()["detail"]
 
 
 def test_an_unknown_jurisdiction_is_refused(client: TestClient) -> None:
-    response = client.get(URL, params={"regions": "US,MARS", **DEMO})
+    response = client.get(URL, params={**DEMO, "regions": "US,MARS"})
     assert response.status_code == 422
     assert "MARS" in response.json()["detail"]
 
 
 def test_a_repeated_jurisdiction_is_refused(client: TestClient) -> None:
     """`?regions=US,US` is a request nobody meant to write, not a one-region delta."""
-    response = client.get(URL, params={"regions": "US,US", **DEMO})
+    response = client.get(URL, params={**DEMO, "regions": "US,US"})
     assert response.status_code == 422
     assert "repetida" in response.json()["detail"]
 
 
 def test_an_unknown_profile_is_refused(client: TestClient) -> None:
-    response = client.get(URL, params={"regions": "US,EU", "profile_id": "P-Z", "zone_id": "Z"})
+    response = client.get(URL, params={**DEMO, "profile_id": "P-Z"})
     assert response.status_code == 422
     assert "P-Z" in response.json()["detail"]
 
 
 def test_a_zone_the_profile_does_not_declare_is_refused(client: TestClient) -> None:
-    response = client.get(
-        URL, params={"regions": "US,EU", "profile_id": "PROFILE-A", "zone_id": "Z-NOPE"}
-    )
+    response = client.get(URL, params={**DEMO, "zone_id": "Z-NOPE"})
     assert response.status_code == 422
     assert "Z-NOPE" in response.json()["detail"]
 
 
 def test_the_zone_is_required(client: TestClient) -> None:
     """One zone per call: N zones at once is declared future work, not a default."""
-    response = client.get(URL, params={"regions": "US,EU", "profile_id": "PROFILE-A"})
+    response = client.get(URL, params={"regions": "US,EU", "profile_id": "PROFILE-B"})
     assert response.status_code == 422
 
 
