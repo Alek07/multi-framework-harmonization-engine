@@ -42,6 +42,7 @@ import {
   DELTA_ORDERS,
   emptyZoneProgress,
   keyOf,
+  stepLocksFor,
   type Blocker,
   type CompositionApi,
   type Correction,
@@ -58,7 +59,7 @@ function messageOf(error: unknown): string {
 
 export function CompositionProvider({ children }: { children: ReactNode }) {
   const [backendUp, setBackendUp] = useState<boolean | null>(null)
-  const [step, setStep] = useState<Step>(1)
+  const [requestedStep, setStep] = useState<Step>(1)
   const [zoneId, setZoneIdState] = useState<string | null>(null)
   const [focusRequest, setFocusRequest] = useState<string | null>(null)
 
@@ -590,18 +591,43 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
 
   // --- navigation ------------------------------------------------------------
 
-  const goToStep = useCallback((next: Step) => {
-    setStep(next)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+  const stepLocks = useMemo(
+    () => stepLocksFor({ hasDraft: draft !== null, missing, candidates }),
+    [candidates, draft, missing],
+  )
+
+  /**
+   * A step whose input disappears cannot stay on screen.
+   *
+   * Re-parsing the description or starting a manual draft clears the engine run,
+   * and the operator may be standing on a step that reads it. The step is derived
+   * rather than stored for that reason: what is on screen is always a step that
+   * still holds, without a render passing through one that does not.
+   */
+  const step = stepLocks[requestedStep]
+    ? (([4, 3, 2, 1] as Step[]).find((n) => n < requestedStep && !stepLocks[n]) ?? 1)
+    : requestedStep
+
+  const goToStep = useCallback(
+    (next: Step) => {
+      if (stepLocks[next]) return
+      setStep(next)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    },
+    [stepLocks],
+  )
 
   const setZoneId = useCallback((next: string) => setZoneIdState(next), [])
 
-  const focusOn = useCallback((domId: string, zone: string, next: Step) => {
-    setZoneIdState(zone)
-    setStep(next)
-    setFocusRequest(domId)
-  }, [])
+  const focusOn = useCallback(
+    (domId: string, zone: string, next: Step) => {
+      if (stepLocks[next]) return
+      setZoneIdState(zone)
+      setStep(next)
+      setFocusRequest(domId)
+    },
+    [stepLocks],
+  )
 
   const clearFocus = useCallback(() => setFocusRequest(null), [])
 
@@ -609,6 +635,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     backendUp,
     step,
     goToStep,
+    stepLocks,
     zoneId,
     setZoneId,
     focusRequest,

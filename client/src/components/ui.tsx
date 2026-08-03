@@ -134,6 +134,7 @@ export function PrimaryButton({
   onClick,
   disabled,
   className = '',
+  title,
   tone = 'accent',
   testId,
 }: {
@@ -141,6 +142,8 @@ export function PrimaryButton({
   onClick: () => void
   disabled?: boolean
   className?: string
+  /** When disabled, why — the operator should never meet a dead button in silence. */
+  title?: string
   tone?: 'accent' | 'ink'
   testId?: string
 }) {
@@ -150,6 +153,7 @@ export function PrimaryButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
+      title={title}
       data-testid={testId}
       className={`rounded-md border-none px-4 py-2.5 text-[13px] font-semibold text-white ${
         disabled ? 'cursor-default bg-ink-5' : `cursor-pointer ${enabled}`
