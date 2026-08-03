@@ -41,9 +41,31 @@ def test_the_five_endpoints_are_the_ones_the_prd_names(client: TestClient) -> No
         ("POST", "/candidates"),
         ("POST", "/baseline/compose"),
         ("GET", "/baseline/{baseline_id}/audit-log"),
-        ("GET", "/delta"),
+        ("POST", "/delta"),
     )
     assert len(SURFACE) == 5
+
+
+def test_every_engine_endpoint_can_name_the_asset_the_same_way(client: TestClient) -> None:
+    """The three endpoints that read a profile accept it inline or by id, alike.
+
+    This is the property the delta's method change bought. An endpoint that could
+    only take `profile_id` could only ever be asked about the profiles frozen in
+    the repository — never about the asset the operator has just described,
+    reviewed and composed, which is the whole point of the engine.
+    """
+    schema = client.get(f"{PREFIX}/openapi.json").json()
+    components = schema["components"]["schemas"]
+
+    for path, body in (
+        (f"{PREFIX}/candidates", "CandidatesRequest"),
+        (f"{PREFIX}/baseline/compose", "ComposeRequest"),
+        (f"{PREFIX}/delta", "DeltaRequest"),
+    ):
+        assert "post" in schema["paths"][path], f"{path} takes no body"
+        properties = components[body]["properties"]
+        assert "profile" in properties, f"{body} cannot carry a reviewed profile"
+        assert "profile_id" in properties, f"{body} cannot name a frozen profile"
 
 
 def test_health_is_served_but_is_not_part_of_the_surface(client: TestClient) -> None:

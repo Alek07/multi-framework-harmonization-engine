@@ -95,7 +95,7 @@ the 2 hand-written profiles (no AI) and be validated before starting M2.
 | `POST /candidates` | Profile → side-by-side options per capability |
 | `POST /baseline/compose` | Human choices → signed baseline (verify **Tier 0 complete** before signing; log every choice + reason) |
 | `GET /baseline/{id}/audit-log` | Full traceability |
-| `GET /delta?regions=US,EU` | Regional delta for the demo zone (one zone only; N regions = declared future work) |
+| `POST /delta` | Regional delta for one zone of the asset (`regions: [US, EU]`, `profile` inline or `profile_id`; one zone only; N regions = declared future work) |
 
 Sovereign composition (`UCM-16`) is the **central contribution**: equivalent options side by side
 (framework, jurisdiction, strength/SL, tier); the human chooses per zone and signs. Differentiator

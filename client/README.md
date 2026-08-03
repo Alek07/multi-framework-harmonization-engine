@@ -4,6 +4,10 @@ Interfaz de una sola vista sobre los cinco endpoints del motor: describir el act
 revisar y corregir el `AssetProfile` → componer a partir de las opciones equivalentes que el
 motor pone lado a lado → consultar el delta regional → firmar → leer la bitácora.
 
+El activo se describe **desde cero**: no hay selector de perfiles preparados. La única
+alternativa al texto libre es la que declara el PRD — el mismo borrador, rellenado a mano,
+para una máquina donde el modelo no esté disponible.
+
 Es **envoltorio de demostración, no producto**. Si el backend no responde, la aplicación lo
 dice y remite a Swagger — el plan B declarado en el PRD.
 

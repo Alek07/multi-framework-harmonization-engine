@@ -35,9 +35,54 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.assets.schemas import AssetProfile
 from app.catalog.schemas import Framework, Jurisdiction, MappingType
 from app.engine.schemas import CapabilityGap, ZoneContext
 from app.retrieval.schemas import PayloadFilter
+
+
+class DeltaRequest(BaseModel):
+    """Body of `POST /delta`: which asset, which zone, and which regions in order.
+
+    The profile is named the same way `POST /candidates` and
+    `POST /baseline/compose` name it — inline or by id, never both — and that
+    symmetry is the point of the shape. The delta answers "compose this zone for
+    a US operator, then for one who also answers to EU obligations": *this* zone,
+    of *this* asset. An endpoint that could only be asked about the profiles
+    frozen in the repository could not be asked about the asset the operator has
+    just composed, which is the question the engine exists to answer.
+
+    `profile_id` remains, and not as a courtesy: the frozen profiles are the
+    inputs the core was validated against and the ones the evaluation measures
+    (UCM-18), so the Swagger demo — the declared plan B — still reaches the whole
+    comparison without pasting a profile into the request.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    regions: list[str] = Field(
+        min_length=1,
+        description=(
+            "Jurisdicciones a comparar en orden, p. ej. ['US','EU'] o ['US,EU']. Mínimo dos, "
+            "sin repetir. Las lecturas son acumulativas: la segunda es la primera más esa "
+            "región."
+        ),
+    )
+    profile: AssetProfile | None = Field(
+        default=None,
+        description="Perfil revisado por el operador. Excluyente con 'profile_id'.",
+    )
+    profile_id: str | None = Field(
+        default=None,
+        description="Identificador de un perfil congelado en el repositorio, p. ej. 'PROFILE-A'.",
+    )
+    zone_id: str = Field(
+        min_length=1,
+        description=(
+            "Zona del perfil sobre la que se calcula el delta. Una sola: N zonas por consulta "
+            "son trabajo futuro declarado."
+        ),
+    )
 
 
 class RegionalRequirement(BaseModel):

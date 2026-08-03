@@ -49,12 +49,12 @@ function SLCells({ vector, target }: { vector: SLVector | null; target: number }
 }
 
 function AssetCard() {
-  const { candidates, profile, frozenProfileId, source, corrections, draft } = useComposition()
-  const name = candidates?.profile_name ?? profile?.name ?? draft?.name ?? frozenProfileId
+  const { candidates, profile, source, corrections, draft } = useComposition()
+  const name = candidates?.profile_name ?? profile?.name ?? draft?.name
   if (!name) return null
 
   const scale = profile?.criticality.scale ?? draft?.criticality.scale ?? null
-  const via = source === 'frozen' ? 'perfil congelado' : 'LLM + revisión humana'
+  const via = source === 'manual' ? 'perfil a mano' : 'LLM + revisión humana'
 
   return (
     <div className="mb-3 rounded-lg border border-line bg-surface px-[13px] py-3">
@@ -136,11 +136,10 @@ function ZoneCards() {
 }
 
 export function StageRail() {
-  const { step, goToStep, candidates, profile, frozenProfileId, progress, signed } =
-    useComposition()
+  const { step, goToStep, candidates, profile, progress, signed } = useComposition()
   const [openTip, setOpenTip] = useState<Step | null>(null)
 
-  const hasProfile = Boolean(profile ?? frozenProfileId)
+  const hasProfile = Boolean(profile)
   const done: Record<Step, boolean> = {
     1: hasProfile,
     2: Boolean(candidates) && progress.blockers.length === 0,

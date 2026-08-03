@@ -31,13 +31,16 @@ import type {
 } from '../api/types'
 
 export type Step = 1 | 2 | 3 | 4 | 5
-export type ProfileSource = 'parse' | 'frozen'
 
-/** Profiles frozen in the repository (UCM-1/UCM-2), addressable by id. */
-export const FROZEN_PROFILES = [
-  { id: 'PROFILE-A', label: 'PROFILE-A — corredor SCADA/PLC (OT puro)' },
-  { id: 'PROFILE-B', label: 'PROFILE-B — activo híbrido IT/OT' },
-] as const
+/**
+ * Where the profile came from.
+ *
+ * There is no third source, and in particular there is no picker of profiles
+ * frozen in the repository: the asset is described here, from scratch, which is
+ * what the engine is for. `manual` is the fallback the PRD declares for a
+ * machine where the model is not available — the same draft, filled in by hand.
+ */
+export type ProfileSource = 'parse' | 'manual'
 
 /** The two cumulative readings of UCM-17. The order asks a different question. */
 export const DELTA_ORDERS: { label: string; regions: Jurisdiction[] }[] = [
@@ -103,13 +106,26 @@ export interface CompositionApi {
   corrections: Correction[]
   missing: string[]
   profile: AssetProfile | null
-  frozenProfileId: string | null
   runParse: () => Promise<void>
-  selectFrozenProfile: (profileId: string) => void
+  /** The PRD's declared fallback: an empty draft the operator fills in by hand. */
+  startManualDraft: () => void
   correctTargetSL: (zoneIndex: number, value: number) => void
   correctSL: (zoneIndex: number, requirement: FoundationalRequirement) => void
   correctNature: (field: NatureField) => void
   correctCriticality: (scale: ConsequenceScale) => void
+  /**
+   * Any other edit to the draft, as a recipe over a copy of it.
+   *
+   * The typed helpers above cover the fields with their own affordance (the SL
+   * grid, the tri-state nature, the criticality scale). The rest — the asset's
+   * name and case, the zones' ids, the free-text criticality fields, adding and
+   * removing zones and conduits — are ordinary inputs, and giving each one its
+   * own action in this contract would say nothing the recipe does not.
+   */
+  patchDraft: (
+    recipe: (draft: AssetProfileDraft) => void,
+    correction?: { path: string; from: unknown; to: unknown },
+  ) => void
 
   // --- stage 2: the candidates ----------------------------------------------
   candidates: CandidatesResponse | null
@@ -129,7 +145,7 @@ export interface CompositionApi {
   choices: CompositionChoice[]
   progress: Progress
 
-  // --- stage 3: the regional delta -------------------------------------------
+  // --- stage 3: the regional delta over the asset being composed -------------
   delta: RegionalDelta | null
   deltaLoading: boolean
   deltaError: string | null

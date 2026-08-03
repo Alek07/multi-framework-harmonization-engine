@@ -4,3 +4,6 @@
 # Editors
 .vscode/
 .idea/
+
+# Artefactos del navegador cuando se conduce la UI con el MCP de Playwright
+.playwright-mcp/

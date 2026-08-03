@@ -2,28 +2,39 @@
  * Etapa 1 — the asset: one free-text input, and the human's review of what the
  * model made of it.
  *
- * The two halves of this stage are the two halves of invariant 1. On the left
- * the operator writes a paragraph and the model extracts; on the right every
- * extracted value is shown with the fragment of text it came from, whether it
- * was *stated* or *inferred*, and what the model could not place at all
- * (`unmapped`). Below, every field is editable, and the profile that the core
- * runs on is the corrected one — the draft never becomes an input on its own.
+ * There is one way in and it is the operator's own paragraph. The asset is
+ * described here from scratch — no picker of canned profiles, because composing
+ * the baseline of *this* asset is what the engine is for, and an interface that
+ * opened with a menu of prepared assets would be demonstrating the menu. The
+ * only alternative offered is the fallback the PRD declares: the same draft,
+ * filled in by hand, for a machine where the model is not available.
  *
- * `missing_required` is what stands between a draft and a profile. It is listed
- * in full, path by path, and while it is non-empty the flow does not advance:
+ * The two halves of the stage are the two halves of invariant 1. The model
+ * extracts; every extracted value is shown with the fragment of text it came
+ * from, whether it was *stated* or *inferred*, and what the model could not
+ * place at all (`unmapped`). Then every field is editable, and the profile the
+ * core runs on is the corrected one — the draft never becomes an input on its
+ * own.
+ *
+ * `missing_required` is what stands between a draft and a profile, and it is
+ * listed in full, path by path. While it is non-empty the flow does not advance:
  * a profile with an invented SL would produce a baseline nobody decided.
  */
 
 import {
   FR_FIELDS,
   type AssetProfileDraft,
+  type CaseType,
   type ConsequenceScale,
   type NatureField,
   type ParseNote,
 } from '../../api/types'
 import { CONSEQUENCE_SCALE, NATURE } from '../../lib/labels'
-import { FROZEN_PROFILES, useComposition } from '../../state/composition'
+import { useComposition } from '../../state/composition'
 import { Caps, Notice, PrimaryButton, Section, Tag } from '../ui'
+
+const INPUT =
+  'rounded-[5px] border border-line bg-surface-2 px-2.5 py-1.5 text-xs text-ink outline-accent'
 
 function EvidenceList({ notes }: { notes: ParseNote[] }) {
   if (notes.length === 0) return null
@@ -39,9 +50,7 @@ function EvidenceList({ notes }: { notes: ParseNote[] }) {
             <span className="font-mono text-[10.5px] font-semibold text-accent">{note.field}</span>
             <Tag
               className={
-                note.kind === 'stated'
-                  ? 'bg-ok-tint text-ok-ink'
-                  : 'bg-warn-tint text-warn-ink'
+                note.kind === 'stated' ? 'bg-ok-tint text-ok-ink' : 'bg-warn-tint text-warn-ink'
               }
             >
               {note.kind === 'stated' ? 'dicho' : 'inferido'}
@@ -55,24 +64,101 @@ function EvidenceList({ notes }: { notes: ParseNote[] }) {
   )
 }
 
+/** Name and case: the two fields the core needs and no grid covers. */
+function Identity({ draft }: { draft: AssetProfileDraft }) {
+  const { patchDraft, parseResult, signed } = useComposition()
+  const model = parseResult?.draft
+
+  return (
+    <div className="mb-4 grid grid-cols-2 gap-5">
+      <div>
+        <Caps className="mb-2">Nombre del activo</Caps>
+        <input
+          value={draft.name ?? ''}
+          disabled={signed}
+          placeholder="p. ej. Corredor OT de la terminal de GNL"
+          onChange={(event) =>
+            patchDraft(
+              (next) => {
+                next.name = event.target.value || null
+              },
+              { path: 'name', from: model?.name ?? '—', to: event.target.value || '—' },
+            )
+          }
+          className={`w-full ${INPUT}`}
+        />
+      </div>
+      <div>
+        <Caps className="mb-2">Caso</Caps>
+        <div className="flex gap-1.5">
+          {(['PURE_OT', 'HYBRID_IT_OT'] as CaseType[]).map((value) => (
+            <button
+              key={value}
+              type="button"
+              disabled={signed}
+              onClick={() =>
+                patchDraft(
+                  (next) => {
+                    next.case = value
+                  },
+                  { path: 'case', from: model?.case ?? '—', to: value },
+                )
+              }
+              className={`cursor-pointer rounded-[5px] border px-3 py-1.5 font-mono text-[11px] font-semibold ${
+                draft.case === value
+                  ? 'border-accent bg-accent-tint text-accent'
+                  : 'border-line bg-surface-2 text-ink-3'
+              }`}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SLGrid({ draft }: { draft: AssetProfileDraft }) {
-  const { correctSL, correctTargetSL, corrections, signed } = useComposition()
+  const { correctSL, correctTargetSL, patchDraft, corrections, signed } = useComposition()
   const corrected = (path: string) => corrections.some((c) => c.path === path)
 
   return (
     <>
-      <Caps className="mb-2">Vector SL-T por zona (clic en una celda para corregir)</Caps>
-      <div className="mb-4 grid items-center gap-1 text-xs [grid-template-columns:190px_54px_repeat(7,44px)_auto]">
+      <div className="mb-2 flex items-baseline justify-between">
+        <Caps>Zonas y vector SL-T (clic en una celda para corregir)</Caps>
+        <button
+          type="button"
+          disabled={signed}
+          onClick={() =>
+            patchDraft((next) => {
+              next.zones.push({
+                id: `Z-${next.zones.length + 1}`,
+                target_sl: null,
+                purdue: null,
+                role: null,
+                position: null,
+                sl_vector: null,
+                safety_out_of_scope: null,
+                reference: null,
+              })
+            })
+          }
+          className="cursor-pointer rounded-[5px] border border-line-strong bg-transparent px-2.5 py-1 text-[11px] font-semibold text-ink-2 hover:border-accent hover:text-accent"
+        >
+          + añadir zona
+        </button>
+      </div>
+
+      <div className="mb-4 grid items-center gap-1 text-xs [grid-template-columns:190px_54px_repeat(7,44px)_auto_28px]">
         <span />
         <span className="text-center font-mono text-[10.5px] font-semibold text-ink-4">SL-T</span>
         {FR_FIELDS.map((fr) => (
-          <span
-            key={fr}
-            className="text-center font-mono text-[10.5px] font-semibold text-ink-4"
-          >
+          <span key={fr} className="text-center font-mono text-[10.5px] font-semibold text-ink-4">
             {fr}
           </span>
         ))}
+        <span />
         <span />
 
         {draft.zones.map((zone, zoneIndex) => {
@@ -80,8 +166,17 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
             c.path.startsWith(`zones[${zone.id}]`),
           ).length
           return (
-            <div key={zone.id} className="contents">
-              <span className="font-mono text-[11.5px] font-medium">{zone.id}</span>
+            <div key={zoneIndex} className="contents">
+              <input
+                value={zone.id}
+                disabled={signed}
+                onChange={(event) =>
+                  patchDraft((next) => {
+                    next.zones[zoneIndex].id = event.target.value.toUpperCase()
+                  })
+                }
+                className={`font-mono text-[11.5px] font-medium ${INPUT}`}
+              />
               <button
                 type="button"
                 disabled={signed}
@@ -93,7 +188,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
                     : 'border-line bg-surface-2 text-ink'
                 }`}
               >
-                {zone.target_sl ?? '—'}
+                {zone.target_sl ?? '·'}
               </button>
               {FR_FIELDS.map((fr) => {
                 const value = zone.sl_vector?.[fr]
@@ -117,6 +212,19 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
               <span className="pl-1.5 text-[11px] font-semibold text-accent">
                 {zoneCorrections ? `◆ ${zoneCorrections} corregido(s)` : ''}
               </span>
+              <button
+                type="button"
+                disabled={signed || draft.zones.length <= 1}
+                title="quitar zona"
+                onClick={() =>
+                  patchDraft((next) => {
+                    next.zones.splice(zoneIndex, 1)
+                  })
+                }
+                className="cursor-pointer border-none bg-transparent text-[13px] text-ink-5 hover:text-alert disabled:opacity-30"
+              >
+                ✕
+              </button>
             </div>
           )
         })}
@@ -125,18 +233,162 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
   )
 }
 
+function Criticality({ draft }: { draft: AssetProfileDraft }) {
+  const { correctCriticality, patchDraft, corrections, signed, parseResult } = useComposition()
+  const model = parseResult?.draft
+
+  const text = (field: 'physical_consequence' | 'threat_model', placeholder: string) => (
+    <input
+      value={draft.criticality[field] ?? ''}
+      disabled={signed}
+      placeholder={placeholder}
+      onChange={(event) =>
+        patchDraft(
+          (next) => {
+            next.criticality[field] = event.target.value || null
+          },
+          {
+            path: `criticality.${field}`,
+            from: model?.criticality[field] ?? '—',
+            to: event.target.value || '—',
+          },
+        )
+      }
+      className={`w-full ${INPUT}`}
+    />
+  )
+
+  return (
+    <>
+      <Caps className="mt-4 mb-2">Criticidad — consecuencia física</Caps>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-1.5">
+          {(Object.keys(CONSEQUENCE_SCALE) as ConsequenceScale[]).map((scale) => (
+            <button
+              key={scale}
+              type="button"
+              disabled={signed}
+              onClick={() => correctCriticality(scale)}
+              className={`cursor-pointer rounded-[5px] border px-3 py-1.5 text-xs font-semibold ${
+                draft.criticality.scale === scale
+                  ? 'border-accent bg-accent-tint text-accent'
+                  : 'border-line bg-surface-2 text-ink-3'
+              }`}
+            >
+              {CONSEQUENCE_SCALE[scale]}
+            </button>
+          ))}
+          {corrections.some((c) => c.path === 'criticality.scale') ? (
+            <span className="text-[11px] font-semibold text-accent">◆ corregido</span>
+          ) : null}
+        </div>
+        {text('physical_consequence', 'consecuencia física, p. ej. overpressure_rupture_leak')}
+        {text('threat_model', 'modelo de amenaza citado, p. ej. ATTACK_for_ICS')}
+      </div>
+    </>
+  )
+}
+
+function Conduits({ draft }: { draft: AssetProfileDraft }) {
+  const { patchDraft, signed } = useComposition()
+
+  return (
+    <>
+      <div className="mb-2 flex items-baseline justify-between">
+        <Caps>Conductos</Caps>
+        <button
+          type="button"
+          disabled={signed}
+          onClick={() =>
+            patchDraft((next) => {
+              next.conduits.push({
+                id: `C-${next.conduits.length + 1}`,
+                endpoints: [],
+                control: null,
+              })
+            })
+          }
+          className="cursor-pointer rounded-[5px] border border-line-strong bg-transparent px-2.5 py-1 text-[11px] font-semibold text-ink-2 hover:border-accent hover:text-accent"
+        >
+          + añadir conducto
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        {draft.conduits.length === 0 ? (
+          <span className="text-xs text-ink-4">
+            El texto no describe ningún conducto. Un activo aislado es legítimo.
+          </span>
+        ) : null}
+        {draft.conduits.map((conduit, index) => (
+          <div key={index} className="flex items-center gap-1.5">
+            <input
+              value={conduit.id}
+              disabled={signed}
+              onChange={(event) =>
+                patchDraft((next) => {
+                  next.conduits[index].id = event.target.value.toUpperCase()
+                })
+              }
+              className={`w-24 font-mono ${INPUT}`}
+            />
+            <input
+              value={conduit.endpoints.join(', ')}
+              disabled={signed}
+              placeholder="extremos, separados por comas"
+              onChange={(event) =>
+                patchDraft((next) => {
+                  next.conduits[index].endpoints = event.target.value
+                    .split(',')
+                    .map((part) => part.trim())
+                    .filter(Boolean)
+                })
+              }
+              className={`flex-1 ${INPUT}`}
+            />
+            <input
+              value={conduit.control ?? ''}
+              disabled={signed}
+              placeholder="control, p. ej. jump_host"
+              onChange={(event) =>
+                patchDraft((next) => {
+                  next.conduits[index].control = event.target.value || null
+                })
+              }
+              className={`flex-1 ${INPUT}`}
+            />
+            <button
+              type="button"
+              disabled={signed}
+              title="quitar conducto"
+              onClick={() =>
+                patchDraft((next) => {
+                  next.conduits.splice(index, 1)
+                })
+              }
+              className="cursor-pointer border-none bg-transparent text-[13px] text-ink-5 hover:text-alert"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
 function Review({ draft }: { draft: AssetProfileDraft }) {
-  const { correctNature, correctCriticality, corrections, missing, signed } = useComposition()
+  const { correctNature, corrections, missing, signed, source } = useComposition()
 
   return (
     <>
       <p className="m-0 mb-4 text-[12.5px] text-ink-3">
-        Todo campo es editable. Un campo corregido queda marcado{' '}
-        <span className="font-semibold text-accent">◆ corregido</span> y viaja al motor dentro del{' '}
-        <span className="font-mono">AssetProfile</span> de esta ejecución; el borrador del modelo no
-        es nunca la entrada. La UI no valida semántica: comprueba que no falte nada.
+        {source === 'manual'
+          ? 'Perfil a mano: nada viene del modelo, todo lo declara el operador. La UI no valida semántica; comprueba que no falte nada.'
+          : 'Todo campo es editable. Un campo corregido queda marcado ◆ y viaja al motor dentro del AssetProfile de esta ejecución; el borrador del modelo no es nunca la entrada. La UI no valida semántica: comprueba que no falte nada.'}
       </p>
 
+      <Identity draft={draft} />
       <SLGrid draft={draft} />
 
       <div className="grid grid-cols-2 gap-5">
@@ -169,54 +421,11 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
               )
             })}
           </div>
-
-          <Caps className="mt-4 mb-2">Criticidad — escala de consecuencia</Caps>
-          <div className="flex items-center gap-1.5">
-            {(Object.keys(CONSEQUENCE_SCALE) as ConsequenceScale[]).map((scale) => (
-              <button
-                key={scale}
-                type="button"
-                disabled={signed}
-                onClick={() => correctCriticality(scale)}
-                className={`cursor-pointer rounded-[5px] border px-3 py-1.5 text-xs font-semibold ${
-                  draft.criticality.scale === scale
-                    ? 'border-accent bg-accent-tint text-accent'
-                    : 'border-line bg-surface-2 text-ink-3'
-                }`}
-              >
-                {CONSEQUENCE_SCALE[scale]}
-              </button>
-            ))}
-            {corrections.some((c) => c.path === 'criticality.scale') ? (
-              <span className="text-[11px] font-semibold text-accent">◆ corregido</span>
-            ) : null}
-          </div>
+          <Criticality draft={draft} />
         </div>
 
         <div>
-          <Caps className="mb-2">Conductos</Caps>
-          <div className="flex flex-col gap-1.5">
-            {draft.conduits.length === 0 ? (
-              <span className="text-xs text-ink-4">
-                El texto no describe ningún conducto. Un activo aislado es legítimo.
-              </span>
-            ) : null}
-            {draft.conduits.map((conduit) => (
-              <div
-                key={conduit.id}
-                className="flex items-baseline gap-2 rounded-[5px] border border-line-2 bg-surface-2 px-2.5 py-[7px] text-xs"
-              >
-                <span className="flex-none font-mono text-[11px] font-semibold text-accent">
-                  {conduit.id}
-                </span>
-                <span className="text-ink-3">
-                  {conduit.endpoints.join(' ↔ ')}
-                  {conduit.control ? ` · ${conduit.control}` : ''}
-                </span>
-              </div>
-            ))}
-          </div>
-
+          <Conduits draft={draft} />
           {draft.unmapped.length > 0 ? (
             <>
               <Caps className="mt-4 mb-2">Sin sitio en el esquema — reportado, no descartado</Caps>
@@ -258,10 +467,10 @@ export function StageAsset() {
     parseResult,
     draft,
     runParse,
-    selectFrozenProfile,
-    frozenProfileId,
+    startManualDraft,
     signed,
     profile,
+    source,
   } = useComposition()
 
   return (
@@ -292,17 +501,26 @@ export function StageAsset() {
                 />
                 <div className="flex flex-wrap items-center gap-3.5">
                   <PrimaryButton
+                    testId="parse"
                     disabled={signed || parsing || description.trim() === ''}
                     onClick={() => void runParse()}
                   >
                     Extraer perfil · POST /asset/parse
                   </PrimaryButton>
-                  {parsing ? (
-                    <span className="animate-blink font-mono text-xs font-medium text-warn">
-                      el modelo está decodificando en CPU — esto tarda minutos
-                    </span>
-                  ) : null}
+                  <button
+                    type="button"
+                    disabled={signed || parsing}
+                    onClick={startManualDraft}
+                    className="cursor-pointer border-none bg-transparent p-0 text-[12.5px] text-accent underline disabled:opacity-50"
+                  >
+                    introducir perfil a mano
+                  </button>
                 </div>
+                {parsing ? (
+                  <span className="animate-blink font-mono text-xs font-medium text-warn">
+                    el modelo está decodificando en CPU — esto tarda minutos
+                  </span>
+                ) : null}
               </>
             ) : (
               <>
@@ -330,32 +548,6 @@ export function StageAsset() {
                 {parseError}
               </Notice>
             ) : null}
-
-            <div className="mt-2 rounded-md border border-dashed border-line-dashed bg-surface-2 px-3.5 py-3">
-              <Caps className="mb-1.5">O componer sobre un perfil congelado</Caps>
-              <p className="m-0 mb-2 text-[11.5px] leading-[1.5] text-ink-3">
-                Los perfiles de UCM-1/UCM-2 están congelados en el repositorio y son las entradas
-                con las que se validó el núcleo. Se envían por identificador, así que no hay
-                revisión que hacer — y son los únicos sobre los que existe delta regional.
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {FROZEN_PROFILES.map((frozen) => (
-                  <button
-                    key={frozen.id}
-                    type="button"
-                    disabled={signed}
-                    onClick={() => selectFrozenProfile(frozen.id)}
-                    className={`cursor-pointer rounded-[5px] border px-3 py-1.5 text-xs font-semibold ${
-                      frozenProfileId === frozen.id
-                        ? 'border-accent bg-accent-tint text-accent'
-                        : 'border-line bg-surface text-ink-2'
-                    }`}
-                  >
-                    {frozen.label}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -363,15 +555,15 @@ export function StageAsset() {
               AssetProfile — borrador extraído por{' '}
               {parseResult?.provenance.model ?? 'el modelo local'}
             </Caps>
-            {!parseResult && !frozenProfileId ? (
+            {!draft ? (
               <div className="rounded-md border border-dashed border-line-strong px-4 py-7 text-center text-[12.5px] text-ink-4">
                 El borrador aparecerá aquí campo a campo, con la frase de la que sale cada valor.
               </div>
             ) : null}
-            {frozenProfileId && !parseResult ? (
+            {draft && source === 'manual' ? (
               <div className="rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px] text-ink-3">
-                Perfil <span className="font-mono font-semibold">{frozenProfileId}</span> congelado
-                en el repositorio. Se envía por identificador; el motor lo lee tal cual.
+                Perfil a mano: el modelo no ha intervenido, así que no hay evidencia que mostrar.
+                Rellena los campos abajo; lo que falte se lista en rojo.
               </div>
             ) : null}
             {parseResult ? (
@@ -399,14 +591,9 @@ export function StageAsset() {
       >
         {draft ? (
           <Review draft={draft} />
-        ) : frozenProfileId ? (
-          <p className="m-0 text-[13px] text-ink-4">
-            Nada que revisar: <span className="font-mono">{frozenProfileId}</span> es un perfil
-            congelado en el repositorio y el motor lo lee por identificador.
-          </p>
         ) : (
           <p className="m-0 text-[13px] text-ink-4">
-            Pendiente: parsea una descripción o elige un perfil congelado.
+            Pendiente: describe el activo y extrae el perfil, o introdúcelo a mano.
           </p>
         )}
         {profile ? (

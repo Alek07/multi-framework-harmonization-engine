@@ -1,6 +1,9 @@
-"""UCM-15/UCM-17 - `GET /delta`: one zone, two readings, and what changes between them.
+"""UCM-15/UCM-17 - `POST /delta`: one zone, two readings, and what changes between them.
 
-The query validation was written with the contract in UCM-15 and still stands. The
+The request validation was written with the contract in UCM-15 and still stands;
+what moved (UCM-21) is that the asset is named in a body, inline or by id, like
+every other engine endpoint — so the delta can be asked about the asset the
+operator just composed and not only about the profiles frozen in the repo. The
 rest asserts the reading itself, and it is written about the claims the demo makes:
 
 * **The `+` is cumulative.** "+EU" is the US reading *plus* the European obligation
@@ -26,6 +29,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.assets.loader import get_profile
 from app.audit.repository import AuditRepository
 from app.delta.router import RegionsQueryError, parse_regions
 from tests.api.conftest import PREFIX
@@ -33,7 +37,11 @@ from tests.api.conftest import PREFIX
 URL = f"{PREFIX}/delta"
 # The demo zone and region pair fixed in UCM-3: the engineering station is where
 # the US<->EU divergence is real and legible, not the pure OT corridor.
-DEMO = {"regions": "US,EU", "profile_id": "PROFILE-B", "zone_id": "Z-ENG-STATION"}
+DEMO: dict[str, Any] = {
+    "regions": ["US", "EU"],
+    "profile_id": "PROFILE-B",
+    "zone_id": "Z-ENG-STATION",
+}
 
 # What UCM-3 named as the capabilities that carry the delta.
 NIS2_CAPABILITIES = {
@@ -45,8 +53,8 @@ NIS2_CAPABILITIES = {
 }
 
 
-def ask(client: TestClient, **params: Any) -> dict[str, Any]:
-    response = client.get(URL, params={**DEMO, **params})
+def ask(client: TestClient, **body: Any) -> dict[str, Any]:
+    response = client.post(URL, json={**DEMO, **body})
     assert response.status_code == 200, response.text
     return dict(response.json())
 
@@ -223,8 +231,8 @@ def test_the_delta_needs_no_ai_at_all(client: TestClient) -> None:
 
 
 def test_reversing_the_regions_asks_a_different_question(client: TestClient) -> None:
-    forward = ask(client, regions="US,EU")
-    backward = ask(client, regions="EU,US")
+    forward = ask(client, regions=["US", "EU"])
+    backward = ask(client, regions=["EU", "US"])
 
     assert [r["label"] for r in forward["capabilities"][0]["regions"]] == ["US", "+EU"]
     assert [r["label"] for r in backward["capabilities"][0]["regions"]] == ["EU", "+US"]
@@ -232,56 +240,90 @@ def test_reversing_the_regions_asks_a_different_question(client: TestClient) -> 
     assert set(backward["changed_capability_ids"]) != set(forward["changed_capability_ids"])
 
 
-# --- the query contract (UCM-15) ----------------------------------------------
+# --- the asset the delta is about ---------------------------------------------
 
 
-def test_repeated_query_parameters_are_read_the_same_way(client: TestClient) -> None:
-    response = client.get(
-        URL,
-        params=[
-            ("regions", "US"),
-            ("regions", "EU"),
-            ("profile_id", "PROFILE-B"),
-            ("zone_id", "Z-ENG-STATION"),
-        ],
+def test_the_delta_answers_about_an_asset_that_is_in_no_repository(
+    client: TestClient,
+) -> None:
+    """The reason the endpoint takes a body at all (UCM-21).
+
+    An operator describes an asset, reviews the drafted profile and composes its
+    baseline; the asset has no id in `data/profiles` and never will. Asking what
+    changes under EU obligation is the same question for that asset as for a
+    frozen one, and the engine has to be able to answer it.
+    """
+    frozen = get_profile("PROFILE-B")
+    composed = frozen.model_copy(update={"id": "ASSET-PUENTE-DE-MANDO", "name": "Puente"})
+
+    body = ask(client, profile=composed.model_dump(mode="json"), profile_id=None)
+
+    assert body["profile_id"] == "ASSET-PUENTE-DE-MANDO"
+    assert body["zone"]["zone_id"] == "Z-ENG-STATION"
+    # Same asset, same catalog, same rules: the reading does not depend on where
+    # the profile was stored.
+    assert body["changed_capability_ids"] == ask(client)["changed_capability_ids"]
+
+
+def test_naming_the_profile_twice_is_refused(client: TestClient) -> None:
+    """The engine does not choose its own input (`requested_profile`)."""
+    response = client.post(
+        URL, json={**DEMO, "profile": get_profile("PROFILE-B").model_dump(mode="json")}
     )
+    assert response.status_code == 422
+    assert "no ambos" in response.json()["detail"]
+
+
+def test_naming_no_profile_at_all_is_refused(client: TestClient) -> None:
+    response = client.post(URL, json={"regions": ["US", "EU"], "zone_id": "Z-ENG-STATION"})
+    assert response.status_code == 422
+    assert "Falta el perfil" in response.json()["detail"]
+
+
+# --- the request contract (UCM-15) --------------------------------------------
+
+
+def test_the_comma_form_of_the_prd_is_read_the_same_way(client: TestClient) -> None:
+    """`regions: ["US,EU"]` is the spelling the PRD and the ticket use."""
+    response = client.post(URL, json={**DEMO, "regions": ["US,EU"]})
     assert response.status_code == 200
+    assert response.json()["regions"] == ["US", "EU"]
 
 
 def test_a_single_region_is_not_a_delta(client: TestClient) -> None:
-    response = client.get(URL, params={**DEMO, "regions": "US"})
+    response = client.post(URL, json={**DEMO, "regions": ["US"]})
     assert response.status_code == 422
     assert "al menos dos" in response.json()["detail"]
 
 
 def test_an_unknown_jurisdiction_is_refused(client: TestClient) -> None:
-    response = client.get(URL, params={**DEMO, "regions": "US,MARS"})
+    response = client.post(URL, json={**DEMO, "regions": ["US", "MARS"]})
     assert response.status_code == 422
     assert "MARS" in response.json()["detail"]
 
 
 def test_a_repeated_jurisdiction_is_refused(client: TestClient) -> None:
-    """`?regions=US,US` is a request nobody meant to write, not a one-region delta."""
-    response = client.get(URL, params={**DEMO, "regions": "US,US"})
+    """`US,US` is a request nobody meant to write, not a one-region delta."""
+    response = client.post(URL, json={**DEMO, "regions": ["US", "US"]})
     assert response.status_code == 422
     assert "repetida" in response.json()["detail"]
 
 
 def test_an_unknown_profile_is_refused(client: TestClient) -> None:
-    response = client.get(URL, params={**DEMO, "profile_id": "P-Z"})
+    response = client.post(URL, json={**DEMO, "profile_id": "P-Z"})
     assert response.status_code == 422
     assert "P-Z" in response.json()["detail"]
 
 
 def test_a_zone_the_profile_does_not_declare_is_refused(client: TestClient) -> None:
-    response = client.get(URL, params={**DEMO, "zone_id": "Z-NOPE"})
+    response = client.post(URL, json={**DEMO, "zone_id": "Z-NOPE"})
     assert response.status_code == 422
     assert "Z-NOPE" in response.json()["detail"]
 
 
 def test_the_zone_is_required(client: TestClient) -> None:
     """One zone per call: N zones at once is declared future work, not a default."""
-    response = client.get(URL, params={"regions": "US,EU", "profile_id": "PROFILE-B"})
+    response = client.post(URL, json={"regions": ["US", "EU"], "profile_id": "PROFILE-B"})
     assert response.status_code == 422
 
 

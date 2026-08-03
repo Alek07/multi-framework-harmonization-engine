@@ -29,14 +29,25 @@ const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 /**
  * Timeouts sized by what the call actually does on the reference machine.
  *
- * The deterministic core is arithmetic over a versioned catalog and answers in
- * milliseconds. One parse is a 7B model decoding on CPU. One explanation batch
- * is ~12 paragraphs of it, which is why the server gives that path its own
- * 600 s budget (`EXPLAIN_TIMEOUT_SECONDS`); a shorter one here would cut off a
- * request the backend is still honouring.
+ * `fast` is for the calls that are pure arithmetic over the versioned catalog —
+ * composing, reading a trail, the regional delta — which answer in
+ * milliseconds.
+ *
+ * `candidates` is not one of them, and the reason is measured rather than
+ * guessed: the *first* run of a freshly started backend has to load the
+ * ~1.1 GB embedding model before its first retrieval query, which took over a
+ * minute here and made the UI give up on a request the engine was still
+ * honouring. Every later run answers in seconds. The screen says what is
+ * happening while it waits, and the request is retryable — but the client has
+ * no business being less patient than the process it is talking to.
+ *
+ * One parse is a 7B model decoding on CPU; one explanation batch is ~12
+ * paragraphs of it, which is why the server gives that path its own 600 s
+ * budget (`EXPLAIN_TIMEOUT_SECONDS`).
  */
 const TIMEOUTS = {
   fast: 60_000,
+  candidates: 300_000,
   parse: 200_000,
   explain: 620_000,
 } as const
@@ -155,7 +166,7 @@ export function fetchCandidates(body: CandidatesRequest): Promise<CandidatesResp
   return post<CandidatesResponse>(
     '/candidates',
     body,
-    body.explain ? TIMEOUTS.explain : TIMEOUTS.fast,
+    body.explain ? TIMEOUTS.explain : TIMEOUTS.candidates,
   )
 }
 
@@ -170,27 +181,24 @@ export function fetchAuditLog(baselineId: string): Promise<BaselineAuditLog> {
 }
 
 /**
- * 5/5 — the regional delta for one zone.
+ * 5/5 — the regional delta for one zone of the asset being composed.
  *
- * Note what the signature cannot express: there is no inline-profile variant.
- * `GET /delta` takes a `profile_id`, so the delta is only available over a
- * profile frozen in the repository — the UI says so rather than hiding the
- * stage (`StageDelta`).
- *
- * `regions` is serialised as `US,EU` rather than repeated: the comma form is the
- * one written into the PRD and the ticket, and the route parses both.
+ * It carries the reviewed profile inline, exactly like `/candidates` and
+ * `/baseline/compose`. That is the whole point of the endpoint taking a body:
+ * the asset the operator described and composed has no id in the repository, and
+ * "what changes if I also answer to EU obligations" is the same question for it
+ * as for a frozen profile.
  */
-export function fetchDelta(params: {
+export function fetchDelta(body: {
   regions: Jurisdiction[]
-  profileId: string
+  profile?: AssetProfile | null
+  profileId?: string | null
   zoneId: string
 }): Promise<RegionalDelta> {
-  return get<RegionalDelta>('/delta', {
-    params: {
-      regions: params.regions.join(','),
-      profile_id: params.profileId,
-      zone_id: params.zoneId,
-    },
+  return post<RegionalDelta>('/delta', {
+    regions: body.regions,
+    ...profileRef(body.profile ?? null, body.profileId ?? null),
+    zone_id: body.zoneId,
   })
 }
 

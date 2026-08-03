@@ -108,14 +108,13 @@ export function StageCandidates() {
     candidatesError,
     loadCandidates,
     profile,
-    frozenProfileId,
     missing,
     focusRequest,
     clearFocus,
   } = useComposition()
   const zone = useActiveZone()
 
-  const ready = Boolean(profile ?? frozenProfileId)
+  const ready = Boolean(profile)
 
   useEffect(() => {
     if (ready && !candidates && !candidatesLoading && !candidatesError) void loadCandidates()
@@ -162,7 +161,8 @@ export function StageCandidates() {
 
       {candidatesLoading ? (
         <p className="m-0 font-mono text-xs text-ink-4">
-          ejecutando el núcleo determinista y la pasada de recuperación…
+          ejecutando el núcleo determinista y la pasada de recuperación… la primera consulta de
+          cada arranque carga el modelo de embeddings (~1,1 GB) y tarda más que las siguientes.
         </p>
       ) : null}
 
