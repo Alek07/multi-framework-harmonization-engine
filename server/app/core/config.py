@@ -97,6 +97,23 @@ class Settings(BaseSettings):
     # downloading. Retrieval ensures the index itself before its first query.
     RAG_POPULATE_ON_STARTUP: bool = True
 
+    # LLM explanations of the candidates (UCM-14). P1 and strictly presentational:
+    # the prose never reaches ranking, selection or coverage, so switching it off
+    # changes what the operator *reads* and nothing about the baseline. Off is a
+    # declared state, reported per candidate as `disabled` with the engine's own
+    # rationale in place of the model's — never an empty screen.
+    EXPLAIN_ENABLED: bool = True
+    # Its own timeout, and the reason is a measurement rather than a preference.
+    # One request explains every candidate of a capability: with RAG_TOP_K=10 plus
+    # the catalog's own, that is ~12 paragraphs, ~900 generated tokens. The 7B
+    # decodes at ~3.5 tok/s on the reference CPU machine, so the batch needs ~4-5
+    # minutes and LLM_TIMEOUT_SECONDS (sized for a single parse) cuts it off
+    # mid-way. Timing out is not a data failure here — the candidates and their
+    # deterministic justifications are already on screen — but it would make the
+    # feature never work on the target machine, which is not a trade worth making
+    # silently. This is also why the layer is on demand and never eager.
+    EXPLAIN_TIMEOUT_SECONDS: int = 600
+
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
 
