@@ -70,7 +70,6 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const [parseResult, setParseResult] = useState<ParseResult | null>(null)
   const [draft, setDraft] = useState<AssetProfileDraft | null>(null)
   const [corrections, setCorrections] = useState<Correction[]>([])
-  const [frozenProfileId, setFrozenProfileId] = useState<string | null>(null)
 
   const [candidates, setCandidates] = useState<CandidatesResponse | null>(null)
   const [candidatesLoading, setCandidatesLoading] = useState(false)
@@ -117,8 +116,8 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
       setCorrections([])
       setDescriptionLocked(true)
       setSource('parse')
-      setFrozenProfileId(null)
       setCandidates(null)
+      setDelta(null)
     } catch (error) {
       setParseError(messageOf(error))
     } finally {
@@ -126,20 +125,56 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     }
   }, [description, parsing, signed])
 
-  const selectFrozenProfile = useCallback(
-    (id: string) => {
-      if (signed) return
-      setSource('frozen')
-      setFrozenProfileId(id)
-      setDraft(null)
-      setParseResult(null)
-      setCorrections([])
-      setDescriptionLocked(false)
-      setCandidates(null)
-      setDelta(null)
-    },
-    [signed],
-  )
+  /**
+   * The fallback the PRD declares: the same draft, with nothing in it.
+   *
+   * Every value starts empty rather than defaulted, for the same reason the
+   * parse returns nulls: a target SL nobody chose would run through the core and
+   * produce a baseline nobody decided. `missing_required` is what tells the
+   * operator, path by path, what is still theirs to fill in.
+   */
+  const startManualDraft = useCallback(() => {
+    if (signed) return
+    setSource('manual')
+    setParseResult(null)
+    setCorrections([])
+    setDescriptionLocked(false)
+    setCandidates(null)
+    setDelta(null)
+    setDraft({
+      name: null,
+      case: null,
+      zones: [
+        {
+          id: 'Z-1',
+          target_sl: null,
+          purdue: null,
+          role: null,
+          position: null,
+          sl_vector: null,
+          safety_out_of_scope: null,
+          reference: null,
+        },
+      ],
+      nature: {
+        general_purpose_os: null,
+        networked: null,
+        hybrid_it_ot: null,
+        interactive_users: null,
+        office_it_surface: null,
+      },
+      conduits: [],
+      criticality: {
+        physical_consequence: null,
+        scale: null,
+        threat_model: null,
+        consequence_path: null,
+        attack_reference: null,
+      },
+      notes: [],
+      unmapped: [],
+    })
+  }, [signed])
 
   /** Record a correction against what the model proposed, or drop it if undone. */
   const recordCorrection = useCallback((path: string, from: unknown, to: unknown) => {
@@ -213,6 +248,20 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     [draft, modelDraft, recordCorrection, signed],
   )
 
+  const patchDraft = useCallback(
+    (
+      recipe: (draft: AssetProfileDraft) => void,
+      correction?: { path: string; from: unknown; to: unknown },
+    ) => {
+      if (signed || !draft) return
+      const next = cloneDraft(draft)
+      recipe(next)
+      setDraft(next)
+      if (correction) recordCorrection(correction.path, correction.from, correction.to)
+    },
+    [draft, recordCorrection, signed],
+  )
+
   // --- stage 2 ---------------------------------------------------------------
 
   /**
@@ -231,12 +280,12 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const runCandidates = useCallback(
     async (explain?: { zone_id: string; capability_ids: string[] }) => {
       if (running.current) return
-      if (!profile && !frozenProfileId) return
+      if (!profile) return
       running.current = true
       setCandidatesError(null)
       try {
         const response = await fetchCandidates({
-          ...profileRef(profile, frozenProfileId),
+          ...profileRef(profile, null),
           retrieval: true,
           ...(explain ? { explain } : {}),
         })
@@ -251,7 +300,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
         running.current = false
       }
     },
-    [frozenProfileId, profile],
+    [profile],
   )
 
   const loadCandidates = useCallback(async () => {
@@ -487,14 +536,14 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   // --- stage 3 ---------------------------------------------------------------
 
   const loadDelta = useCallback(async () => {
-    if (!frozenProfileId || !zoneId) return
+    if (!profile || !zoneId) return
     setDeltaLoading(true)
     setDeltaError(null)
     try {
       setDelta(
         await fetchDelta({
           regions: DELTA_ORDERS[deltaOrder].regions,
-          profileId: frozenProfileId,
+          profile,
           zoneId,
         }),
       )
@@ -504,7 +553,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     } finally {
       setDeltaLoading(false)
     }
-  }, [deltaOrder, frozenProfileId, zoneId])
+  }, [deltaOrder, profile, zoneId])
 
   // --- stages 4 and 5 --------------------------------------------------------
 
@@ -516,7 +565,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
       try {
         const composed = await composeBaseline({
           run_id: candidates.run_id,
-          ...profileRef(profile, frozenProfileId),
+          ...profileRef(profile, null),
           choices,
           signature,
         })
@@ -536,7 +585,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
         setSigning(false)
       }
     },
-    [candidates, choices, frozenProfileId, profile, signing, signed],
+    [candidates, choices, profile, signing, signed],
   )
 
   // --- navigation ------------------------------------------------------------
@@ -578,9 +627,9 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     corrections,
     missing,
     profile,
-    frozenProfileId,
     runParse,
-    selectFrozenProfile,
+    startManualDraft,
+    patchDraft,
     correctTargetSL,
     correctSL,
     correctNature,

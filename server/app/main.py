@@ -35,6 +35,13 @@ async def _populate_catalog_index() -> None:
     UCM-12). The index is derived data: a failure here costs a rebuild, never
     state, so it is logged and never fatal. Retrieval calls `ensure` itself before
     its first query, so a backend that started before Qdrant did still works.
+
+    The warm-up is part of the same job and not an optimisation bolted on. When
+    the collection already exists — every start after the first — `ensure`
+    returns without touching the model, and the weights would otherwise be
+    deserialised inside the operator's first `POST /candidates`, which is the one
+    request they are watching. Loading it here moves that minute to a place where
+    nobody is waiting on it.
     """
     from app.retrieval.index import CatalogIndex
 
@@ -44,12 +51,14 @@ async def _populate_catalog_index() -> None:
         logger.info(
             "Qdrant: índice %s %s", index.collection, "poblado" if rebuilt else "ya disponible"
         )
+        await asyncio.to_thread(index.warm)
+        logger.info("Embeddings: modelo listo; la primera consulta ya no lo carga")
     except asyncio.CancelledError:
         raise
     except Exception as exc:
         logger.warning(
-            "Qdrant: no se pudo poblar el índice del catálogo al arranque (%s). La API sigue "
-            "en pie; la recuperación lo reintentará en su primera consulta.",
+            "Recuperación: no se pudo dejar lista al arranque — índice o modelo (%s). La API "
+            "sigue en pie; la primera consulta lo reintentará, y le costará la espera.",
             exc,
         )
 

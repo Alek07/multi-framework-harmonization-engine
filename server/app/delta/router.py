@@ -1,29 +1,41 @@
-"""UCM-15/UCM-17 - `GET /delta?regions=US,EU`: the regional delta for the demo zone.
+"""UCM-15/UCM-17 - `POST /delta`: the regional delta for one zone of one asset.
 
-UCM-15 fixed the contract; UCM-17 fills it in. The route validates the query and
-hands over: an unknown region, a single region, a repeated one, an unknown profile
-or a zone the profile does not declare are all 422 before any work is done.
+UCM-15 fixed the contract; UCM-17 filled it in. The method changed afterwards,
+and the reason is worth writing down because it touches a surface declared closed
+(invariant 4).
 
-`regions` is read both ways — `?regions=US,EU` and `?regions=US&regions=EU` — for
-one reason: the first is the form written into the PRD and the ticket, and an API
-that documents a URL it cannot parse is worse than one that accepts two spellings.
+The endpoint was a `GET` taking `profile_id`, which meant it could only ever be
+asked about the profiles frozen in the repository. That is exactly the question
+the engine is *not* for: an operator describes an asset, reviews the profile the
+parse drafted, composes its baseline — and then cannot ask what changes if they
+also answer to EU obligations, because the asset they just composed has no id in
+the repo. The delta is the demo's regional evidence, so a delta that only works
+on canned inputs is a demo of the canned inputs.
 
-The order of the regions is meaningful and is not sorted away. The readings are
-cumulative — `US,EU` means "the US reading, then the same plus the European
-obligation overlay" — so `EU,US` asks a different, equally legitimate question.
+So the body now names the asset the way `POST /candidates` and
+`POST /baseline/compose` already do — `profile` inline or `profile_id`, never
+both — and the surface stays at five endpoints: `POST /delta` replaces
+`GET /delta` rather than joining it. This is the API becoming *more* consistent,
+not larger: the delta was the only endpoint that could not talk about the asset
+on the operator's screen.
+
+The rest of the contract is unchanged. `regions` is read both ways —
+`["US,EU"]` and `["US","EU"]` — because the first is the form written into the
+PRD and the ticket. The order is meaningful and is not sorted away: the readings
+are cumulative, so `EU,US` asks a different, equally legitimate question. An
+unknown region, a single region, a repeated one, an unknown profile or a zone the
+profile does not declare are all 422 before any work is done.
 """
 
 from __future__ import annotations
 
-from typing import Annotated
-
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, status
 
 from app.api.deps import DeltaDep, requested_profile
 from app.catalog.schemas import Jurisdiction
 from app.core.exceptions import AppException
 from app.core.schemas import Message
-from app.delta.schemas import RegionalDelta
+from app.delta.schemas import DeltaRequest, RegionalDelta
 
 router = APIRouter(tags=["delta"])
 
@@ -64,43 +76,24 @@ def parse_regions(raw: list[str]) -> list[Jurisdiction]:
     return regions
 
 
-@router.get(
+@router.post(
     "/delta",
     response_model=RegionalDelta,
     status_code=status.HTTP_200_OK,
-    summary="Delta regional (p. ej. US vs. +EU) para una zona del perfil",
+    summary="Delta regional (p. ej. US vs. +EU) para una zona del activo",
     responses={422: {"model": Message, "description": "Regiones, perfil o zona inválidos."}},
 )
-async def regional_delta(
-    service: DeltaDep,
-    regions: Annotated[
-        list[str],
-        Query(
-            description=(
-                "Jurisdicciones a comparar en orden, p. ej. 'US,EU'. Mínimo dos, sin repetir. "
-                "Las lecturas son acumulativas: la segunda es la primera más esa región."
-            )
-        ),
-    ],
-    profile_id: Annotated[
-        str, Query(description="Perfil congelado en el repositorio, p. ej. 'PROFILE-A'.")
-    ],
-    zone_id: Annotated[
-        str,
-        Query(
-            description=(
-                "Zona del perfil sobre la que se calcula el delta. Una sola: N zonas por "
-                "consulta son trabajo futuro declarado."
-            )
-        ),
-    ],
-) -> RegionalDelta:
+async def regional_delta(request: DeltaRequest, service: DeltaDep) -> RegionalDelta:
     """Read one zone under each region's cumulative lens and report what changes.
 
     The zone is checked by the service — it is the one that knows what a zone has
-    to be to be read — so the route only turns the query into the engine's own
-    types and gets out of the way.
+    to be to be read — so the route only turns the request into the engine's own
+    types and gets out of the way. A delta writes nothing: it decides nothing,
+    changes no baseline and belongs to no run, so there is no audit dependency
+    here and the call is safe to repeat.
     """
     return service.delta(
-        requested_profile(None, profile_id), zone_id, parse_regions(regions)
+        requested_profile(request.profile, request.profile_id),
+        request.zone_id,
+        parse_regions(request.regions),
     )

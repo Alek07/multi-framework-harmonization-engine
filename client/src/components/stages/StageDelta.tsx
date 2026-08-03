@@ -8,11 +8,14 @@
  * regions is not sorted away: `EU,US` asks a different, equally legitimate
  * question.
  *
- * Two bounds are declared rather than hidden. One zone per call is the scope of
- * UCM-17 — N zones at once is future work. And `GET /delta` takes a `profile_id`,
- * so this stage only answers over a profile frozen in the repository: with a
- * profile the operator parsed here the stage is *disabled and says so*, never
- * removed from the flow.
+ * The question is asked about *this* asset — the one described upstairs in free
+ * text and reviewed by the operator — because `POST /delta` carries the reviewed
+ * profile inline, like the other engine endpoints. A delta that could only be
+ * asked about the profiles frozen in the repository would be a demo of the
+ * frozen profiles.
+ *
+ * One bound is declared rather than hidden: one zone per call is the scope of
+ * UCM-17, and N zones at once is future work.
  */
 
 import { useEffect } from 'react'
@@ -59,7 +62,7 @@ function Entry({ head, children }: { head: string; children: React.ReactNode }) 
 
 export function StageDelta() {
   const {
-    frozenProfileId,
+    profile,
     zoneId,
     candidates,
     setZoneId,
@@ -72,7 +75,7 @@ export function StageDelta() {
   } = useComposition()
 
   const regions = DELTA_ORDERS[deltaOrder].regions
-  const enabled = Boolean(frozenProfileId && zoneId)
+  const enabled = Boolean(profile && zoneId)
 
   useEffect(() => {
     if (enabled) void loadDelta()
@@ -87,20 +90,11 @@ export function StageDelta() {
         scope="una zona por consulta"
         dimmed
       >
-        {frozenProfileId ? (
-          <p className="m-0 text-[13px] text-ink-4">
-            El delta se calcula sobre una zona concreta. Pasa por la etapa 2 para que el motor
-            derive las zonas de <span className="font-mono">{frozenProfileId}</span> y vuelve aquí.
-          </p>
-        ) : (
-          <p className="m-0 text-[13px] text-ink-4">
-            Deshabilitado, no oculto. <span className="font-mono">GET /delta</span> lee un perfil
-            congelado por identificador (<span className="font-mono">profile_id</span>), así que el
-            delta existe para <span className="font-mono">PROFILE-A</span> /{' '}
-            <span className="font-mono">PROFILE-B</span> y no para un perfil parseado en esta
-            sesión. Elige un perfil congelado en la etapa 1 para verlo.
-          </p>
-        )}
+        <p className="m-0 text-[13px] text-ink-4">
+          {profile
+            ? 'El delta se calcula sobre una zona concreta. Pasa por la etapa 2 para que el motor derive las zonas del activo y vuelve aquí.'
+            : 'Pendiente: la etapa 1 tiene que dejar un perfil del activo.'}
+        </p>
       </Section>
     )
   }
@@ -112,7 +106,7 @@ export function StageDelta() {
       id="s4"
       step={3}
       title={`Delta regional — ${regions[0]} vs. +${second}`}
-      scope={`${frozenProfileId} · ${zoneId}`}
+      scope={`${profile?.id} · ${zoneId}`}
     >
       <div className="mb-3 flex flex-wrap items-center gap-2">
         {DELTA_ORDERS.map((option, index) => (

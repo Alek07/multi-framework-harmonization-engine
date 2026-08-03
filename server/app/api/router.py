@@ -30,7 +30,12 @@ SURFACE: tuple[tuple[str, str], ...] = (
     ("POST", "/candidates"),
     ("POST", "/baseline/compose"),
     ("GET", "/baseline/{baseline_id}/audit-log"),
-    ("GET", "/delta"),
+    # Was `GET /delta` in UCM-15/UCM-17, and the change is deliberate rather than
+    # convenient: taking the profile only by id made the delta the one endpoint
+    # that could not be asked about the asset the operator had just composed. It
+    # now names the profile the way the other two engine endpoints do. Five
+    # endpoints still — this replaces the GET, it does not join it.
+    ("POST", "/delta"),
 )
 
 
