@@ -103,6 +103,13 @@ class AuditEventType(str, Enum):
     OPTION_REJECTED = "option_rejected"
     COMPENSATORY_DECLARED = "compensatory_declared"
     GAP_ACCEPTED = "gap_accepted"
+    # The operator accepted, by signing, the mechanism the deterministic core had
+    # already retained for a mandatory capability — they did not pick it out of a
+    # set of equivalents. It is a separate type from `OPTION_SELECTED` precisely so
+    # the log can never claim a choice that nobody made: reading the trail, "eligió
+    # SR 2.8 frente a CIS 8.2" and "ratificó lo que el motor retuvo" are different
+    # sentences, and only the first one is a selection.
+    MECHANISM_RATIFIED = "mechanism_ratified"
     BASELINE_SIGNED = "baseline_signed"
 
 
@@ -112,6 +119,7 @@ HUMAN_EVENT_TYPES = frozenset(
         AuditEventType.OPTION_REJECTED,
         AuditEventType.COMPENSATORY_DECLARED,
         AuditEventType.GAP_ACCEPTED,
+        AuditEventType.MECHANISM_RATIFIED,
         AuditEventType.BASELINE_SIGNED,
     }
 )

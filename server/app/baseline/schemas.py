@@ -1,12 +1,10 @@
-"""UCM-15 - Contract of `POST /baseline/compose` and `GET /baseline/{id}/audit-log`.
+"""UCM-15/UCM-16 - Contract of `POST /baseline/compose` and the baseline's trail.
 
-The composition endpoint is declared here in full — request, response, validation
-and OpenAPI — and its body lands in **UCM-16**, which this ticket blocks precisely
-so it can be built against a contract that already exists. The route answers 501
-after validating the request: the endpoint is real and the surface is closed at
-five (invariant 4); what is pending is the logic, not the interface.
+The request shape was fixed in UCM-15, before the logic existed, so the endpoint
+could be built against a contract rather than the other way round. UCM-16 fills
+that contract in and *enriches the response*; it changes nothing a client sends.
 
-Everything below is shaped by what a *sovereign composition* has to be able to
+Everything here is shaped by what a *sovereign composition* has to be able to
 prove afterwards, which is the research question of the TFM:
 
 * **A choice without a written justification is not a choice.** `rationale` is
@@ -16,14 +14,15 @@ prove afterwards, which is the research question of the TFM:
 * **The human's decisions chain onto an engine run.** `run_id` is the one
   `POST /candidates` returned, so the trail reads as one story: what the engine
   decided, what it offered, what the human picked, and what they signed.
-* **Tier 0 is verified before signing, not after.** The engine's own reading is
-  `ProfilePrioritization.tier_0_complete`; the human closes what is outstanding
-  with a mechanism or a justified compensatory control. `ComposedBaseline`
-  therefore reports the verification alongside the signature rather than implying
-  it.
-* **The domain model of the baseline belongs to UCM-16.** What is fixed here is
-  the *API* contract — what a client sends and what it can rely on receiving.
-  UCM-16 may enrich the response; it may not narrow it.
+* **Tier 0 is verified before signing, not after.** The engine's outstanding
+  mandates are what the human must close — with a mechanism, a compensatory
+  control or a written acceptance — and a signature is *refused* while any of them
+  is open. Everything else in Tier 0 is **ratified** by the signature and recorded
+  as such, which is a different sentence from "the operator chose it".
+* **Nothing about the baseline is implicit.** Every mandatory capability of every
+  zone leaves a human-authored entry in the ledger: chosen, compensated, accepted
+  as a gap, or ratified. There is no path where a mandatory mechanism ends up in a
+  signed baseline with nobody's name on it.
 """
 
 from __future__ import annotations
@@ -37,6 +36,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 
 from app.assets.schemas import AssetProfile
 from app.audit.schemas import AuditEventRead, ChainVerification
+from app.engine.schemas import CapabilityStatus, PriorityTier
 
 # Same rule as the ledger's: a justification is either written or the decision
 # does not exist.
@@ -128,20 +128,57 @@ class ComposeRequest(BaseModel):
     signature: Signature
 
 
+class SelectionOrigin(str, Enum):
+    """Where a chosen control came from. Provenance, never a quality order.
+
+    A crosswalk translates; this engine advises the selection — so it matters, and
+    it is recorded, whether the operator picked a mechanism the catalog *already
+    maps* to the capability or adopted one that only the RAG pass had suggested.
+    The second is a human judgement on top of the catalog, and calling it anything
+    else would let an embedding distance pass for an authored mapping.
+    """
+
+    CATALOG_MAPPING = "catalog_mapping"
+    ADOPTED_SUGGESTION = "adopted_suggestion"
+
+
 class ComposedCapability(BaseModel):
-    """How one capability ended up in the signed baseline."""
+    """How one capability ended up in the signed baseline, and who put it there."""
 
     model_config = ConfigDict(extra="forbid")
 
     zone_id: str
     capability_id: str
+    capability_name: str
+    tier: PriorityTier
+    # Gating's reading of the capability *before* the human composed on top of it.
+    status: CapabilityStatus
+    # The engine could not close this mandate on its own: no applicable mechanism
+    # left, or a declared residual. It is what the human had to decide about.
+    outstanding: bool = False
     # Never `False`, for the same reason as `CapabilityGating.required`: composing
     # chooses mechanisms, it does not repeal requirements.
+    required: bool = True
     selected_control_ids: list[str] = Field(default_factory=list)
     rejected_control_ids: list[str] = Field(default_factory=list)
     compensatory_control_ids: list[str] = Field(default_factory=list)
+    # Chosen mechanisms the catalog does *not* map to this capability: the operator
+    # adopted a suggestion, and the baseline says so rather than absorbing it.
+    adopted_control_ids: list[str] = Field(default_factory=list)
+    # Mechanisms the deterministic core had retained and the signature accepted
+    # without a choice among equivalents. Empty whenever the operator decided
+    # explicitly — the two are recorded as different acts.
+    ratified_control_ids: list[str] = Field(default_factory=list)
     gap_accepted: bool = False
     rationale: str
+
+    @property
+    def decided_by_human(self) -> bool:
+        return bool(
+            self.selected_control_ids
+            or self.compensatory_control_ids
+            or self.gap_accepted
+        )
 
 
 class ComposedZone(BaseModel):
@@ -152,8 +189,16 @@ class ComposedZone(BaseModel):
     zone_id: str
     capabilities: list[ComposedCapability] = Field(default_factory=list)
     tier_0_complete: bool
+    # The mandates the engine could not close on its own and the human closed here.
+    # Not "what is still open": a signature is refused while any of them is.
     outstanding_capability_ids: list[str] = Field(default_factory=list)
     rationale: str
+
+    def capability(self, capability_id: str) -> ComposedCapability:
+        for capability in self.capabilities:
+            if capability.capability_id == capability_id:
+                return capability
+        raise KeyError(f"capability not composed in {self.zone_id}: {capability_id}")
 
 
 class ComposedBaseline(BaseModel):
@@ -176,10 +221,22 @@ class ComposedBaseline(BaseModel):
     # this baseline was composed from: the same signature over a different catalog
     # is a different baseline (invariant 3).
     versions: dict[str, str] = Field(default_factory=dict)
+    # Always true on a signed baseline, and that is the contract rather than a
+    # computed field that might be false: the signature is refused while any
+    # mandate of any zone is open, so a `ComposedBaseline` that exists is one whose
+    # mandatory block was verified complete before it was signed.
     tier_0_complete: bool
     zones: list[ComposedZone] = Field(default_factory=list)
+    # How many entries the composition appended: one per human decision, one per
+    # ratified mandate, and the signature itself.
     audit_events: int = 0
     audit_log_path: str
+
+    def zone(self, zone_id: str) -> ComposedZone:
+        for zone in self.zones:
+            if zone.zone_id == zone_id:
+                return zone
+        raise KeyError(f"zone not composed: {zone_id}")
 
 
 class BaselineAuditLog(BaseModel):

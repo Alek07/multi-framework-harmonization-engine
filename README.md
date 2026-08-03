@@ -22,6 +22,8 @@ versionados).
 | `server/app/parse/` | Pasada IA 1: texto libre → borrador de `AssetProfile` (revisado por el operador) |
 | `server/app/retrieval/` | Pasada IA 2: recuperación de candidatos sobre Qdrant, con filtrado por payload — solo amplía cobertura |
 | `server/app/api/` | Superficie cerrada de la API: dependencias y ensamblado de los cinco endpoints |
+| `server/app/candidates/` | Opciones equivalentes por capacidad y zona: núcleo + RAG + explicaciones |
+| `server/app/baseline/` | Composición soberana: elecciones del humano, verificación de Tier 0 y firma |
 | `client/` | React + Vite + TypeScript: UI de una vista (composición soberana) |
 
 ## API
@@ -41,11 +43,29 @@ prueba pueda comprobarlo (`tests/api/test_surface.py`).
 `GET /api/v1/health` no forma parte de la superficie: es la sonda de vida del `healthcheck` de
 compose, no una función del motor.
 
-La composición soberana (UCM-16) y el delta regional (UCM-17) tienen aquí su **contrato firme** —
-esquema de petición y respuesta, validación y OpenAPI — y responden `501` mientras se implementa su
-lógica: la petición se valida de verdad, así que una composición mal formada es `422` antes de
-llegar al `501`. La documentación interactiva vive en `http://localhost:8000/docs` y es el plan B
-declarado de la demo si se recorta la UI.
+El delta regional (UCM-17) tiene aquí su **contrato firme** — esquema de petición y respuesta,
+validación y OpenAPI — y responde `501` mientras se implementa su lógica: la consulta se valida de
+verdad, así que una región desconocida es `422` antes de llegar al `501`. La documentación
+interactiva vive en `http://localhost:8000/docs` y es el plan B declarado de la demo si se recorta
+la UI.
+
+### Composición soberana
+
+`POST /baseline/compose` es la contribución central: el humano elige por zona y firma. Antes de
+firmar se verifica que el **bloque obligatorio está completo** — cada mandato que el motor no podía
+cerrar solo (sin mecanismo aplicable o con residual declarado) tiene que cerrarlo el humano
+eligiendo un mecanismo, declarando un compensatorio o aceptando el hueco por escrito. Mientras
+quede uno abierto, la firma se **rechaza** (`409`) nombrando cuáles.
+
+El resto de Tier 0 se **ratifica** al firmar, con tipo de evento propio (`mechanism_ratified`):
+ratificar no es elegir, y la bitácora nunca afirma una elección que nadie hizo. Así, toda capacidad
+obligatoria de toda zona acaba con una entrada humana — elegida, compensada, aceptada como hueco o
+ratificada — y ninguna llega a la línea base firmada sin el nombre de alguien.
+
+La firma se ancla a la ejecución del motor de la que salieron las opciones: se rechaza una
+ejecución que la bitácora no ha visto, una de otro perfil, una ya firmada, y una calculada con
+versiones de catálogo o reglas distintas de las que rigen ahora. Componer y firmar es
+**determinista y sin IA**: se puede hacer con Ollama y Qdrant apagados.
 
 ## Desarrollo
 

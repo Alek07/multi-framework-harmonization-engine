@@ -31,6 +31,7 @@ from app.assets.loader import available_profiles, get_profile
 from app.assets.schemas import AssetProfile
 from app.audit.repository import AuditRepository
 from app.audit.service import AuditService
+from app.baseline.service import BaselineCompositionService
 from app.candidates.service import CandidatesService
 from app.core.database import get_db
 from app.core.exceptions import AppException
@@ -57,9 +58,15 @@ def candidates_service() -> CandidatesService:
     return CandidatesService()
 
 
+@lru_cache(maxsize=1)
+def composition_service() -> BaselineCompositionService:
+    return BaselineCompositionService()
+
+
 AuditDep = Annotated[AuditService, Depends(audit_service)]
 ParseDep = Annotated[AssetParseService, Depends(parse_service)]
 CandidatesDep = Annotated[CandidatesService, Depends(candidates_service)]
+CompositionDep = Annotated[BaselineCompositionService, Depends(composition_service)]
 
 
 def requested_profile(profile: AssetProfile | None, profile_id: str | None) -> AssetProfile:

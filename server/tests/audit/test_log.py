@@ -20,6 +20,7 @@ from app.audit.schemas import (
     AuditEventRead,
     AuditEventType,
     AuditStage,
+    actor_for,
 )
 from app.audit.service import AuditService
 from app.catalog.schemas import Catalog
@@ -257,6 +258,30 @@ async def test_the_human_decisions_are_recorded_on_top_of_the_engine_run(
     assert trail[0].event_type is AuditEventType.RUN_STARTED
     assert trail[-1].event_type is AuditEventType.BASELINE_SIGNED
     assert verify_chain(trail, expect_genesis=False).valid
+
+
+async def test_ratifying_a_mechanism_is_a_human_act_and_not_a_selection(
+    audit: AuditService, profile_a: AssetProfile
+) -> None:
+    """UCM-16 — accepting the engine's retained mechanism has its own event type.
+
+    It belongs to the human (nobody else can ratify) and it is deliberately not
+    `OPTION_SELECTED`: reading the trail, "eligió SR 2.8 frente a CIS 8.2" and
+    "ratificó lo que el motor retuvo" have to stay different sentences.
+    """
+    ratified = await audit.record_human_decision(
+        run_id=uuid4(),
+        profile_id=profile_a.id,
+        event_type=AuditEventType.MECHANISM_RATIFIED,
+        decision="Ratificado el mecanismo retenido para «Segmentación» en Z-OT-CORRIDOR",
+        rationale="No hubo elección entre equivalentes: la firma asume lo que el motor retuvo.",
+        operator="operador.ot@acp",
+        zone_id="Z-OT-CORRIDOR",
+    )
+
+    assert ratified.actor is AuditActor.HUMAN
+    assert ratified.event_type is not AuditEventType.OPTION_SELECTED
+    assert actor_for(AuditEventType.MECHANISM_RATIFIED) is AuditActor.HUMAN
 
 
 async def test_only_a_human_event_type_can_be_a_human_decision(
