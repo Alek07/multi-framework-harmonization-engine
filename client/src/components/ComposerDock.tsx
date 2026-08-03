@@ -1,0 +1,93 @@
+/**
+ * The dock: the state of the composition, always visible, never persuasive.
+ *
+ * It counts what the engine reported (Tier 0 of every zone, declared gaps, open
+ * contradictions) and what the operator has done about it, and when the
+ * signature is blocked it says by what and links to it. It never suggests a
+ * choice — there is no "recommended", no score and no sorting here, for the same
+ * reason there is none in the candidate cards.
+ */
+
+import { useComposition } from '../state/composition'
+import { PrimaryButton } from './ui'
+
+export function ComposerDock({ onOpenSign }: { onOpenSign: () => void }) {
+  const { progress, signed, candidates, focusOn } = useComposition()
+  const { tier0Done, tier0Total, gaps, gapsAcknowledged, conflictsOpen, blockers } = progress
+  const blocked = signed || !candidates || blockers.length > 0
+  const first = blockers[0]
+
+  return (
+    <div
+      aria-live="polite"
+      className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-ink bg-surface px-6 py-3 shadow-[0_-4px_18px_rgba(24,34,48,.08)]"
+      data-screen-label="ComposerDock"
+    >
+      <div className="mx-auto flex max-w-[1192px] flex-wrap items-center justify-between gap-6">
+        <div className="flex flex-wrap items-center gap-5">
+          <div className="flex flex-col gap-[5px]">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[11px] font-semibold tracking-[0.08em] text-ink-2 uppercase">
+                Tier 0
+              </span>
+              <span className="font-mono text-xs font-semibold text-ink">
+                {tier0Done}/{tier0Total}
+              </span>
+            </div>
+            <span className="block h-2 w-[184px] overflow-hidden rounded-[5px] bg-track">
+              <span
+                className={`block h-full ${tier0Total && tier0Done >= tier0Total ? 'bg-ok' : 'bg-accent'}`}
+                style={{
+                  width: `${tier0Total ? Math.round((tier0Done / tier0Total) * 100) : 0}%`,
+                }}
+              />
+            </span>
+          </div>
+
+          <span className="block h-[34px] w-px bg-[#e0dcd3]" />
+
+          <div className="flex flex-none flex-col gap-[3px]">
+            <span className="text-[10.5px] font-semibold tracking-[0.08em] whitespace-nowrap text-ink-4 uppercase">
+              Huecos
+            </span>
+            <span className="text-[12.5px] leading-none whitespace-nowrap text-ink-3">
+              <b className="font-mono text-[13px] font-semibold text-alert">{gaps}</b> ·{' '}
+              {gapsAcknowledged} reconocidos
+            </span>
+          </div>
+
+          <div className="flex flex-none flex-col gap-[3px]">
+            <span className="text-[10.5px] font-semibold tracking-[0.08em] whitespace-nowrap text-ink-4 uppercase">
+              Conflictos
+            </span>
+            <span className="text-[12.5px] leading-none whitespace-nowrap text-ink-3">
+              <b className="font-mono text-[13px] font-semibold text-warn">{conflictsOpen}</b> ·
+              abiertos
+            </span>
+          </div>
+        </div>
+
+        <div className="ml-auto flex min-w-0 flex-1 flex-wrap items-center justify-end gap-3.5">
+          {!signed && first ? (
+            <span className="min-w-0 flex-initial text-right text-xs text-alert-ink">
+              ⓘ bloqueado:{' '}
+              <a
+                href="#"
+                onClick={(event) => {
+                  event.preventDefault()
+                  focusOn(`cap-${first.zoneId}-${first.capabilityId}`, first.zoneId, 2)
+                }}
+              >
+                {first.text}
+                {blockers.length > 1 ? ` (+${blockers.length - 1} más)` : ''}
+              </a>
+            </span>
+          ) : null}
+          <PrimaryButton testId="dock-sign" tone="ink" disabled={blocked} onClick={onOpenSign}>
+            Firmar baseline
+          </PrimaryButton>
+        </div>
+      </div>
+    </div>
+  )
+}
