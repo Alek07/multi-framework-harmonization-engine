@@ -156,14 +156,21 @@ def test_a_malformed_baseline_id_is_a_422(client: TestClient) -> None:
     assert client.get(f"{PREFIX}/baseline/not-a-uuid/audit-log").status_code == 422
 
 
-# --- POST /baseline/compose: the contract, ahead of UCM-16 --------------------
+# --- POST /baseline/compose: the request contract ----------------------------
+#
+# What the composition *does* is asserted in `test_compose.py`. What is asserted
+# here is the shape of the request — the rules a body has to satisfy before the
+# engine will look at it at all. They are checked with a `run_id` the ledger has
+# never seen, so a body that reaches the service is refused for that reason (422)
+# and never for a malformed field: the two failures stay distinguishable.
 
 
-def test_a_well_formed_composition_reaches_the_endpoint(client: TestClient) -> None:
+def test_a_well_formed_composition_reaches_the_engine(client: TestClient) -> None:
+    """Well formed is not the same as admissible: this run does not exist."""
     response = client.post(COMPOSE, json=valid_composition())
 
-    assert response.status_code == 501
-    assert "UCM-16" in response.json()["detail"]
+    assert response.status_code == 422
+    assert "no tiene ninguna ejecución" in response.json()["detail"]
 
 
 def test_a_choice_without_a_written_justification_is_refused(client: TestClient) -> None:
@@ -206,7 +213,9 @@ def test_accepting_a_gap_without_a_control_is_well_formed(client: TestClient) ->
         "rationale": "Se acepta el hueco y se documenta en la capa organizativa.",
     }
 
-    assert client.post(COMPOSE, json=body).status_code == 501
+    response = client.post(COMPOSE, json=body)
+    assert response.status_code == 422
+    assert "no tiene ninguna ejecución" in response.json()["detail"]
 
 
 def test_a_composition_with_no_choices_is_refused(client: TestClient) -> None:

@@ -1,9 +1,8 @@
-"""UCM-15 - `POST /baseline/compose` and `GET /baseline/{id}/audit-log`.
+"""UCM-15/UCM-16 - `POST /baseline/compose` and `GET /baseline/{id}/audit-log`.
 
 Two halves of the same promise. The first is where the human composes and signs;
-the second is where anyone can check what was signed and why. The composition
-logic is UCM-16's — this ticket declares its contract and answers 501 — while the
-trail endpoint works today, because the ledger it reads has existed since UCM-11.
+the second is where anyone can check what was signed and why. UCM-15 declared both
+contracts; UCM-16 fills the composition in without changing what a client sends.
 
 One note on the trail. It is served by baseline id, and it deliberately returns
 *more* than the events stamped with that baseline: the engine's decisions are
@@ -19,19 +18,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, status
 
-from app.api.deps import AuditDep
+from app.api.deps import AuditDep, CompositionDep, requested_profile
 from app.audit.schemas import AuditActor, AuditEventRead
 from app.baseline.schemas import BaselineAuditLog, ComposedBaseline, ComposeRequest
-from app.core.exceptions import NotFoundError, NotImplementedYetError
+from app.core.exceptions import NotFoundError
 from app.core.schemas import Message
 
 router = APIRouter(prefix="/baseline", tags=["baseline"])
-
-COMPOSE_PENDING = (
-    "La composición soberana (elección lado a lado + firma) se implementa en UCM-16. El "
-    "contrato de esta petición es firme y ya se valida: lo que falta es la lógica, no el "
-    "endpoint. La superficie de la API sigue cerrada en cinco endpoints."
-)
 
 
 @router.post(
@@ -40,19 +33,31 @@ COMPOSE_PENDING = (
     status_code=status.HTTP_201_CREATED,
     summary="Elecciones del humano → línea base firmada",
     responses={
-        422: {"model": Message, "description": "Elecciones o firma inválidas."},
-        501: {"model": Message, "description": "Pendiente de UCM-16 (contrato ya validado)."},
+        422: {
+            "model": Message,
+            "description": "Elecciones, firma o ejecución del motor inválidas.",
+        },
+        409: {
+            "model": Message,
+            "description": (
+                "No se puede firmar: bloque obligatorio incompleto, ejecución ya firmada o "
+                "entradas versionadas cambiadas."
+            ),
+        },
     },
 )
-async def compose_baseline(request: ComposeRequest) -> ComposedBaseline:
+async def compose_baseline(
+    request: ComposeRequest, service: CompositionDep, audit: AuditDep
+) -> ComposedBaseline:
     """Record every choice, verify Tier 0 is complete, and sign the baseline (UCM-16).
 
-    FastAPI validates `request` before this body runs, so the contract is already
-    doing its job: a malformed composition is rejected with 422 and a well-formed
-    one reaches 501. UCM-16 adds the ledger dependency and the logic; it does not
-    get to change the shape of what a client sends.
+    The route stays thin on purpose: it resolves which profile the composition is
+    about and hands over. Everything that decides whether a signature is admissible
+    — the run exists, the versions have not moved, no mandate is open, the run has
+    not been signed already — lives in the service, next to the reasons for it.
     """
-    raise NotImplementedYetError(COMPOSE_PENDING)
+    profile = requested_profile(request.profile, request.profile_id)
+    return await service.compose(profile, request, audit)
 
 
 @router.get(

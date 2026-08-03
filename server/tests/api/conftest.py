@@ -24,6 +24,7 @@ from typing import Any
 
 import pydantic_ai.models
 import pytest
+from fastapi.testclient import TestClient
 from pydantic_ai.messages import ModelMessage, ModelResponse, TextPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
@@ -175,6 +176,23 @@ def _first_explainable(
             return zone.zone.zone_id, capability.capability.id, hit.offered_control_ids, reply
 
     raise AssertionError("profile A should offer a capability with catalog and RAG candidates")
+
+
+# --- POST /baseline/compose ---------------------------------------------------
+
+
+@pytest.fixture
+def engine_run(client: TestClient, offline_candidates: CandidatesService) -> dict[str, Any]:
+    """A recorded core run for PROFILE-A: what a composition is signed on top of.
+
+    Produced by calling the real endpoint rather than by seeding the ledger by
+    hand, because the property under test is that the two halves of the flow fit:
+    `POST /candidates` records a run and hands back its id, and
+    `POST /baseline/compose` is only admissible against exactly that run.
+    """
+    response = client.post(f"{PREFIX}/candidates", json={"profile_id": "PROFILE-A"})
+    assert response.status_code == 200, response.text
+    return dict(response.json())
 
 
 @pytest.fixture
