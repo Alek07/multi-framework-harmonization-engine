@@ -21,6 +21,8 @@
  * a profile with an invented SL would produce a baseline nobody decided.
  */
 
+import { useEffect, useState } from 'react'
+
 import {
   FR_FIELDS,
   type AssetProfileDraft,
@@ -35,6 +37,92 @@ import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../ui'
 
 const INPUT =
   'rounded-[5px] border border-line bg-surface-2 px-2.5 py-1.5 text-xs text-ink outline-accent'
+
+/** What the model is being asked to find, in the operator's own words. */
+const LOOKING_FOR = [
+  'las zonas del activo y el nivel de seguridad que se les exige',
+  'cómo es el activo por dentro: si lleva un sistema operativo corriente, si está en red, quién lo usa',
+  'los enlaces entre zonas y qué protege ese paso',
+  'qué pasaría en el mundo físico si falla',
+  'la frase tuya que respalda cada uno de esos datos',
+]
+
+/**
+ * The panel while the model is reading, in the place where its answer will land.
+ *
+ * The parse comes back in one piece — there is no half-profile to stream — so
+ * this does not pretend to fill fields in as they arrive, and says as much. What
+ * it does show is real: what is being looked for, how long it has been running,
+ * and that the wait is the price of the model running on this machine instead of
+ * somewhere else. The elapsed time is measured; nothing here is an estimate.
+ */
+function Working({ words }: { words: number }) {
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    const started = Date.now()
+    const timer = window.setInterval(
+      () => setElapsed(Math.floor((Date.now() - started) / 1000)),
+      1000,
+    )
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`
+
+  return (
+    <div
+      data-testid="parse-working"
+      aria-live="polite"
+      aria-busy="true"
+      className="rounded-md border border-warn-line bg-warn-tint px-3.5 py-3"
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="flex items-baseline gap-2 text-[12.5px] font-semibold text-warn-ink">
+          <span className="animate-blink">●</span>
+          El asistente está leyendo tu descripción
+        </span>
+        <span title="Tiempo que lleva trabajando" className="font-mono text-xs text-warn-ink">
+          {clock}
+        </span>
+      </div>
+
+      <div className="mt-1 text-[11px] text-warn-ink">
+        {words} palabra(s) · se ejecuta en este equipo, sin enviar tu texto fuera
+      </div>
+
+      <div className="mt-3 text-[11.5px] leading-[1.5] text-ink-3">
+        Está buscando en tu texto:
+        <ul className="m-0 mt-1 flex list-disc flex-col gap-0.5 pl-5">
+          {LOOKING_FOR.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mt-3 flex flex-col gap-1.5" aria-hidden="true">
+        {[0, 1, 2].map((row) => (
+          <div key={row} className="rounded-md border border-line-2 bg-surface px-3 py-2">
+            <div
+              className="animate-shimmer h-2 w-[42%] rounded-sm bg-line-3"
+              style={{ animationDelay: `${row * 0.22}s` }}
+            />
+            <div
+              className="animate-shimmer mt-2 h-2 w-[85%] rounded-sm bg-line-3"
+              style={{ animationDelay: `${row * 0.22 + 0.11}s` }}
+            />
+          </div>
+        ))}
+      </div>
+
+      <Hint className="mt-3">
+        Los datos aparecerán todos a la vez cuando termine: el asistente no devuelve resultados a
+        medias. Tarda minutos y no segundos porque el modelo corre aquí; puedes dejar la pestaña
+        abierta mientras tanto.
+      </Hint>
+    </div>
+  )
+}
 
 function EvidenceList({ notes }: { notes: ParseNote[] }) {
   if (notes.length === 0) return null
@@ -530,6 +618,8 @@ export function StageAsset() {
     source,
   } = useComposition()
 
+  const words = description.trim().split(/\s+/).filter(Boolean).length
+
   return (
     <>
       <Section
@@ -569,9 +659,8 @@ export function StageAsset() {
                   </button>
                 </div>
                 {parsing ? (
-                  <span className="animate-blink text-xs font-medium text-warn">
-                    El asistente se ejecuta en este equipo, sin enviar nada fuera. Por eso tarda
-                    unos minutos: puedes dejar la pestaña abierta.
+                  <span className="text-xs font-medium text-warn-ink">
+                    Trabajando. Lo que va a extraer de tu texto está al lado →
                   </span>
                 ) : null}
               </>
@@ -605,19 +694,22 @@ export function StageAsset() {
 
           <div className="flex flex-col gap-2">
             <Caps>Lo que el asistente ha entendido</Caps>
-            {!draft ? (
+            {/* While the model runs, this column is the working panel: the stale
+                evidence of a previous run belongs to that run, not to this one. */}
+            {parsing ? <Working words={words} /> : null}
+            {!parsing && !draft ? (
               <div className="rounded-md border border-dashed border-line-strong px-4 py-7 text-center text-[12.5px] leading-[1.5] text-ink-4">
                 Aquí aparecerá, dato a dato, lo que el asistente haya sacado de tu texto, junto con
                 la frase concreta de la que sale cada uno.
               </div>
             ) : null}
-            {draft && source === 'manual' ? (
+            {!parsing && draft && source === 'manual' ? (
               <div className="rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px] leading-[1.5] text-ink-3">
                 Estás rellenando la ficha a mano, así que no hay nada que el asistente haya
                 interpretado. Complétala abajo: lo que falte se avisa al final.
               </div>
             ) : null}
-            {parseResult ? (
+            {!parsing && parseResult ? (
               <>
                 <div className="flex flex-wrap gap-1">
                   <Tag className="bg-warn-tint text-warn-ink">
@@ -641,7 +733,13 @@ export function StageAsset() {
         hint="Manda lo que tú dejes escrito aquí. Corrige lo que el asistente haya entendido mal y completa lo que falte: a partir de esta ficha se calculan todos los controles del paso siguiente."
         scope="afecta a todo el activo"
       >
-        {draft ? (
+        {parsing ? (
+          <p className="m-0 text-[13px] text-ink-4">
+            <span className="animate-blink mr-1.5 font-semibold text-warn-ink">●</span>
+            El asistente todavía está leyendo tu descripción. En cuanto termine, la ficha aparecerá
+            aquí entera para que la revises y la corrijas.
+          </p>
+        ) : draft ? (
           <Review draft={draft} />
         ) : (
           <p className="m-0 text-[13px] text-ink-4">

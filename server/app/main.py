@@ -63,24 +63,60 @@ async def _populate_catalog_index() -> None:
         )
 
 
+async def _warm_language_model() -> None:
+    """Load the 7B into Ollama's memory (UCM-12), off the event loop and off the path.
+
+    Same contract as the index warm-up above, against a measured cost: 262 s for a
+    cold parse against 77 s for a warm one, same answer. The compose entrypoint
+    preloads too; this covers a backend restarted after Ollama evicted the model,
+    and the M2 setup where the backend runs natively.
+    """
+    from app.parse.ollama import warm_model
+
+    try:
+        await warm_model()
+        logger.info("Ollama: modelo %s cargado en memoria; la primera lectura ya no lo carga",
+                    settings.LLM_MODEL)
+    except asyncio.CancelledError:
+        raise
+    except Exception as exc:
+        logger.warning(
+            "Ollama: no se pudo precargar %s al arranque (%s). La API sigue en pie; la primera "
+            "lectura de una descripción lo cargará, y le costará la espera.",
+            settings.LLM_MODEL,
+            exc,
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Bring up the SQLite schema the audit log lives in (UCM-11)."""
+    """Bring up the SQLite schema the audit log lives in (UCM-11).
+
+    The two warm-ups then run concurrently in the background. They compete for CPU
+    on a small machine, which still beats paying both inside the operator's first
+    two clicks.
+    """
     if settings.CREATE_TABLES_ON_STARTUP:
         await init_db()
 
-    index_task = (
-        asyncio.create_task(_populate_catalog_index())
-        if settings.RAG_POPULATE_ON_STARTUP
-        else None
-    )
+    tasks = [
+        task
+        for task in (
+            asyncio.create_task(_populate_catalog_index())
+            if settings.RAG_POPULATE_ON_STARTUP
+            else None,
+            asyncio.create_task(_warm_language_model()) if settings.LLM_WARM_ON_STARTUP else None,
+        )
+        if task is not None
+    ]
     try:
         yield
     finally:
-        if index_task is not None and not index_task.done():
-            index_task.cancel()
-            with suppress(asyncio.CancelledError):
-                await index_task
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
 
 
 def create_app() -> FastAPI:

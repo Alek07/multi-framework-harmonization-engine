@@ -65,6 +65,13 @@ class Settings(BaseSettings):
     # prompt genuinely differs and the fixed seed still holds.
     LLM_MAX_RETRIES: int = 3
     LLM_TIMEOUT_SECONDS: int = 180
+    # Residency window, sent with the preload. Not a decoding parameter, so it stays
+    # out of the provenance. Mirrors OLLAMA_KEEP_ALIVE in the compose file; a native
+    # Ollama evicts after 5 min and the next parse pays ~185 s to reload.
+    LLM_KEEP_ALIVE: str = "30m"
+    # Preload at startup, like RAG_POPULATE_ON_STARTUP. Off, the parse still works —
+    # it just pays the load on the first request.
+    LLM_WARM_ON_STARTUP: bool = True
 
     QDRANT_URL: str = "http://localhost:6333"
     # The collection is suffixed with the catalog version *and* a digest of the

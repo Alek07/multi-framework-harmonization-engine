@@ -41,14 +41,17 @@ const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
  * happening while it waits, and the request is retryable — but the client has
  * no business being less patient than the process it is talking to.
  *
- * One parse is a 7B model decoding on CPU; one explanation batch is ~12
- * paragraphs of it, which is why the server gives that path its own 600 s
- * budget (`EXPLAIN_TIMEOUT_SECONDS`).
+ * `parse` is measured too: 77 s with the weights in memory, 262 s with them only
+ * on disk, same answer. The stack preloads at startup, so the cold path is rare
+ * rather than impossible — 420 s covers it with room for a slower machine.
+ *
+ * One explanation batch is ~12 paragraphs of the same model, which is why the
+ * server gives that path its own 600 s budget (`EXPLAIN_TIMEOUT_SECONDS`).
  */
 const TIMEOUTS = {
   fast: 60_000,
   candidates: 300_000,
-  parse: 200_000,
+  parse: 420_000,
   explain: 620_000,
 } as const
 
@@ -125,8 +128,9 @@ http.interceptors.response.use(
       }
       if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
         throw new OfflineError(
-          'El sistema ha tardado más de lo previsto en responder. Vuelve a intentarlo; si el ' +
-            'asistente se está ejecutando por primera vez, dale unos minutos más.',
+          'El sistema ha tardado más de lo previsto en responder. Vuelve a intentarlo: el ' +
+            'primer análisis después de arrancar el sistema carga el modelo en memoria y es ' +
+            'bastante más lento que los siguientes, así que el segundo intento suele bastar.',
         )
       }
       throw new OfflineError(

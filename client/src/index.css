@@ -124,3 +124,19 @@
 @utility animate-blink {
   animation: blink 1.2s infinite;
 }
+
+/* The placeholder bars of a panel that is waiting for the model. Slower and
+   shallower than `blink`: it says "working", not "look here". */
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@utility animate-shimmer {
+  animation: shimmer 1.6s ease-in-out infinite;
+}
