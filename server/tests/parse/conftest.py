@@ -42,6 +42,13 @@ DESCRIPTION_ES = (
     "proveedor entra por un jump host con MFA. El mantenimiento se hace los martes."
 )
 
+# A serious consequence, rated nowhere. Reading a severity out of it is judgement,
+# and judgement is the operator's (see the `scale` note in `app/parse/prompt.py`).
+DESCRIPTION_UNRATED_CONSEQUENCE = (
+    "Estación de bombeo. Un PLC empotrado controla las bombas. Un fallo puede "
+    "provocar una sobrepresión y la rotura de la línea."
+)
+
 
 def draft_json(**overrides: object) -> str:
     """A draft as the model would return it, minus what a test changes.

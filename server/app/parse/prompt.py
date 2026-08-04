@@ -31,6 +31,15 @@ from __future__ import annotations
 # moves with it — every draft from 0.2.0 differs from a 0.1.0 one.
 PROMPT_VERSION = "0.2.0"
 
+# `criticality.scale` comes back null even when the text rates the consequence
+# («La consecuencia sería catastrófica»), and it is left that way on purpose.
+# Two attempts at teaching the mapping both made the 7B *invent* a severity for
+# any serious-sounding consequence, and one read «grave» as moderate — so the
+# model cannot tell a stated rating from an inferable one. Null is the safe end
+# of that trade: `missing_required` asks for it and the operator answers in one
+# click, where a wrong severity would silently drive prioritisation (UCM-10).
+# Held by `test_live_ollama.py::test_a_consequence_is_not_a_severity`.
+
 SYSTEM_PROMPT = """\
 You extract a structured asset profile from an industrial-cybersecurity \
 description written by a critical-infrastructure operator (gas pipeline / ACP \
