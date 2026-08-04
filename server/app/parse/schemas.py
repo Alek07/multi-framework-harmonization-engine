@@ -26,14 +26,33 @@ proposal, and only a human turns it into the profile the core runs on.
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.assets.schemas import CaseType, ConsequenceScale
 
-# Free text as the operator wrote it, plus what the parse concluded from it. The
-# descriptions are part of the prompt: Ollama serves the JSON schema of this
-# model as `response_format`, so every `description=` below reaches the model.
+# Ollama compiles this schema into a GBNF grammar; it never enters the prompt
+# (measured: `prompt_tokens` is identical with the full schema and with a 62-char
+# one). So the grammar constrains *structure* only — the `description=` strings
+# below document the field for us and do not reach the model, and instructions
+# belong in `prompt.py`.
+#
+# Which makes `required` the load-bearing part. Every field here has a default,
+# so the generated schema said `required: []`, the grammar let the model omit any
+# key, and it omitted the expensive ones: `zones`, `conduits` and `notes` came
+# back *absent*, not empty, and Pydantic filled in the defaults without a word.
+# A key the model never answered is a silent omission, which is the failure
+# invariant 2 exists to prevent — so every draft model below forces all of its
+# properties into `required` and lets `X | None` carry "the text does not say".
+
+
+def _require_every_key(schema: dict[str, Any]) -> None:
+    """Force the grammar to ask about every field. Null is an answer; silence is not."""
+    schema["required"] = list(schema.get("properties", {}))
+
+
+_ANSWER_EVERY_FIELD = ConfigDict(extra="forbid", json_schema_extra=_require_every_key)
 
 
 class EvidenceKind(str, Enum):
@@ -52,7 +71,7 @@ class EvidenceKind(str, Enum):
 class ParseNote(BaseModel):
     """Why one field of the draft holds the value it holds."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = _ANSWER_EVERY_FIELD
 
     field: str = Field(
         description="Path of the field in the draft, e.g. 'zones[Z-SCADA].target_sl'."
@@ -76,7 +95,7 @@ class SLVectorDraft(BaseModel):
     discarding one. Partial vectors are representable so it has to do neither.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = _ANSWER_EVERY_FIELD
 
     FR1: int | None = Field(
         default=None, ge=1, le=4, description="Identification and authentication"
@@ -92,7 +111,7 @@ class SLVectorDraft(BaseModel):
 class ZoneDraft(BaseModel):
     """A security zone as the text describes it (IEC 62443)."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = _ANSWER_EVERY_FIELD
 
     id: str = Field(
         description="Stable identifier in upper case, prefix 'Z-', derived from the zone's name."
@@ -132,7 +151,7 @@ class TechNatureDraft(BaseModel):
     which is exactly the failure gating is written to prevent.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = _ANSWER_EVERY_FIELD
 
     general_purpose_os: bool | None = Field(
         default=None, description="Runs a general-purpose OS (Windows/Linux) rather than firmware."
@@ -152,7 +171,7 @@ class TechNatureDraft(BaseModel):
 class ConduitDraft(BaseModel):
     """A conduit between zones (IEC 62443), including the IDMZ crossing."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = _ANSWER_EVERY_FIELD
 
     id: str = Field(description="Stable identifier in upper case, prefix 'C-'.")
     endpoints: list[str] = Field(
@@ -168,7 +187,7 @@ class ConduitDraft(BaseModel):
 class CriticalityDraft(BaseModel):
     """Physical consequence of a compromise — what prioritisation weighs (UCM-10)."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = _ANSWER_EVERY_FIELD
 
     physical_consequence: str | None = Field(
         default=None,
@@ -197,7 +216,7 @@ class AssetProfileDraft(BaseModel):
     silent half-parse.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = _ANSWER_EVERY_FIELD
 
     name: str | None = Field(
         default=None, description="Short name of the asset, as the text calls it."

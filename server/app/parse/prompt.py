@@ -26,7 +26,10 @@ instruction is developer-authored and so it is not.
 
 from __future__ import annotations
 
-PROMPT_VERSION = "0.1.0"
+# 0.2.0: the draft schema now forces every key into `required` (see schemas.py).
+# The grammar is an input of the result exactly as this text is, so the version
+# moves with it — every draft from 0.2.0 differs from a 0.1.0 one.
+PROMPT_VERSION = "0.2.0"
 
 SYSTEM_PROMPT = """\
 You extract a structured asset profile from an industrial-cybersecurity \
