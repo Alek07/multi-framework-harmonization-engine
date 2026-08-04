@@ -305,9 +305,17 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   )
 
   const loadCandidates = useCallback(async () => {
+    // Same guard as `runCandidates`, and it has to be *here* too: StrictMode
+    // invokes the mount effect twice, and a second call that returns without
+    // running would otherwise clear the flag while the first request is in
+    // flight — leaving the stage with no sign that anything is happening.
+    if (running.current) return
     setCandidatesLoading(true)
-    await runCandidates()
-    setCandidatesLoading(false)
+    try {
+      await runCandidates()
+    } finally {
+      setCandidatesLoading(false)
+    }
   }, [runCandidates])
 
   /**

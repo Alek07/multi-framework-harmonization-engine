@@ -345,7 +345,11 @@ export function CapabilityCard({
         <button
           type="button"
           disabled={signed || explaining !== null}
-          title="Pide al asistente local un párrafo que explique, en lenguaje llano, qué aporta cada opción. Es solo una ayuda de lectura: no cambia el orden ni marca ninguna como preferida."
+          title={
+            explaining && !busy
+              ? 'Se redacta una explicación cada vez. Espera a que termine la que está en curso.'
+              : 'Pide al asistente local un párrafo que explique, en lenguaje llano, qué aporta cada opción. Es solo una ayuda de lectura: no cambia el orden ni marca ninguna como preferida.'
+          }
           onClick={() => void explainCapability(zoneId, capabilityId)}
           className="cursor-pointer rounded-[5px] border border-line-strong bg-transparent px-3 py-1.5 text-[11.5px] font-semibold text-ink-2 hover:border-accent hover:text-accent disabled:cursor-default disabled:opacity-50"
         >

@@ -21,8 +21,6 @@
  * a profile with an invented SL would produce a baseline nobody decided.
  */
 
-import { useEffect, useState } from 'react'
-
 import {
   FR_FIELDS,
   type AssetProfileDraft,
@@ -34,6 +32,7 @@ import {
 import { CASE_TYPE, CONSEQUENCE_SCALE, FR_MEANING, NATURE, fieldLabel } from '../../lib/labels'
 import { useComposition } from '../../state/composition'
 import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../ui'
+import { Working } from '../Working'
 
 const INPUT =
   'rounded-[5px] border border-line bg-surface-2 px-2.5 py-1.5 text-xs text-ink outline-accent'
@@ -46,83 +45,6 @@ const LOOKING_FOR = [
   'qué pasaría en el mundo físico si falla',
   'la frase tuya que respalda cada uno de esos datos',
 ]
-
-/**
- * The panel while the model is reading, in the place where its answer will land.
- *
- * The parse comes back in one piece — there is no half-profile to stream — so
- * this does not pretend to fill fields in as they arrive, and says as much. What
- * it does show is real: what is being looked for, how long it has been running,
- * and that the wait is the price of the model running on this machine instead of
- * somewhere else. The elapsed time is measured; nothing here is an estimate.
- */
-function Working({ words }: { words: number }) {
-  const [elapsed, setElapsed] = useState(0)
-
-  useEffect(() => {
-    const started = Date.now()
-    const timer = window.setInterval(
-      () => setElapsed(Math.floor((Date.now() - started) / 1000)),
-      1000,
-    )
-    return () => window.clearInterval(timer)
-  }, [])
-
-  const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`
-
-  return (
-    <div
-      data-testid="parse-working"
-      aria-live="polite"
-      aria-busy="true"
-      className="rounded-md border border-warn-line bg-warn-tint px-3.5 py-3"
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="flex items-baseline gap-2 text-[12.5px] font-semibold text-warn-ink">
-          <span className="animate-blink">●</span>
-          El asistente está leyendo tu descripción
-        </span>
-        <span title="Tiempo que lleva trabajando" className="font-mono text-xs text-warn-ink">
-          {clock}
-        </span>
-      </div>
-
-      <div className="mt-1 text-[11px] text-warn-ink">
-        {words} palabra(s) · se ejecuta en este equipo, sin enviar tu texto fuera
-      </div>
-
-      <div className="mt-3 text-[11.5px] leading-[1.5] text-ink-3">
-        Está buscando en tu texto:
-        <ul className="m-0 mt-1 flex list-disc flex-col gap-0.5 pl-5">
-          {LOOKING_FOR.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mt-3 flex flex-col gap-1.5" aria-hidden="true">
-        {[0, 1, 2].map((row) => (
-          <div key={row} className="rounded-md border border-line-2 bg-surface px-3 py-2">
-            <div
-              className="animate-shimmer h-2 w-[42%] rounded-sm bg-line-3"
-              style={{ animationDelay: `${row * 0.22}s` }}
-            />
-            <div
-              className="animate-shimmer mt-2 h-2 w-[85%] rounded-sm bg-line-3"
-              style={{ animationDelay: `${row * 0.22 + 0.11}s` }}
-            />
-          </div>
-        ))}
-      </div>
-
-      <Hint className="mt-3">
-        Los datos aparecerán todos a la vez cuando termine: el asistente no devuelve resultados a
-        medias. Tarda minutos y no segundos porque el modelo corre aquí; puedes dejar la pestaña
-        abierta mientras tanto.
-      </Hint>
-    </div>
-  )
-}
 
 function EvidenceList({ notes }: { notes: ParseNote[] }) {
   if (notes.length === 0) return null
@@ -696,7 +618,16 @@ export function StageAsset() {
             <Caps>Lo que el asistente ha entendido</Caps>
             {/* While the model runs, this column is the working panel: the stale
                 evidence of a previous run belongs to that run, not to this one. */}
-            {parsing ? <Working words={words} /> : null}
+            {parsing ? (
+              <Working
+                testId="parse-working"
+                title="El asistente está leyendo tu descripción"
+                subtitle={`${words} palabra(s) · se ejecuta en este equipo, sin enviar tu texto fuera`}
+                lead="Está buscando en tu texto:"
+                items={LOOKING_FOR}
+                footnote="Los datos aparecerán todos a la vez cuando termine: el asistente no devuelve resultados a medias. Tarda minutos y no segundos porque el modelo corre aquí; puedes dejar la pestaña abierta mientras tanto."
+              />
+            ) : null}
             {!parsing && !draft ? (
               <div className="rounded-md border border-dashed border-line-strong px-4 py-7 text-center text-[12.5px] leading-[1.5] text-ink-4">
                 Aquí aparecerá, dato a dato, lo que el asistente haya sacado de tu texto, junto con
