@@ -7,23 +7,30 @@
       "id": "Z-OT-CORRIDOR",
       "purdue": "L1",
       "target_sl": 3,
+      "nature": {
+        "general_purpose_os": false,
+        "networked": true,
+        "hybrid_it_ot": false,
+        "interactive_users": false,
+        "office_it_surface": false
+      },
       "sl_vector": { "FR1": 3, "FR2": 3, "FR3": 3, "FR4": 2, "FR5": 3, "FR6": 3, "FR7": 3 }
     },
     {
       "id": "Z-SIS",
       "role": "crown_jewel",
       "target_sl": 3,
+      "nature": {
+        "general_purpose_os": false,
+        "networked": true,
+        "hybrid_it_ot": false,
+        "interactive_users": false,
+        "office_it_surface": false
+      },
       "safety_out_of_scope": true,
       "reference": "TRITON/TRISIS"
     }
   ],
-  "nature": {
-    "general_purpose_os": false,
-    "networked": true,
-    "hybrid_it_ot": false,
-    "interactive_users": false,
-    "office_it_surface": false
-  },
   "conduits": [
     { "id": "C-FIELD", "endpoints": ["Z-OT-CORRIDOR", "L0-field"], "control": "command_monitoring" },
     { "id": "C-SUPERVISORY", "endpoints": ["Z-OT-CORRIDOR", "L2-scada"], "control": "command_allowlisting" },

@@ -4,7 +4,7 @@ The LLM's job here is **extraction**, never decision (invariant 1). Everything i
 this module is shaped by two consequences of that:
 
 * **It produces a draft, not a profile.** `AssetProfile` (UCM-7) requires a
-  target SL per zone, five booleans of technological nature and a criticality
+  target SL and five booleans of technological nature per zone, plus a criticality
   scale. An operator's paragraph rarely states all of them, so handing the model
   the strict schema would force it to *invent* the missing values — the model
   deciding the baseline's severity through the back door. The draft mirrors
@@ -108,6 +108,38 @@ class SLVectorDraft(BaseModel):
     FR7: int | None = Field(default=None, ge=1, le=4, description="Resource availability")
 
 
+class TechNatureDraft(BaseModel):
+    """Technological nature of one zone — the input gating reads (UCM-9).
+
+    Every field is a tri-state: true, false, or `None` for 'the text does not say'.
+    A `False` guessed here would silently remove mechanisms from the baseline,
+    which is exactly the failure gating is written to prevent.
+
+    Asked per zone because the answer is per zone: a description that covers an
+    embedded controller *and* a Windows operator station settles
+    `general_purpose_os` twice, differently, and one asset-wide answer would have
+    to lose one of them.
+    """
+
+    model_config = _ANSWER_EVERY_FIELD
+
+    general_purpose_os: bool | None = Field(
+        default=None,
+        description="Zone runs a general-purpose OS (Windows/Linux) rather than firmware.",
+    )
+    networked: bool | None = Field(default=None, description="Zone is connected to a network.")
+    hybrid_it_ot: bool | None = Field(
+        default=None, description="Zone itself sits on both the IT and the OT side."
+    )
+    interactive_users: bool | None = Field(
+        default=None, description="Human users log into this zone interactively."
+    )
+    office_it_surface: bool | None = Field(
+        default=None,
+        description="Zone exposes office IT surface: mail, browsing, USB, office suite.",
+    )
+
+
 class ZoneDraft(BaseModel):
     """A security zone as the text describes it (IEC 62443)."""
 
@@ -121,6 +153,10 @@ class ZoneDraft(BaseModel):
         ge=1,
         le=4,
         description="Target security level 1-4. Null unless the text states or implies one.",
+    )
+    nature: TechNatureDraft = Field(
+        default_factory=TechNatureDraft,
+        description="Technological nature of this zone, answered for this zone alone.",
     )
     purdue: str | None = Field(
         default=None, description="Purdue level as written: 'L0'...'L4', or 'IDMZ'."
@@ -140,31 +176,6 @@ class ZoneDraft(BaseModel):
     )
     reference: str | None = Field(
         default=None, description="Incident or standard cited for this zone, e.g. 'TRITON/TRISIS'."
-    )
-
-
-class TechNatureDraft(BaseModel):
-    """Technological nature of the asset — the input gating reads (UCM-9).
-
-    Every field is a tri-state: true, false, or `None` for 'the text does not say'.
-    A `False` guessed here would silently remove mechanisms from the baseline,
-    which is exactly the failure gating is written to prevent.
-    """
-
-    model_config = _ANSWER_EVERY_FIELD
-
-    general_purpose_os: bool | None = Field(
-        default=None, description="Runs a general-purpose OS (Windows/Linux) rather than firmware."
-    )
-    networked: bool | None = Field(default=None, description="Connected to a network.")
-    hybrid_it_ot: bool | None = Field(
-        default=None, description="Sits on both the IT and the OT side."
-    )
-    interactive_users: bool | None = Field(
-        default=None, description="Human users log into it interactively."
-    )
-    office_it_surface: bool | None = Field(
-        default=None, description="Exposes office IT surface: mail, browsing, USB, office suite."
     )
 
 
@@ -229,9 +240,6 @@ class AssetProfileDraft(BaseModel):
     )
     zones: list[ZoneDraft] = Field(
         default_factory=list, description="One entry per security zone the text describes."
-    )
-    nature: TechNatureDraft = Field(
-        default_factory=TechNatureDraft, description="Technological nature of the asset."
     )
     conduits: list[ConduitDraft] = Field(
         default_factory=list, description="One entry per conduit or connection the text describes."

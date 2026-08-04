@@ -5,6 +5,7 @@ every exclusion carries its rule, the premises read from the profile and a
 written justification, and whatever is left short becomes an explicit gap.
 """
 
+from app.assets.schemas import AssetProfile
 from app.catalog.schemas import Catalog
 from app.engine.schemas import (
     CapabilityStatus,
@@ -12,6 +13,7 @@ from app.engine.schemas import (
     ProfileGating,
     ProfileResolution,
 )
+from app.engine.service import gate_profile
 from tests.engine.conftest import ZONE_ENG, ZONE_OT, ZONE_SIS
 
 DATACONF = "CAP-PR-DATACONF"
@@ -42,7 +44,7 @@ def test_not_applicable_excludes_the_mechanism_without_opening_a_gap(
     assert excluded.rule_id == "GATE-NA-DATA-AT-REST-EMBEDDED"
     # The premise the engine read from the profile, not a hunch — and stated as a
     # sentence the operator can judge, not as the field path it came from.
-    assert "el activo no tiene sistema operativo de propósito general" in excluded.evidence
+    assert "la zona no tiene sistema operativo de propósito general" in excluded.evidence
     # The capability keeps a full mechanism: the exclusion costs nothing.
     assert dataconf.status is CapabilityStatus.COVERED_BY_MECHANISM
     assert dataconf.coverage == dataconf.coverage_before_gating == 1.0
@@ -214,6 +216,56 @@ def test_the_technical_gating_is_what_separates_the_two_profiles(
     }
     assert gating_a.zone(ZONE_OT).justified_exclusions
     assert gating_a.zone(ZONE_OT).compensatory_requirements
+
+
+def test_one_hybrid_asset_gates_its_own_zones_off_different_premises() -> None:
+    """The premises are the zone's, not the asset's — the reason `nature` lives on `Zone`.
+
+    A single asset holding an embedded safety controller *and* a Windows operator
+    station settles `general_purpose_os` twice, differently. While the flag was
+    asset-wide one of the two zones had to be gated on the other's premises: the
+    controller kept an antimalware agent it cannot host, or the workstation lost
+    one it can. Here the same catalog, the same rules and the same asset produce
+    the exclusion in one zone and not in the other.
+    """
+    embedded = {
+        "general_purpose_os": False,
+        "networked": True,
+        "hybrid_it_ot": False,
+        "interactive_users": False,
+        "office_it_surface": False,
+    }
+    workstation = {**embedded, "general_purpose_os": True, "interactive_users": True}
+    profile = AssetProfile.model_validate(
+        {
+            "id": "PROFILE-HYBRID",
+            "name": "Asset with one embedded zone and one general-purpose zone",
+            "case": "HYBRID_IT_OT",
+            "zones": [
+                {"id": "Z-EMBEDDED", "purdue": "L1", "target_sl": 3, "nature": embedded},
+                {"id": "Z-WORKSTATION", "purdue": "L3", "target_sl": 3, "nature": workstation},
+            ],
+            "conduits": [],
+            "criticality": {
+                "physical_consequence": "overpressure_rupture_leak",
+                "scale": "catastrophic",
+                "threat_model": "ATTACK_for_ICS",
+            },
+        }
+    )
+
+    gating = gate_profile(profile)
+    controller = gating.zone("Z-EMBEDDED").capability(MALWARE)
+    station = gating.zone("Z-WORKSTATION").capability(MALWARE)
+
+    excluded = next(d for d in controller.excluded if d.control_id == CIS_ANTIMALWARE)
+    assert excluded.outcome is GatingOutcome.NOT_APPLICABLE
+    assert "la zona no tiene sistema operativo de propósito general" in excluded.evidence
+    assert CIS_ANTIMALWARE not in [d.control_id for d in station.excluded]
+
+    # And the requirement survives the exclusion in both: gating removes
+    # mechanisms, never capabilities.
+    assert controller.required is station.required is True
 
 
 def test_both_zones_of_the_ot_profile_are_gated(gating_a: ProfileGating) -> None:

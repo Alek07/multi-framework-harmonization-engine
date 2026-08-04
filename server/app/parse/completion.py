@@ -68,6 +68,13 @@ def _missing_sl_vector(vector: SLVectorDraft, prefix: str) -> list[str]:
 def _missing_in_zone(zone: ZoneDraft, index: int) -> list[str]:
     prefix = f"zones[{zone.id or index}]"
     missing = [] if zone.target_sl is not None else [f"{prefix}.target_sl"]
+    # Asked once per zone: gating reads these premises from the zone, so a zone
+    # left without them is a zone the core cannot gate (UCM-9).
+    missing += [
+        f"{prefix}.nature.{field}"
+        for field in TechNatureDraft.model_fields
+        if getattr(zone.nature, field) is None
+    ]
     if zone.sl_vector is not None:
         missing += _missing_sl_vector(zone.sl_vector, prefix)
     return missing
@@ -90,12 +97,6 @@ def missing_required(draft: AssetProfileDraft) -> list[str]:
         missing.append("zones")
     for index, zone in enumerate(draft.zones):
         missing += _missing_in_zone(zone, index)
-
-    missing += [
-        f"nature.{field}"
-        for field in TechNatureDraft.model_fields
-        if getattr(draft.nature, field) is None
-    ]
 
     for index, conduit in enumerate(draft.conduits):
         prefix = f"conduits[{conduit.id or index}]"
@@ -131,7 +132,6 @@ def to_profile(draft: AssetProfileDraft, profile_id: str | None = None) -> Asset
             "name": draft.name,
             "case": draft.case,
             "zones": [zone.model_dump(exclude_none=True) for zone in draft.zones],
-            "nature": draft.nature.model_dump(),
             "conduits": [conduit.model_dump(exclude_none=True) for conduit in draft.conduits],
             "criticality": draft.criticality.model_dump(exclude_none=True),
         }

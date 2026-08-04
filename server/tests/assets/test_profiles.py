@@ -17,7 +17,7 @@ def test_profile_a_is_pure_ot_with_a_segregated_sis() -> None:
     sis = PROFILE_A.zones[1]
     assert sis.role == "crown_jewel"
     assert sis.safety_out_of_scope is True
-    assert PROFILE_A.nature.general_purpose_os is False
+    assert all(z.nature.general_purpose_os is False for z in PROFILE_A.zones)
     assert PROFILE_A.criticality.scale is ConsequenceScale.CATASTROPHIC
 
 
@@ -26,8 +26,8 @@ def test_profile_b_is_hybrid_north_of_the_idmz() -> None:
     station = PROFILE_B.zones[0]
     assert station.purdue == "L3"
     assert station.position == "north_of_idmz"
-    assert PROFILE_B.nature.hybrid_it_ot is True
-    assert PROFILE_B.nature.office_it_surface is True
+    assert station.nature.hybrid_it_ot is True
+    assert station.nature.office_it_surface is True
 
 
 def test_the_sl_vectors_contrast_as_designed() -> None:

@@ -1,5 +1,6 @@
 """UCM-8 - Step 1: every capability, every candidate, nothing dropped."""
 
+from app.assets.schemas import TechNature
 from app.catalog.schemas import (
     Capability,
     Catalog,
@@ -22,6 +23,13 @@ OT_CONTEXT = ZoneContext(
     target_sl=3,
     safety_relevant=True,
     derivation="fixture",
+    nature=TechNature(
+        general_purpose_os=False,
+        networked=True,
+        hybrid_it_ot=False,
+        interactive_users=False,
+        office_it_surface=False,
+    ),
 )
 
 

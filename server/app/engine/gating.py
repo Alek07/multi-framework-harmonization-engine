@@ -22,13 +22,13 @@ cannot be False; every exclusion carries its rule, the premises read from the
 profile and a written justification; and a capability left without a mechanism
 becomes an explicit gap instead of quietly disappearing.
 
-Because applicability is read from the zone, the same catalog produces different
-baselines for different zones — which is the whole point of composing one.
+Because applicability is read from the zone — both its domain/safety reading and
+its own `TechNature` premises — the same catalog produces different baselines for
+different zones, which is the whole point of composing one.
 """
 
 from __future__ import annotations
 
-from app.assets.schemas import TechNature
 from app.catalog.schemas import MappingType
 from app.engine.gating_rules import GatingRule, GatingRules
 from app.engine.schemas import (
@@ -72,14 +72,11 @@ MECHANISM_TYPES = (MappingType.TOTAL, MappingType.PARTIAL)
 def gate_capability(
     resolution: CapabilityResolution,
     zone: ZoneContext,
-    nature: TechNature,
     rules: GatingRules,
 ) -> CapabilityGating:
     """Gate one capability in one zone: exclude mechanisms, never the requirement."""
     capability_id = resolution.capability.id
-    excluded = [
-        _decision(option, capability_id, zone, nature, rules) for option in resolution.options
-    ]
+    excluded = [_decision(option, capability_id, zone, rules) for option in resolution.options]
     decisions = [d for d in excluded if d is not None]
     excluded_ids = {d.control_id for d in decisions}
 
@@ -114,12 +111,17 @@ def gate_capability(
     )
 
 
-def gate_zone(resolution: ZoneResolution, nature: TechNature, rules: GatingRules) -> ZoneGating:
-    """Gate every capability of the catalog in a zone — none is dropped from the list."""
+def gate_zone(resolution: ZoneResolution, rules: GatingRules) -> ZoneGating:
+    """Gate every capability of the catalog in a zone — none is dropped from the list.
+
+    The premises come from `resolution.zone.nature`, which is this zone's own
+    reading: a hybrid asset gates its jetty controller and its control room off
+    different premises, which is why nature is not an asset-wide field.
+    """
     return ZoneGating(
         zone=resolution.zone,
         capabilities=[
-            gate_capability(capability, resolution.zone, nature, rules)
+            gate_capability(capability, resolution.zone, rules)
             for capability in resolution.capabilities
         ],
     )
@@ -129,7 +131,6 @@ def _decision(
     option: CandidateOption,
     capability_id: str,
     zone: ZoneContext,
-    nature: TechNature,
     rules: GatingRules,
 ) -> GatingDecision | None:
     """Apply the declared rules to one candidate. No rule fires -> it stays.
@@ -138,7 +139,7 @@ def _decision(
     precedence: "this mechanism has no premise here" and "this mechanism does not
     prevail here" are different answers and the human deserves both.
     """
-    matched = rules.rules_for(option.control_id, zone, nature)
+    matched = rules.rules_for(option.control_id, zone)
     if not matched:
         return None
 
@@ -150,7 +151,7 @@ def _decision(
         outcome=rule.outcome,
         rule_id=rule.id,
         rationale=_decision_rationale(rule, zone),
-        evidence=rule.applies_when.evidence(zone, nature),
+        evidence=rule.applies_when.evidence(zone),
         compensation=rule.compensation,
         deferred_to=rule.deferred_to,
         also_matched_rule_ids=[r.id for r in rest],

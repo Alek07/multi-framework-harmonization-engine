@@ -29,7 +29,7 @@ def zone_domain(zone: Zone, profile: AssetProfile) -> tuple[ZoneDomain, str]:
     if purdue in IT_PURDUE_LEVELS:
         return ZoneDomain.IT, f"nivel Purdue {purdue} (empresa) -> dominio IT"
     if purdue == PIVOT_PURDUE_LEVEL:
-        if profile.nature.hybrid_it_ot:
+        if zone.nature.hybrid_it_ot:
             return (
                 ZoneDomain.HYBRID,
                 "nivel Purdue L3 con naturaleza híbrida IT/OT -> dominio híbrido",
@@ -79,6 +79,9 @@ def zone_context(zone: Zone, profile: AssetProfile) -> ZoneContext:
         target_sl=zone.target_sl,
         safety_relevant=safety,
         derivation=f"{domain_why}; {safety_why}",
+        # Carried verbatim: the premises are the zone's own, and a hybrid asset
+        # holds zones that disagree about every one of them (UCM-9).
+        nature=zone.nature,
         # Carried verbatim: the SL-target per FR is what makes a capability
         # mandatory in this zone and not in the next one (UCM-10).
         sl_vector=zone.sl_vector,

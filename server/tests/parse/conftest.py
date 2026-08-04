@@ -59,13 +59,19 @@ def draft_json(**overrides: object) -> str:
     payload: dict[str, object] = {
         "name": "Estación de ingeniería de gasoducto",
         "case": "HYBRID_IT_OT",
-        "zones": [{"id": "Z-ENG-STATION", "purdue": "L3", "position": "north_of_idmz"}],
-        "nature": {
-            "general_purpose_os": True,
-            "networked": True,
-            "hybrid_it_ot": True,
-            "interactive_users": True,
-        },
+        "zones": [
+            {
+                "id": "Z-ENG-STATION",
+                "purdue": "L3",
+                "position": "north_of_idmz",
+                "nature": {
+                    "general_purpose_os": True,
+                    "networked": True,
+                    "hybrid_it_ot": True,
+                    "interactive_users": True,
+                },
+            }
+        ],
         "conduits": [
             {
                 "id": "C-IDMZ",
@@ -76,7 +82,7 @@ def draft_json(**overrides: object) -> str:
         "criticality": {},
         "notes": [
             {
-                "field": "nature.general_purpose_os",
+                "field": "zones[Z-ENG-STATION].nature.general_purpose_os",
                 "kind": "stated",
                 "evidence": "sobre Windows 10",
                 "note": "El texto indica un sistema operativo de propósito general.",

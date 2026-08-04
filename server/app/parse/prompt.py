@@ -29,7 +29,10 @@ from __future__ import annotations
 # 0.2.0: the draft schema now forces every key into `required` (see schemas.py).
 # The grammar is an input of the result exactly as this text is, so the version
 # moves with it — every draft from 0.2.0 differs from a 0.1.0 one.
-PROMPT_VERSION = "0.2.0"
+# 0.3.0: `nature` moved from the asset to each zone, so the model is now asked the
+# five premises once per zone. A hybrid asset settles them differently per zone
+# and a single asset-wide answer had to be wrong about one of them.
+PROMPT_VERSION = "0.3.0"
 
 # `criticality.scale` comes back null even when the text rates the consequence
 # («La consecuencia sería catastrófica»), and it is left that way on purpose.
@@ -68,8 +71,9 @@ never bend it into a field that does not mean the same thing. A statement you \
 already represented in a field does NOT go into `unmapped`.
 
 4. JUSTIFY EVERY VALUE YOU FILL. For each non-null field, add one entry to \
-`notes`: the exact path of the field (`nature.general_purpose_os`, \
-`zones[Z-ANALIZADOR].target_sl`), whether it is `stated` (the text says it) or \
+`notes`: the exact path of the field (`zones[Z-ANALIZADOR].target_sl`, \
+`zones[Z-ANALIZADOR].nature.general_purpose_os`), whether it is `stated` (the \
+text says it) or \
 `inferred` (you deduced it from something the text says), the verbatim fragment \
 it comes from, and one short sentence in Spanish for the operator. Never write a \
 note for a field you left null, and never write a note for a field that does not \
@@ -83,38 +87,57 @@ whenever the text places the asset relative to the IDMZ. Free-text values such \
 as `control`, `physical_consequence`, `consequence_path` and `role` are \
 lower_snake_case English phrases.
 
-6. INFER WHAT FOLLOWS, AND ONLY THAT. `general_purpose_os` is true for an \
-engineering workstation, an HMI or a server on Windows/Linux, and false for a \
-PLC, an RTU or a safety controller running firmware. `networked` is true as soon \
-as the text describes any connection to another system. `hybrid_it_ot` and \
-`case` go together: HYBRID_IT_OT when the asset touches both sides — an IT \
-operating system reaching OT equipment, a link to the enterprise network, remote \
-vendor access — and PURE_OT when everything described stays inside the OT \
-network. `interactive_users` is true when people log into the asset, which an \
-engineering or operator workstation implies. `office_it_surface` is true only if \
-the description mentions mail, web browsing, USB, an office suite or a corporate \
-domain. `safety_out_of_scope` is true only if the description says the safety \
-function (SIS) is not modified or is outside the scope of the work. When the \
-inference is not this direct, leave the field null.
+6. ANSWER `nature` ZONE BY ZONE. The five premises belong to each zone \
+separately, and on an asset with more than one zone they usually differ. Judge \
+every one of them from what the description says about *that* zone, never about \
+the asset as a whole: an embedded controller with no operating system and a \
+Windows operator station in the same terminal answer `general_purpose_os` \
+false and true respectively, and copying one zone's answer onto the other is an \
+error. A premise the text settles for one zone and not for another is filled in \
+the first and left null in the second.
+
+7. INFER WHAT FOLLOWS, AND ONLY THAT. `general_purpose_os` is true for a zone \
+holding an engineering workstation, an HMI or a server on Windows/Linux, and \
+false for a zone holding a PLC, an RTU or a safety controller running firmware. \
+`networked` is true as soon as the text describes any connection from the zone to \
+another system. `interactive_users` is true when people log into equipment in the \
+zone, which an engineering or operator workstation implies, and false when the \
+text says nobody works in front of it. `office_it_surface` is true only if the \
+description gives that zone mail, web browsing, USB, an office suite or a \
+corporate domain. `hybrid_it_ot` is true for a zone that itself straddles both \
+sides; `case` is the asset's own reading — HYBRID_IT_OT when the asset touches \
+both sides anywhere (an IT operating system reaching OT equipment, a link to the \
+enterprise network, remote vendor access) and PURE_OT when everything described \
+stays inside the OT network. `safety_out_of_scope` is true only if the \
+description says the safety function (SIS) is not modified or is outside the \
+scope of the work. When the inference is not this direct, leave the field null.
 
 Worked example.
 
 Description: "Analizador de calidad de gas en cabecera de línea, PLC dedicado en \
-nivel 1, conectado al SCADA supervisorio. Objetivo SL 2 en la zona. No hay \
-usuarios interactivos. El proveedor accede con un portátil propio para \
-mantenimiento trimestral."
+nivel 1, conectado al SCADA supervisorio. Objetivo SL 2 en esa zona. No hay \
+usuarios interactivos. En la caseta contigua hay un puesto Windows con correo \
+corporativo desde el que se consultan los históricos. El proveedor accede con un \
+portátil propio para mantenimiento trimestral."
 
-Correct extraction: name "Analizador de calidad de gas"; case PURE_OT, because \
-everything described stays in OT; one zone `Z-ANALIZADOR` with purdue "L1" and \
-target_sl 2; one conduit `C-SCADA` between `Z-ANALIZADOR` and `L2-scada`, with \
-`control` null because the text does not say how it is controlled; nature with \
+Correct extraction: name "Analizador de calidad de gas"; case HYBRID_IT_OT, \
+because the Windows station with corporate mail reaches the process side; two \
+zones. `Z-ANALIZADOR`, with purdue "L1", target_sl 2, and its own nature — \
 general_purpose_os false (a dedicated PLC), networked true (it is connected to \
 the SCADA), hybrid_it_ot false, interactive_users false ("no hay usuarios \
-interactivos"), and office_it_surface null, since nothing in the text settles it; \
-the whole of `criticality` null, because no physical consequence is described; \
-`sl_vector` null, because only the overall SL is given; and in `unmapped`, the \
-vendor's own laptop and the quarterly maintenance window, which no field holds — \
-but not the SCADA connection, which conduit `C-SCADA` already represents.
+interactivos"), office_it_surface null, since nothing in the text settles it for \
+that zone. `Z-CASETA`, with target_sl null (the text gives no level for it) and \
+its own nature — general_purpose_os true (Windows), networked true (it queries \
+the historian), interactive_users true (an operator station), office_it_surface \
+true (corporate mail), hybrid_it_ot true (office surface on a station that reads \
+the process). Note that `office_it_surface` is null in the first zone and true in \
+the second: the premises are answered per zone and are never copied across. One \
+conduit `C-SCADA` between `Z-ANALIZADOR` and `L2-scada`, with `control` null \
+because the text does not say how it is controlled; the whole of `criticality` \
+null, because no physical consequence is described; `sl_vector` null in both \
+zones, because only an overall SL is given; and in `unmapped`, the vendor's own \
+laptop and the quarterly maintenance window, which no field holds — but not the \
+SCADA connection, which conduit `C-SCADA` already represents.
 
 Return only the structured object. Do not add commentary outside it.\
 """

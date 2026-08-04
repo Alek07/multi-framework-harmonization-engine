@@ -62,14 +62,19 @@ def test_a_required_key_may_still_be_null() -> None:
         {
             "name": None,
             "case": None,
-            "zones": [],
-            "nature": {
-                "general_purpose_os": None,
-                "networked": None,
-                "hybrid_it_ot": None,
-                "interactive_users": None,
-                "office_it_surface": None,
-            },
+            "zones": [
+                {
+                    "id": "Z-A",
+                    "target_sl": None,
+                    "nature": {
+                        "general_purpose_os": None,
+                        "networked": None,
+                        "hybrid_it_ot": None,
+                        "interactive_users": None,
+                        "office_it_surface": None,
+                    },
+                }
+            ],
             "conduits": [],
             "criticality": {
                 "physical_consequence": None,
@@ -83,8 +88,8 @@ def test_a_required_key_may_still_be_null() -> None:
         }
     )
 
-    assert draft.zones == []
-    assert draft.nature.networked is None
+    assert draft.zones[0].target_sl is None
+    assert draft.zones[0].nature.networked is None
 
 
 def test_python_side_stays_lenient() -> None:
@@ -94,11 +99,11 @@ def test_python_side_stays_lenient() -> None:
     omits one into a 502 for the operator, when the draft it did return is
     reviewable and the missing value is already reported by `missing_required`.
     """
-    draft = AssetProfileDraft.model_validate({"name": "Estación"})
+    draft = AssetProfileDraft.model_validate({"name": "Estación", "zones": [{"id": "Z-A"}]})
 
-    assert draft.zones == []
     assert draft.notes == []
-    assert draft.nature.networked is None
+    assert draft.conduits == []
+    assert draft.zones[0].nature.networked is None
 
 
 @pytest.mark.parametrize("model", [AssetParseRequest, ParseResult], ids=lambda m: m.__name__)

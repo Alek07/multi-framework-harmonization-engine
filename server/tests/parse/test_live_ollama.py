@@ -97,8 +97,12 @@ async def test_what_the_text_states_plainly_is_not_left_null(
 
     assert result.draft.name
     assert result.draft.case is not None
-    assert result.draft.nature.general_purpose_os is True
-    assert result.draft.nature.networked is True
+    assert result.draft.zones, "the model answered with no zones at all"
+    # One zone is described, and the premises belong to it: the Windows station is
+    # the zone, not some asset-wide average of it.
+    station = result.draft.zones[0]
+    assert station.nature.general_purpose_os is True
+    assert station.nature.networked is True
 
 
 async def test_a_consequence_is_not_a_severity(service: AssetParseService) -> None:

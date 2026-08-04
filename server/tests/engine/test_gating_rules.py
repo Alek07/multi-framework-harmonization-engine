@@ -8,19 +8,20 @@ from app.catalog.schemas import Catalog
 from app.engine.gating_rules import GatingRule, GatingRules, load_gating_rules
 from app.engine.schemas import GatingOutcome, ZoneContext, ZoneDomain
 
-ZONE = ZoneContext(
-    zone_id="Z-TEST",
-    domain=ZoneDomain.OT,
-    target_sl=3,
-    safety_relevant=True,
-    derivation="zona de prueba",
-)
 EMBEDDED = TechNature(
     general_purpose_os=False,
     networked=True,
     hybrid_it_ot=False,
     interactive_users=False,
     office_it_surface=False,
+)
+ZONE = ZoneContext(
+    zone_id="Z-TEST",
+    domain=ZoneDomain.OT,
+    target_sl=3,
+    safety_relevant=True,
+    derivation="zona de prueba",
+    nature=EMBEDDED,
 )
 
 
@@ -139,18 +140,21 @@ def test_matching_rules_come_back_in_declared_order_not_file_order() -> None:
     reversed_rules = GatingRules.model_validate({**data, "rules": list(reversed(data["rules"]))})
 
     for candidate in (rules, reversed_rules):
-        matched = candidate.rules_for("CTL-CIS-1001", ZONE, EMBEDDED)
+        matched = candidate.rules_for("CTL-CIS-1001", ZONE)
         assert [r.id for r in matched] == ["GATE-A-SCOPE", "GATE-Z-OWM"]
 
 
 def test_a_rule_whose_premises_do_not_hold_does_not_fire(gating_rules: GatingRules) -> None:
-    hybrid_host = EMBEDDED.model_copy(update={"general_purpose_os": True})
-    assert gating_rules.rules_for("CTL-CIS-1001", ZONE, EMBEDDED)
-    assert gating_rules.rules_for("CTL-CIS-1001", ZONE, hybrid_host) == []
+    """Same zone reading, different premises: only the nature decides here."""
+    hosted = ZONE.model_copy(
+        update={"nature": EMBEDDED.model_copy(update={"general_purpose_os": True})}
+    )
+    assert gating_rules.rules_for("CTL-CIS-1001", ZONE)
+    assert gating_rules.rules_for("CTL-CIS-1001", hosted) == []
 
 
 def test_an_unconditional_rule_still_states_its_ground(gating_rules: GatingRules) -> None:
     governance = next(r for r in gating_rules.rules if r.id == "GATE-SCOPE-GOVERNANCE")
-    assert governance.applies_when.evidence(ZONE, EMBEDDED) == [
+    assert governance.applies_when.evidence(ZONE) == [
         "se aplica siempre, sin condición sobre el activo"
     ]

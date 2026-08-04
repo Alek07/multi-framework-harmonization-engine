@@ -82,7 +82,7 @@ def gate_profile(
         catalog_version=resolution.catalog_version,
         rules_version=resolution.rules_version,
         gating_version=gating_rules.rules_version,
-        zones=[gate_zone(zone, profile.nature, gating_rules) for zone in resolution.zones],
+        zones=[gate_zone(zone, gating_rules) for zone in resolution.zones],
     )
 
 

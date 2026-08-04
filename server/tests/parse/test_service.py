@@ -38,9 +38,9 @@ async def test_the_silence_of_the_text_survives_the_parse() -> None:
     result = await parse(draft_json())
 
     assert result.draft.zones[0].target_sl is None
-    assert result.draft.nature.office_it_surface is None
+    assert result.draft.zones[0].nature.office_it_surface is None
     assert "zones[Z-ENG-STATION].target_sl" in result.missing_required
-    assert "nature.office_it_surface" in result.missing_required
+    assert "zones[Z-ENG-STATION].nature.office_it_surface" in result.missing_required
 
 
 async def test_what_the_schema_cannot_hold_is_reported_not_dropped() -> None:
@@ -54,7 +54,7 @@ async def test_every_extracted_value_carries_its_evidence() -> None:
     result = await parse(draft_json())
 
     note = result.draft.notes[0]
-    assert note.field == "nature.general_purpose_os"
+    assert note.field == "zones[Z-ENG-STATION].nature.general_purpose_os"
     assert note.evidence in DESCRIPTION_ES
 
 

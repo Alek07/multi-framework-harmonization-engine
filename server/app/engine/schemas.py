@@ -18,7 +18,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.assets.schemas import SLVector
+from app.assets.schemas import SLVector, TechNature
 from app.catalog.schemas import (
     Capability,
     Framework,
@@ -93,6 +93,10 @@ class ZoneContext(BaseModel):
     target_sl: int
     safety_relevant: bool
     derivation: str
+    # Carried verbatim from the zone: the premises gating reads (UCM-9). They
+    # travel *inside* the zone reading rather than beside it so no caller can pair
+    # one zone's context with another zone's nature.
+    nature: TechNature
     # SL-target per foundational requirement, when the zone declares one. A zone
     # rarely wants the same level everywhere (a corridor may demand SL3 on
     # integrity and SL2 on confidentiality) and Tier 0 is read from it.

@@ -5,10 +5,10 @@ rules (which settle a *clash*): these say whether a mechanism is applicable to
 this asset at all. They are versioned and validated against the catalog, so a
 rule can never gate a control the catalog does not have.
 
-They are data, not AI: applicability is decided by premises the profile declares
-(`nature`) and by the zone reading (domain, safety relevance), never by the LLM
-and never by a hidden heuristic. Widening the gating is adding entries to the
-JSON — configuration, not redesign.
+They are data, not AI: applicability is decided by premises the zone declares
+(`Zone.nature`, carried into `ZoneContext`) and by the zone reading (domain,
+safety relevance), never by the LLM and never by a hidden heuristic. Widening the
+gating is adding entries to the JSON — configuration, not redesign.
 
 The schema itself enforces the golden rule's "never silently": a rule that
 defers to the organizational layer must name the layer, and a rule that leaves
@@ -60,14 +60,16 @@ class GatingCondition(BaseModel):
             raise ValueError(f"condition references non-existent profile premises: {unknown}")
         return self
 
-    def matches(self, zone: ZoneContext, nature: TechNature) -> bool:
+    def matches(self, zone: ZoneContext) -> bool:
         if self.domains and zone.domain not in self.domains:
             return False
         if self.safety_relevant is not None and zone.safety_relevant is not self.safety_relevant:
             return False
-        return all(getattr(nature, flag) is expected for flag, expected in self.nature.items())
+        return all(
+            getattr(zone.nature, flag) is expected for flag, expected in self.nature.items()
+        )
 
-    def evidence(self, zone: ZoneContext, nature: TechNature) -> list[str]:
+    def evidence(self, zone: ZoneContext) -> list[str]:
         """The premises that made the rule fire, as read from the profile.
 
         A rule with no premises still says so: an exclusion never reaches the
@@ -87,8 +89,10 @@ class GatingCondition(BaseModel):
                 if zone.safety_relevant
                 else "la zona no es relevante para la seguridad de las personas"
             )
+        # "la zona", not "el activo": the premises are this zone's own, and on a
+        # hybrid asset the neighbouring zone answers the same flag differently.
         found.extend(
-            f"el activo {'tiene' if getattr(nature, flag) else 'no tiene'} {say(flag)}"
+            f"la zona {'tiene' if getattr(zone.nature, flag) else 'no tiene'} {say(flag)}"
             for flag in sorted(self.nature)
         )
         return found
@@ -127,8 +131,8 @@ class GatingRule(BaseModel):
             )
         return self
 
-    def applies_to(self, control_id: str, zone: ZoneContext, nature: TechNature) -> bool:
-        return control_id in self.control_ids and self.applies_when.matches(zone, nature)
+    def applies_to(self, control_id: str, zone: ZoneContext) -> bool:
+        return control_id in self.control_ids and self.applies_when.matches(zone)
 
 
 class GatingRules(BaseModel):
@@ -149,14 +153,14 @@ class GatingRules(BaseModel):
             raise ValueError("Duplicate gating rule IDs")
         return self
 
-    def rules_for(self, control_id: str, zone: ZoneContext, nature: TechNature) -> list[GatingRule]:
+    def rules_for(self, control_id: str, zone: ZoneContext) -> list[GatingRule]:
         """Every rule that fires on the control, in declared deterministic order.
 
         The order comes from the outcome precedence and the rule ID, never from
         the position of the rule in the file: the first one decides and the rest
         stay recorded, so the outcome cannot depend on ingestion order.
         """
-        matched = [r for r in self.rules if r.applies_to(control_id, zone, nature)]
+        matched = [r for r in self.rules if r.applies_to(control_id, zone)]
         return sorted(matched, key=lambda r: (OUTCOME_PRECEDENCE[r.outcome], r.id))
 
     def validate_against(self, catalog: Catalog) -> None:

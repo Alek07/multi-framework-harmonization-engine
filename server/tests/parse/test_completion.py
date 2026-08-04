@@ -20,6 +20,16 @@ from app.parse.completion import (
 from app.parse.schemas import AssetProfileDraft
 from tests.parse.conftest import draft_json
 
+# A zone whose five premises the text settled: used wherever a test is about
+# something other than the nature itself.
+NATURE = {
+    "general_purpose_os": True,
+    "networked": True,
+    "hybrid_it_ot": True,
+    "interactive_users": True,
+    "office_it_surface": True,
+}
+
 
 def draft(**overrides: object) -> AssetProfileDraft:
     return AssetProfileDraft.model_validate_json(draft_json(**overrides))
@@ -39,8 +49,27 @@ def test_empty_draft_reports_every_required_field() -> None:
     assert "name" in gaps
     assert "case" in gaps
     assert "zones" in gaps
-    assert "nature.general_purpose_os" in gaps
     assert "criticality.scale" in gaps
+
+
+def test_the_premises_are_asked_once_per_zone() -> None:
+    """Gating reads nature from the zone, so an unanswered zone is a gap of its own.
+
+    The point of the per-zone question: a terminal whose jetty controller runs
+    firmware and whose control room runs Windows answers `general_purpose_os`
+    twice, and one asset-wide answer would have to be wrong about a zone.
+    """
+    gaps = missing_required(
+        draft(
+            zones=[
+                {"id": "Z-PLC", "target_sl": 3},
+                {"id": "Z-HMI", "target_sl": 2, "nature": NATURE},
+            ]
+        )
+    )
+
+    assert "zones[Z-PLC].nature.general_purpose_os" in gaps
+    assert not [gap for gap in gaps if gap.startswith("zones[Z-HMI]")]
 
 
 def test_unstated_target_sl_is_a_gap_not_a_default() -> None:
@@ -51,7 +80,14 @@ def test_unstated_target_sl_is_a_gap_not_a_default() -> None:
 
 
 def test_gaps_are_named_by_zone_id_so_the_operator_can_find_them() -> None:
-    gaps = missing_required(draft(zones=[{"id": "Z-A", "target_sl": 2}, {"id": "Z-B"}]))
+    gaps = missing_required(
+        draft(
+            zones=[
+                {"id": "Z-A", "target_sl": 2, "nature": NATURE},
+                {"id": "Z-B", "nature": NATURE},
+            ]
+        )
+    )
 
     assert "zones[Z-B].target_sl" in gaps
     assert not [gap for gap in gaps if gap.startswith("zones[Z-A]")]
@@ -97,14 +133,7 @@ def test_promotion_refuses_an_incomplete_draft() -> None:
 
 def test_promotion_builds_the_profile_once_the_operator_completed_it() -> None:
     reviewed = draft(
-        zones=[{"id": "Z-ENG-STATION", "purdue": "L3", "target_sl": 3}],
-        nature={
-            "general_purpose_os": True,
-            "networked": True,
-            "hybrid_it_ot": True,
-            "interactive_users": True,
-            "office_it_surface": True,
-        },
+        zones=[{"id": "Z-ENG-STATION", "purdue": "L3", "target_sl": 3, "nature": NATURE}],
         criticality={
             "physical_consequence": "overpressure_rupture_leak",
             "scale": "catastrophic",
@@ -116,7 +145,7 @@ def test_promotion_builds_the_profile_once_the_operator_completed_it() -> None:
 
     assert profile.id == "PROFILE-C"
     assert profile.zones[0].target_sl == 3
-    assert profile.nature.office_it_surface is True
+    assert profile.zones[0].nature.office_it_surface is True
 
 
 def test_identifier_is_derived_not_asked_of_the_model() -> None:

@@ -8,16 +8,16 @@
       "purdue": "L3",
       "position": "north_of_idmz",
       "target_sl": 3,
+      "nature": {
+        "general_purpose_os": true,
+        "networked": true,
+        "hybrid_it_ot": true,
+        "interactive_users": true,
+        "office_it_surface": true
+      },
       "sl_vector": { "FR1": 3, "FR2": 3, "FR3": 3, "FR4": 3, "FR5": 3, "FR6": 3, "FR7": 2 }
     }
   ],
-  "nature": {
-    "general_purpose_os": true,
-    "networked": true,
-    "hybrid_it_ot": true,
-    "interactive_users": true,
-    "office_it_surface": true
-  },
   "conduits": [
     { "id": "C-IDMZ", "endpoints": ["Z-ENG-STATION", "IDMZ", "Z-OT-CORRIDOR"], "control": "mediated_logic_download" },
     { "id": "C-ENTERPRISE", "endpoints": ["Z-ENG-STATION", "L4-enterprise"], "control": "it_hygiene_and_identity" },
