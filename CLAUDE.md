@@ -40,7 +40,8 @@ server/   FastAPI + Python 3.12 (uv) — engine core, API, audit log
   app/<feature>/          feature modules: schemas.py, router.py, service.py, repository.py, models.py
   app/core/               config, database (SQLAlchemy async + SQLite), middleware, exceptions
   app/catalog/            versioned read-only catalog (loader + Pydantic schemas)
-  data/catalog/           catalog.v<semver>.json — frozen in Git, never mutated in place (bump version)
+  data/catalog/           catalog.v<semver>.json (manifest) + v<semver>/<framework>.json sources
+                          frozen in Git, never mutated in place (bump version)
   tests/                  pytest (asyncio_mode=auto), mirrors app/ layout
 ```
 
@@ -129,7 +130,12 @@ adding JSON + repopulating Qdrant, configuration not redesign).
   M4 evaluation → M5 UI/compose → M6 memoir & delivery. Do not start a milestone before the
   previous one's validation gate (e.g. core validated with both hand-made profiles before M2).
 - **Catalog changes** = new `catalog.v<semver>.json` + `CATALOG_PATH` bump; never edit a shipped
-  catalog version in place.
+  catalog version in place. From v0.2.0 the catalog is a **manifest + one source file per
+  framework** (`sources`, resolved relative to the manifest): the manifest keeps what is
+  framework-neutral (version, notes, capabilities), each source the controls of one framework and
+  the mappings reaching them. The version of record is the manifest's — touching any source bumps
+  it, and a bump copies the whole source directory. A source file is not independently valid: the
+  loader merges first and `Catalog` validates the whole.
 
 ## Commands
 
