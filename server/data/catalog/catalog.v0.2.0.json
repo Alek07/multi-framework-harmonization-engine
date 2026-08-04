@@ -1,0 +1,424 @@
+{
+  "catalog_version": "0.2.0",
+  "schema": "TFM-motor-armonizacion/catalog",
+  "generated_for": "Motor de armonización multi-marco — POC del TFM (UCM Opción 5)",
+  "language_policy": "identificadores en inglés; name/description en español",
+  "ip_note": "Obra propia: IDs y títulos oficiales + descripciones parafraseadas desde fuentes secundarias públicas. No se redistribuye texto verbatim de ningún marco (§7.5).",
+  "scope_note": "Cobertura ampliada respecto de v0.1.0, que era un subconjunto representativo de las zonas de los 2 perfiles. Criterio de selección por marco, declarado porque un catálogo se juzga tanto por lo que deja fuera como por lo que mete: CSF 2.0 completo (las 106 subcategorías del Core, siembra de capacidades); IEC 62443-3-3 completo (los 51 SR de los 7 FR), que es la vara del SL-objetivo y por tanto no admite selección; CIS v8 limitado a las salvaguardas que el propio crosswalk de CSF 2.0 referencia y que un corredor OT o una estación de ingeniería pueden alojar — se excluye la superficie ofimática pura (correo, navegador) y se acota la gestión de proveedores a lo que el activo ejerce; NIS2 desglosada por medida del art. 21(2) para que el delta regional compare obligaciones y no un único artículo; IMO ampliada a los elementos funcionales de la MSC-FAL.1/Circ.3 dentro del SMS. Sigue siendo extensible por configuración ('admite ≠ sabe').",
+  "limitations": [
+    "Fidelidad del catálogo IEC 62443-3-3 limitada por uso de fuentes secundarias públicas (sin acceso a la norma de pago): títulos y, sobre todo, el SL al que cada SR pasa a ser exigible están tomados de resúmenes públicos y quedan pendientes de contraste con la norma comprada.",
+    "El juicio de autor (author_judgment) se reserva para huecos OT y regionales; sujeto a revisión del CISO de la ACP.",
+    "Los mapeos CSF↔CIS marcados como official_crosswalk provienen de las referencias informativas del CSF 2.0 Reference Tool de NIST; el resto de mapeos entre marcos son juicio de autor y así se declaran uno a uno.",
+    "El catálogo v0.2.0 es superconjunto estricto de v0.1.0 en IDs de control y de capacidad: las reglas de gating, precedencia y priorización citan 41 de esos controles y ninguna se rompe por esta ampliación.",
+    "Ampliar el catálogo no discrimina por sí solo entre perfiles: sin reglas de gating nuevas (UCM-44) los controles añadidos se retienen igual en todas las zonas."
+  ],
+  "axes": {
+    "deciding": [
+      "IT/OT",
+      "technical/legal"
+    ],
+    "non_deciding": [
+      "US/EU (el origen vive en la procedencia, no decide)"
+    ]
+  },
+  "target_zones": [
+    {
+      "zone": "Z-OT-CORRIDOR",
+      "profile": "PROFILE-A",
+      "purdue": "L1",
+      "target_sl": 3
+    },
+    {
+      "zone": "Z-SIS",
+      "profile": "PROFILE-A",
+      "role": "crown_jewel",
+      "target_sl": 3
+    },
+    {
+      "zone": "Z-ENG-STATION",
+      "profile": "PROFILE-B",
+      "purdue": "L3",
+      "target_sl": 3
+    }
+  ],
+  "frameworks": [
+    {
+      "id": "CSF",
+      "name": "NIST CSF 2.0",
+      "origin": "US",
+      "type": "outcomes",
+      "jurisdiction": "US",
+      "role": "siembra de capacidades (nombres)"
+    },
+    {
+      "id": "IEC62443",
+      "name": "IEC 62443-3-3",
+      "origin": "INTL",
+      "type": "standard_ot",
+      "jurisdiction": "INTL",
+      "role": "arquitectura + vara SL"
+    },
+    {
+      "id": "CIS",
+      "name": "CIS Controls v8",
+      "origin": "US",
+      "type": "actionable_catalog",
+      "jurisdiction": "US",
+      "role": "capa de acciones; IG = fase"
+    },
+    {
+      "id": "NIS2",
+      "name": "Directiva (UE) 2022/2555 (NIS2)",
+      "origin": "EU",
+      "type": "legal_obligation",
+      "jurisdiction": "EU",
+      "role": "overlay contextual (delta regional)"
+    },
+    {
+      "id": "IMO",
+      "name": "IMO MSC.428(98) + MSC-FAL.1/Circ.3",
+      "origin": "INTL",
+      "type": "legal_obligation",
+      "jurisdiction": "INTL-MARITIME",
+      "role": "contextual marítimo (SMS)"
+    }
+  ],
+  "sources": [
+    "v0.2.0/cis.json",
+    "v0.2.0/csf.json",
+    "v0.2.0/iec62443.json",
+    "v0.2.0/imo.json",
+    "v0.2.0/nis2.json"
+  ],
+  "capabilities": [
+    {
+      "id": "CAP-GOV-CONTEXT",
+      "name": "Contexto organizativo y obligaciones aplicables",
+      "description": "Entender misión, partes interesadas, dependencias y requisitos legales que enmarcan las decisiones de riesgo del activo.",
+      "csf_seed_category": "GV.OC",
+      "ot_refinements": [
+        "el corredor transporta gas: la consecuencia física es parte del contexto, no un detalle técnico"
+      ]
+    },
+    {
+      "id": "CAP-GOV-RISK",
+      "name": "Gestión del riesgo de ciberseguridad",
+      "description": "Establecer objetivos, apetito y proceso de gestión del riesgo de ciberseguridad del activo.",
+      "csf_seed_category": "GV.RM",
+      "ot_refinements": []
+    },
+    {
+      "id": "CAP-GOV-ROLES",
+      "name": "Roles, responsabilidades y rendición de cuentas",
+      "description": "Asignar responsabilidades de ciberseguridad y hacer responsable a la dirección.",
+      "csf_seed_category": "GV.RR",
+      "ot_refinements": [
+        "responsabilidad explícita sobre el corredor OT y la estación de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-GOV-POLICY",
+      "name": "Política de ciberseguridad",
+      "description": "Establecer, comunicar y mantener la política de ciberseguridad de la organización.",
+      "csf_seed_category": "GV.PO",
+      "ot_refinements": [
+        "política que reconozca la frontera security/safety del corredor y del SIS"
+      ]
+    },
+    {
+      "id": "CAP-GOV-OVERSIGHT",
+      "name": "Supervisión de la estrategia de ciberseguridad",
+      "description": "Revisar los resultados de la estrategia de riesgo y ajustarla con lo aprendido.",
+      "csf_seed_category": "GV.OV",
+      "ot_refinements": []
+    },
+    {
+      "id": "CAP-GOV-SUPPLY",
+      "name": "Gestión del riesgo de la cadena de suministro",
+      "description": "Identificar y gestionar el riesgo de proveedores y componentes de terceros.",
+      "csf_seed_category": "GV.SC",
+      "ot_refinements": [
+        "proveedores de PLC/SIS y de software de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-ID-ASSET",
+      "name": "Inventario y gestión de activos",
+      "description": "Mantener inventario de activos hardware/software del sistema.",
+      "csf_seed_category": "ID.AM",
+      "ot_refinements": [
+        "inventario de componentes del sistema de control (SR 7.8)"
+      ]
+    },
+    {
+      "id": "CAP-ID-RISK",
+      "name": "Evaluación de riesgos y amenazas",
+      "description": "Identificar vulnerabilidades y amenazas aplicables al activo.",
+      "csf_seed_category": "ID.RA",
+      "ot_refinements": [
+        "modelo de amenazas ATT&CK for ICS; referencia TRITON"
+      ]
+    },
+    {
+      "id": "CAP-ID-THREAT",
+      "name": "Inteligencia de amenazas y divulgación de vulnerabilidades",
+      "description": "Recibir información de amenazas de fuentes externas y disponer de un canal de divulgación de vulnerabilidades.",
+      "csf_seed_category": "ID.RA",
+      "ot_refinements": [
+        "avisos de fabricante de PLC/SIS y boletines ICS-CERT"
+      ]
+    },
+    {
+      "id": "CAP-ID-IMPROVE",
+      "name": "Mejora continua del programa",
+      "description": "Extraer mejoras de evaluaciones, pruebas y ejercicios, e incorporarlas al programa.",
+      "csf_seed_category": "ID.IM",
+      "ot_refinements": [
+        "lecciones aprendidas de pruebas que no pueden ejecutarse sobre el proceso en marcha"
+      ]
+    },
+    {
+      "id": "CAP-PR-IDENTITY",
+      "name": "Identidad y autenticación",
+      "description": "Gestionar identidades y autenticar usuarios, procesos y dispositivos.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "autenticación de usuario humano (SR 1.1) y de proceso/dispositivo (SR 1.2)"
+      ]
+    },
+    {
+      "id": "CAP-PR-MFA",
+      "name": "Autenticación reforzada (MFA/fortaleza)",
+      "description": "Exigir factores múltiples o autenticación de mayor fortaleza en accesos sensibles.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "fortaleza de autenticación y acceso desde redes no confiables (SR 1.7/1.13)"
+      ]
+    },
+    {
+      "id": "CAP-PR-ACCESS",
+      "name": "Control de acceso y mínimo privilegio",
+      "description": "Autorizar el acceso según necesidad y hacer cumplir el mínimo privilegio.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "cumplimiento de autorización en el sistema de control (SR 2.1)"
+      ]
+    },
+    {
+      "id": "CAP-PR-PAM",
+      "name": "Gestión de acceso privilegiado",
+      "description": "Controlar y segregar las cuentas administrativas y de ingeniería.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "cuentas de ingeniería que pueden descargar lógica a PLC/SIS"
+      ]
+    },
+    {
+      "id": "CAP-PR-REMOTE",
+      "name": "Acceso remoto controlado",
+      "description": "Mediar, restringir y registrar el acceso remoto al activo, incluido el del fabricante.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "acceso de ingeniería remota vía jump host en la IDMZ (SR 1.13/2.6)"
+      ]
+    },
+    {
+      "id": "CAP-PR-SESSION",
+      "name": "Control de sesión",
+      "description": "Bloquear, terminar y limitar las sesiones de usuario según inactividad y política.",
+      "csf_seed_category": "PR.AA",
+      "ot_refinements": [
+        "un bloqueo de sesión no puede impedir la actuación del operador en emergencia (SR 2.5)"
+      ]
+    },
+    {
+      "id": "CAP-PR-DATACONF",
+      "name": "Confidencialidad de la información",
+      "description": "Proteger la confidencialidad de datos en reposo y en tránsito.",
+      "csf_seed_category": "PR.DS",
+      "ot_refinements": [
+        "proyectos de lógica y credenciales en la estación de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-PR-CRYPTO",
+      "name": "Criptografía y gestión de claves",
+      "description": "Usar criptografía adecuada y gestionar el ciclo de vida de claves y certificados.",
+      "csf_seed_category": "PR.DS",
+      "ot_refinements": [
+        "criptografía que el hardware embebido del corredor no siempre soporta (SR 4.3)"
+      ]
+    },
+    {
+      "id": "CAP-PR-INTEGRITY",
+      "name": "Integridad de software, firmware y lógica",
+      "description": "Verificar y proteger la integridad de software, firmware y lógica de control.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "integridad de lógica de PLC y del SIS (eje anti-TRITON, SR 3.4/3.3)"
+      ]
+    },
+    {
+      "id": "CAP-PR-HARDENING",
+      "name": "Configuración segura / endurecimiento",
+      "description": "Establecer y mantener configuraciones seguras de los componentes.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "ajustes de configuración de red y seguridad del sistema de control (SR 7.6)"
+      ]
+    },
+    {
+      "id": "CAP-PR-ALLOWLIST",
+      "name": "Allowlisting de ejecución",
+      "description": "Impedir la ejecución de software no autorizado (lista de permitidos).",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "allowlisting en HMI y en la estación de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-PR-MALWARE",
+      "name": "Protección frente a código malicioso",
+      "description": "Prevenir, detectar y contener código malicioso.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "protección específica del sistema de control (SR 3.2)"
+      ]
+    },
+    {
+      "id": "CAP-PR-MEDIA",
+      "name": "Control de medios extraíbles",
+      "description": "Controlar el uso de medios extraíbles como vector de entrada.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "vector Stuxnet/TRITON hacia la estación de ingeniería"
+      ]
+    },
+    {
+      "id": "CAP-PR-SEGMENT",
+      "name": "Segmentación de red y frontera de zona/conducto",
+      "description": "Segmentar la red y proteger la frontera entre zonas y conductos.",
+      "csf_seed_category": "PR.IR",
+      "ot_refinements": [
+        "segmentación OT y protección de la IDMZ (SR 5.1/5.2)"
+      ]
+    },
+    {
+      "id": "CAP-PR-RESILIENCE",
+      "name": "Resiliencia y disponibilidad de la infraestructura",
+      "description": "Sostener la disponibilidad del activo frente a saturación, agotamiento de recursos y fallos del entorno.",
+      "csf_seed_category": "PR.IR",
+      "ot_refinements": [
+        "denegación de servicio y gestión de recursos en el lazo de control (FR7: SR 7.1/7.2/7.5)"
+      ]
+    },
+    {
+      "id": "CAP-PR-PATCH",
+      "name": "Gestión de vulnerabilidades y parches",
+      "description": "Identificar y remediar vulnerabilidades mediante parcheo controlado.",
+      "csf_seed_category": "PR.PS",
+      "ot_refinements": [
+        "parcheo de la estación de ingeniería (cara IT)"
+      ]
+    },
+    {
+      "id": "CAP-PR-AWARENESS",
+      "name": "Concienciación y formación",
+      "description": "Formar al personal en riesgos y prácticas de ciberseguridad.",
+      "csf_seed_category": "PR.AT",
+      "ot_refinements": [
+        "formación de ingenieros; anti-phishing en la cara IT"
+      ]
+    },
+    {
+      "id": "CAP-PR-BACKUP",
+      "name": "Copias de seguridad y recuperación",
+      "description": "Realizar copias de seguridad y probar su restauración.",
+      "csf_seed_category": "PR.IR",
+      "ot_refinements": [
+        "copia de la lógica de control y capacidad de reconstitución (SR 7.3/7.4)"
+      ]
+    },
+    {
+      "id": "CAP-DE-MONITOR",
+      "name": "Monitorización continua y de comandos",
+      "description": "Monitorizar la red y los comandos hacia actuadores en busca de anomalías.",
+      "csf_seed_category": "DE.CM",
+      "ot_refinements": [
+        "monitorización de comandos hacia actuadores (SR 6.2)"
+      ]
+    },
+    {
+      "id": "CAP-DE-LOG",
+      "name": "Registro y auditoría de eventos",
+      "description": "Generar, proteger y revisar registros de eventos auditables.",
+      "csf_seed_category": "DE.CM",
+      "ot_refinements": [
+        "eventos auditables y accesibilidad del registro (SR 2.8/6.1)"
+      ]
+    },
+    {
+      "id": "CAP-DE-ANOMALY",
+      "name": "Análisis y correlación de eventos adversos",
+      "description": "Analizar y correlacionar eventos para caracterizar un incidente y estimar su impacto.",
+      "csf_seed_category": "DE.AE",
+      "ot_refinements": [
+        "correlacionar el evento de red con la consecuencia física esperada en el proceso"
+      ]
+    },
+    {
+      "id": "CAP-RS-IR",
+      "name": "Gestión de respuesta a incidentes",
+      "description": "Ejecutar el plan de respuesta a incidentes.",
+      "csf_seed_category": "RS.MA",
+      "ot_refinements": [
+        "respuesta que contemple impacto físico OT"
+      ]
+    },
+    {
+      "id": "CAP-RS-ANALYSIS",
+      "name": "Análisis forense del incidente",
+      "description": "Investigar el incidente preservando la evidencia y establecer su alcance y causa.",
+      "csf_seed_category": "RS.AN",
+      "ot_refinements": [
+        "preservar evidencia sin detener el proceso; la memoria del PLC no se conserva sola"
+      ]
+    },
+    {
+      "id": "CAP-RS-CONTAIN",
+      "name": "Contención y erradicación del incidente",
+      "description": "Contener y erradicar el incidente limitando su propagación.",
+      "csf_seed_category": "RS.MI",
+      "ot_refinements": [
+        "aislar sin provocar la parada no controlada del proceso"
+      ]
+    },
+    {
+      "id": "CAP-RS-REPORT",
+      "name": "Notificación y comunicación de incidentes",
+      "description": "Notificar incidentes a las partes interesadas internas y externas.",
+      "csf_seed_category": "RS.CO",
+      "ot_refinements": [
+        "obligaciones legales de notificación por jurisdicción (delta regional)"
+      ]
+    },
+    {
+      "id": "CAP-RC-RECOVER",
+      "name": "Recuperación y reconstitución",
+      "description": "Ejecutar la recuperación para restablecer el servicio tras un incidente.",
+      "csf_seed_category": "RC.RP",
+      "ot_refinements": [
+        "reconstitución del sistema de control (SR 7.4)"
+      ]
+    },
+    {
+      "id": "CAP-RC-COMMS",
+      "name": "Comunicación de la recuperación",
+      "description": "Comunicar el estado de la recuperación a las partes interesadas y declarar su fin.",
+      "csf_seed_category": "RC.CO",
+      "ot_refinements": [
+        "coordinación con despacho y con el regulador durante la vuelta a servicio"
+      ]
+    }
+  ]
+}

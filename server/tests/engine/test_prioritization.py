@@ -349,10 +349,10 @@ def test_the_same_catalog_produces_a_different_roadmap_per_zone(
 def test_prioritization_reports_the_versions_it_ran_with(
     priorities_a: ProfilePrioritization,
 ) -> None:
-    assert priorities_a.catalog_version == "0.1.0"
+    assert priorities_a.catalog_version == "0.2.0"
     assert priorities_a.rules_version == "0.1.0"
     assert priorities_a.gating_version == "0.1.0"
-    assert priorities_a.prioritization_version == "0.1.0"
+    assert priorities_a.prioritization_version == "0.2.0"
 
 
 def test_an_unknown_zone_is_an_error_not_an_empty_roadmap(

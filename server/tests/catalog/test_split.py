@@ -29,9 +29,11 @@ from typing import Any
 import pytest
 
 from app.catalog.loader import BACKEND_ROOT, load_catalog
-from app.core.config import settings
 
-SINGLE_FILE = BACKEND_ROOT / settings.CATALOG_PATH
+# Pinned on purpose to the last single-file catalog rather than to whatever
+# CATALOG_PATH points at today: these tests are about the two *shapes* being the
+# same catalog, so they need one of each, and v0.1.0 is frozen for good.
+SINGLE_FILE = BACKEND_ROOT / "data/catalog/catalog.v0.1.0.json"
 
 
 def read_shipped() -> dict[str, Any]:
@@ -65,8 +67,23 @@ def split(tmp_path: Path, data: dict[str, Any], sources: list[str] | None = None
     return path
 
 
+def test_the_shipped_catalog_is_a_split_one_and_loads(tmp_path: Path) -> None:
+    """The default catalog goes through the merge path, and its invariants hold."""
+    catalog = load_catalog()
+
+    assert catalog.orphan_capabilities() == set()
+    assert catalog.unused_controls() == set()
+    assert {c.framework.value for c in catalog.controls} == {
+        "CSF",
+        "IEC62443",
+        "CIS",
+        "NIS2",
+        "IMO",
+    }
+
+
 def test_a_split_catalog_is_the_catalog(tmp_path: Path) -> None:
-    shipped = load_catalog()
+    shipped = load_catalog(SINGLE_FILE)
     merged = load_catalog(split(tmp_path, read_shipped()))
 
     assert merged.catalog_version == shipped.catalog_version
@@ -97,7 +114,7 @@ def test_the_model_does_not_depend_on_the_order_of_the_sources(tmp_path: Path) -
 def test_a_single_file_catalog_keeps_its_authored_order(tmp_path: Path) -> None:
     """No sorting on the single-file path: a shipped catalog parses as it always did."""
     data = read_shipped()
-    loaded = load_catalog()
+    loaded = load_catalog(SINGLE_FILE)
 
     assert [c.id for c in loaded.controls] == [c["id"] for c in data["controls"]]
     assert [m.control_id for m in loaded.mappings] == [m["control_id"] for m in data["mappings"]]
