@@ -88,7 +88,8 @@ vectores: también funciona con Ollama y Qdrant apagados, y no escribe en la bit
 
 ```bash
 # servicios de la capa IA (ollama + qdrant)
-docker compose up -d
+docker compose up -d          # ruta portable: CPU, funciona en cualquier máquina
+./scripts/up.sh               # o deja que detecte el hardware (.\scripts\up.ps1 en Windows)
 
 # backend
 cd server
@@ -113,6 +114,62 @@ uv run pytest -m rag   # recuperación contra Qdrant + e5-base real (UCM-13)
 En el primer arranque, `qdrant` se puebla desde el catálogo JSON y se descarga el
 modelo de embeddings (~1,1 GB, CPU). Ambas cosas son datos derivados: se
 reconstruyen solas y no son estado del sistema.
+
+### Hardware: se adapta, nunca se niega a arrancar
+
+El POC tiene que correr en un PC cuyo hardware no se conoce de antemano, así que la
+configuración se adapta sola en dos puntos, y ninguno de los dos cambia lo que el motor
+responde.
+
+**Los pesos se precargan.** Tener el modelo en disco no es lo mismo que poder responder:
+leer ~5 GB a memoria se midió en ~185 s en la máquina de referencia — un parseo en frío
+tarda 262 s donde uno en caliente tarda 77 s, para una respuesta idéntica byte a byte. Esa
+espera la pagaba el operador en su primer clic. Ahora la paga `docker compose up`: el
+`entrypoint` de `ollama` precarga antes de declararse *healthy*, y el backend vuelve a
+hacerlo al arrancar (`LLM_WARM_ON_STARTUP`) por si el modelo se ha descargado de memoria
+mientras tanto. `OLLAMA_KEEP_ALIVE` es cuánto se queda residente.
+
+**La GPU se usa si la hay.** `docker-compose.yml` es la ruta portable en CPU y no pide
+ningún dispositivo, porque una reserva de GPU hace que `docker compose up` *falle* en una
+máquina sin tarjeta NVIDIA — y que el stack arranque en cualquier sitio es la garantía de
+UCM-22, que no se cambia por latencia. `docker-compose.gpu.yml` añade la reserva por
+encima, y `scripts/up.sh` / `scripts/up.ps1` preguntan a Docker si puede ceder una GPU y
+eligen solos. Sin GPU accesible, se arranca en CPU y solo cambia el tiempo de espera.
+A mano son dos `-f`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+```
+
+`COMPOSE_FILE` en `.env` también vale, pero Compose lo parte por el separador de rutas
+del sistema — `;` en Windows, `:` en el resto — y por eso los scripts usan `-f`.
+
+**Y el resultado no es el mismo en las dos rutas.** Medido sobre la misma descripción, con
+los pesos ya residentes y una sola pasada del modelo en ambos casos:
+
+| ruta | tiempo | respuesta | notas de evidencia |
+| -- | -- | -- | -- |
+| CPU | 77,3 s | 1933 B | 0 |
+| GPU (RTX 3070, 29/29 capas) | 33,5 s | 4036 B | 6 |
+
+Mismo digest de modelo, misma seed, misma temperatura 0 — y dos borradores distintos, con
+`profile_id` y con identificadores de zona distintos. Los núcleos CUDA y los de CPU acumulan
+en distinto orden, así que un empate ajustado en los *logits* se resuelve de otra forma; es
+la misma clase de problema que documenta `EMBEDDING_NUM_THREADS=1`. Se comprobó, no se supuso.
+
+La consecuencia para la invariante 3 hay que decirla tal cual: **la reproducibilidad se
+sostiene dentro de cada ruta de hardware, no entre ellas.** La memoria tiene que nombrar en
+cuál se produjeron los números de la evaluación (UCM-18); la otra queda como comodidad para
+trabajar y para grabar la demo. Activar o desactivar el *overlay* de GPU es, por tanto, un
+acto versionado, igual que cambiar un parámetro de decodificación.
+
+Comprobación: `curl localhost:11434/api/ps` — `size_vram` dice cuánto modelo entró de
+verdad en la tarjeta, y `0` significa que todo está en CPU.
+
+Lo que **no** se autodetecta es el modelo. Pasar a `qwen2.5:3b-instruct-q4_K_M` sigue siendo
+el fallback documentado para máquinas de 8 GB (UCM-22), pero unos pesos distintos producen
+un borrador distinto: elegirlos solo haría que el *resultado* dependiera de la máquina, que
+es justo lo que prohíbe la invariante 3. Se recomienda por consola; no se aplica solo.
 
 El despliegue final se hace con `docker compose up` (4 contenedores: frontend, backend, ollama,
 qdrant) — ver hoja de ruta en el proyecto de Linear (milestones M1–M6).

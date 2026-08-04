@@ -91,6 +91,25 @@ async def verify_model() -> str:
     return _verified_digest
 
 
+async def warm_model() -> None:
+    """Load the verified weights into memory, so the first parse does not pay for it.
+
+    An empty prompt is Ollama's documented preload: no token is decoded, so no output
+    can depend on it. `keep_alive` is sent on the native API because the
+    OpenAI-compatible surface drops it, like `num_ctx` (see `app/parse/agent.py`).
+    """
+    await verify_model()  # cached, so the first parse skips the digest check too
+
+    url = f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/generate"
+    payload = {"model": settings.LLM_MODEL, "prompt": "", "keep_alive": settings.LLM_KEEP_ALIVE}
+    try:
+        async with httpx.AsyncClient(timeout=float(settings.LLM_TIMEOUT_SECONDS)) as client:
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise ModelUnavailableError(f"No se pudo precargar el modelo en {url}: {exc}") from exc
+
+
 def reset_verification() -> None:
     """Forget the cached digest. For tests, and for a deliberate model change."""
     global _verified_digest
