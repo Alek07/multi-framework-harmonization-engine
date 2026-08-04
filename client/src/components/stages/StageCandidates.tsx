@@ -26,6 +26,16 @@ import {
 import { useActiveZone, useComposition } from '../../state/composition'
 import { CapabilityCard } from '../candidates/CapabilityCard'
 import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../ui'
+import { Working } from '../Working'
+
+/** The deterministic pipeline, named the way the operator reads it. */
+const COMPUTING = [
+  'buscando en el catálogo qué controles equivalen a cada requisito, en todos los marcos',
+  'resolviendo los solapes y los conflictos entre marcos',
+  'apartando los mecanismos que este activo no puede tener, con su motivo',
+  'ordenando en obligatorios y discrecionales, y repartiéndolos por fases',
+  'consultando el buscador para añadir sugerencias, que solo amplían las opciones',
+]
 
 /** Read once, and the rest of the screen becomes readable. */
 function Legend() {
@@ -173,10 +183,16 @@ export function StageCandidates() {
     missing,
     focusRequest,
     clearFocus,
+    explaining,
   } = useComposition()
   const zone = useActiveZone()
 
   const ready = Boolean(profile)
+  // `explaining` is a "zone|capability" key; the operator needs the name.
+  const explainingName = explaining
+    ? (zone?.capabilities.find((c) => explaining.endsWith(`|${c.capability_id}`))?.capability_name ??
+      explaining.split('|')[1])
+    : null
 
   useEffect(() => {
     if (ready && !candidates && !candidatesLoading && !candidatesError) void loadCandidates()
@@ -220,10 +236,26 @@ export function StageCandidates() {
       <Legend />
 
       {candidatesLoading ? (
-        <Notice tone="muted">
-          Calculando las opciones de cada requisito. La primera vez después de arrancar el sistema
-          tarda más porque se cargan los datos de búsqueda; las siguientes son cuestión de segundos.
-        </Notice>
+        <div className="mb-4">
+          <Working
+            testId="candidates-working"
+            title="El motor está calculando las opciones de esta zona"
+            subtitle="Reglas deterministas, no IA: el asistente no elige ni ordena nada aquí"
+            lead="Está haciendo, requisito a requisito:"
+            items={COMPUTING}
+            footnote="La primera vez después de arrancar el sistema tarda más, porque además se cargan los datos de búsqueda; las siguientes son cuestión de segundos."
+          />
+        </div>
+      ) : null}
+
+      {explaining ? (
+        <div className="mb-3.5">
+          <Notice tone="warn" label="REDACTANDO">
+            El asistente está escribiendo las explicaciones de «{explainingName}». Tarda varios
+            minutos porque el modelo corre en este equipo. No cambia el orden de las opciones ni
+            marca ninguna como preferida: tus decisiones siguen intactas.
+          </Notice>
+        </div>
       ) : null}
 
       {candidatesError ? (
@@ -288,7 +320,15 @@ export function StageCandidates() {
           <Roadmap />
 
           <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-line-2 pt-4">
-            <PrimaryButton onClick={() => void loadCandidates()}>
+            <PrimaryButton
+              onClick={() => void loadCandidates()}
+              disabled={candidatesLoading || explaining !== null}
+              title={
+                explaining
+                  ? 'Espera a que termine la explicación en curso: un cálculo nuevo la descartaría.'
+                  : undefined
+              }
+            >
               Volver a calcular las opciones
             </PrimaryButton>
             <span className="max-w-[560px] text-[11.5px] leading-[1.5] text-ink-4">

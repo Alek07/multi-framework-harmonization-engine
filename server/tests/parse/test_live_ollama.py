@@ -63,3 +63,39 @@ async def test_what_does_not_fit_the_schema_is_reported(service: AssetParseServi
     result = await service.parse(DESCRIPTION_ES)
 
     assert any("martes" in item.lower() for item in result.draft.unmapped)
+
+
+# --- The other direction: what the text *does* settle must come back ----------
+#
+# Every test above checks that the model stays quiet about what it was not told.
+# None of them checked that it speaks about what it was. So a parse that returned
+# almost nothing passed the whole suite — and one did: `zones`, `conduits` and
+# `notes` came back absent, the schema allowed it, and Pydantic's defaults hid it.
+
+
+async def test_a_described_zone_reaches_the_draft(service: AssetParseService) -> None:
+    """The failure that started this. `DESCRIPTION_ES` describes one zone."""
+    result = await service.parse(DESCRIPTION_ES)
+
+    assert result.draft.zones, "the model answered with no zones at all"
+    assert all(zone.id.startswith("Z-") for zone in result.draft.zones)
+
+
+async def test_every_extracted_value_is_justified(service: AssetParseService) -> None:
+    """`notes` is what the operator reviews; an empty list is an empty screen."""
+    result = await service.parse(DESCRIPTION_ES)
+
+    assert result.draft.notes, "the model extracted values without justifying any"
+    assert all(note.evidence.strip() and note.note.strip() for note in result.draft.notes)
+
+
+async def test_what_the_text_states_plainly_is_not_left_null(
+    service: AssetParseService,
+) -> None:
+    """Windows and the connection to the PLCs are stated, not inferred from context."""
+    result = await service.parse(DESCRIPTION_ES)
+
+    assert result.draft.name
+    assert result.draft.case is not None
+    assert result.draft.nature.general_purpose_os is True
+    assert result.draft.nature.networked is True
