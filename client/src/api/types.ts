@@ -67,6 +67,12 @@ export type SLVector = Record<FoundationalRequirement, number>
 export interface Zone {
   id: string
   target_sl: number
+  /**
+   * Per zone, never per asset (UCM-9). A hybrid asset holds zones of different
+   * natures at once — an embedded controller and a Windows workstation — and a
+   * single asset-wide reading has to be wrong about one of them.
+   */
+  nature: TechNature
   purdue?: string | null
   role?: string | null
   position?: string | null
@@ -111,7 +117,6 @@ export interface AssetProfile {
   name: string
   case: CaseType
   zones: Zone[]
-  nature: TechNature
   conduits: Conduit[]
   criticality: Criticality
 }
@@ -133,6 +138,7 @@ export type SLVectorDraft = Partial<Record<FoundationalRequirement, number | nul
 export interface ZoneDraft {
   id: string
   target_sl: number | null
+  nature: TechNatureDraft
   purdue: string | null
   role: string | null
   position: string | null
@@ -161,7 +167,6 @@ export interface AssetProfileDraft {
   name: string | null
   case: CaseType | null
   zones: ZoneDraft[]
-  nature: TechNatureDraft
   conduits: ConduitDraft[]
   criticality: CriticalityDraft
   notes: ParseNote[]

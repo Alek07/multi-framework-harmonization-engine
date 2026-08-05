@@ -342,14 +342,16 @@ export function fieldLabel(path: string): string {
     const [, id, rest] = zone
     const fr = /^sl_vector\.(FR\d)$/.exec(rest)
     if (fr) return `zona ${id} · nivel exigido en ${fr[1]} (${FR_MEANING[fr[1] as FoundationalRequirement]})`
+    // The five premises are the zone's own (UCM-9), so the label names the zone:
+    // "sistema operativo corriente" on its own would be unreadable on a hybrid
+    // asset, where the next zone answers it the other way.
+    const nature = /^nature\.(.+)$/.exec(rest)
+    if (nature) return `zona ${id} · ${NATURE[nature[1] as NatureField]?.label ?? nature[1]}`
     return `zona ${id} · ${FIELD_WORDS[rest] ?? rest}`
   }
 
   const conduit = /^conduits\[(.+?)\]\.(.+)$/.exec(path)
   if (conduit) return `enlace ${conduit[1]} · ${FIELD_WORDS[conduit[2]] ?? conduit[2]}`
-
-  const nature = /^nature\.(.+)$/.exec(path)
-  if (nature) return NATURE[nature[1] as NatureField]?.label ?? nature[1]
 
   const criticality = /^criticality\.(.+)$/.exec(path)
   if (criticality) return `criticidad · ${FIELD_WORDS[criticality[1]] ?? criticality[1]}`

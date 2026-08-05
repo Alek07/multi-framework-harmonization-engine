@@ -36,7 +36,7 @@ import type {
   RegionalDelta,
   Signature,
 } from '../api/types'
-import { cloneDraft, missingRequired, toProfile } from '../lib/draft'
+import { cloneDraft, emptyZone, missingRequired, toProfile } from '../lib/draft'
 import {
   CompositionContext,
   DELTA_ORDERS,
@@ -145,25 +145,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     setDraft({
       name: null,
       case: null,
-      zones: [
-        {
-          id: 'Z-1',
-          target_sl: null,
-          purdue: null,
-          role: null,
-          position: null,
-          sl_vector: null,
-          safety_out_of_scope: null,
-          reference: null,
-        },
-      ],
-      nature: {
-        general_purpose_os: null,
-        networked: null,
-        hybrid_it_ot: null,
-        interactive_users: null,
-        office_it_surface: null,
-      },
+      zones: [emptyZone('Z-1')],
       conduits: [],
       criticality: {
         physical_consequence: null,
@@ -225,15 +207,20 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   )
 
   const correctNature = useCallback(
-    (field: NatureField) => {
+    (zoneIndex: number, field: NatureField) => {
       if (signed || !draft) return
       const next = cloneDraft(draft)
-      const current = next.nature[field]
+      const zone = next.zones[zoneIndex]
+      const current = zone.nature[field]
       // true -> false -> "the text does not say". The third state stays reachable
       // because a guessed `false` silently removes mechanisms from the baseline.
-      next.nature[field] = current == null ? true : current ? false : null
+      zone.nature[field] = current == null ? true : current ? false : null
       setDraft(next)
-      recordCorrection(`nature.${field}`, modelDraft?.nature[field] ?? '—', next.nature[field] ?? '—')
+      recordCorrection(
+        `zones[${zone.id}].nature.${field}`,
+        modelDraft?.zones[zoneIndex]?.nature?.[field] ?? '—',
+        zone.nature[field] ?? '—',
+      )
     },
     [draft, modelDraft, recordCorrection, signed],
   )

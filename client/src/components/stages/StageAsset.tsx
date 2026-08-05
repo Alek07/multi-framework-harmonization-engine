@@ -29,6 +29,7 @@ import {
   type NatureField,
   type ParseNote,
 } from '../../api/types'
+import { emptyZone } from '../../lib/draft'
 import { CASE_TYPE, CONSEQUENCE_SCALE, FR_MEANING, NATURE, fieldLabel } from '../../lib/labels'
 import { useComposition } from '../../state/composition'
 import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../ui'
@@ -148,16 +149,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
           disabled={signed}
           onClick={() =>
             patchDraft((next) => {
-              next.zones.push({
-                id: `Z-${next.zones.length + 1}`,
-                target_sl: null,
-                purdue: null,
-                role: null,
-                position: null,
-                sl_vector: null,
-                safety_out_of_scope: null,
-                reference: null,
-              })
+              next.zones.push(emptyZone(`Z-${next.zones.length + 1}`))
             })
           }
           className="cursor-pointer rounded-[5px] border border-line-strong bg-transparent px-2.5 py-1 text-[11px] font-semibold text-ink-2 hover:border-accent hover:text-accent"
@@ -443,40 +435,51 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
 
       <div className="grid grid-cols-2 gap-5">
         <div>
-          <Caps className="mb-1">Cómo es el activo por dentro</Caps>
+          <Caps className="mb-1">Cómo es cada zona por dentro</Caps>
           <Hint className="mb-2">
-            Pulsa para alternar entre <b>sí</b>, <b>no</b> y <b>sin declarar</b>. Estas respuestas
-            deciden qué controles tienen sentido en este activo, así que dejar una sin declarar es
-            preferible a adivinarla.
+            Pulsa para alternar entre <b>sí</b>, <b>no</b> y <b>sin declarar</b>. Se responde{' '}
+            <b>zona por zona</b>: un mismo activo puede tener un controlador embebido en una zona y
+            un Windows en otra, y una sola respuesta para las dos tendría que estar equivocada en
+            alguna. Estas respuestas deciden qué controles tienen sentido en cada zona, así que
+            dejar una sin declarar es preferible a adivinarla.
           </Hint>
-          <div className="flex flex-wrap gap-1.5">
-            {(Object.keys(NATURE) as NatureField[]).map((field) => {
-              const value = draft.nature[field]
-              const mark = corrections.some((c) => c.path === `nature.${field}`)
-              const state = value === true ? 'sí' : value === false ? 'no' : 'sin declarar'
-              return (
-                <button
-                  key={field}
-                  type="button"
-                  disabled={signed}
-                  onClick={() => correctNature(field)}
-                  title={`${NATURE[field].note} — ahora: ${state}`}
-                  className={`cursor-pointer rounded-[5px] border px-2.5 py-1.5 text-xs font-semibold ${
-                    mark ? 'border-accent' : 'border-line'
-                  } ${
-                    value === true
-                      ? 'bg-accent-tint text-accent'
-                      : value === false
-                        ? 'bg-surface-2 text-ink-3'
-                        : 'bg-surface-2 text-ink-5'
-                  }`}
-                >
-                  {value === true ? '■' : value === false ? '□' : '·'} {NATURE[field].label}{' '}
-                  {mark ? '◆' : ''}
-                </button>
-              )
-            })}
-          </div>
+          {draft.zones.map((zone, zoneIndex) => (
+            <div key={zoneIndex} className="mb-3">
+              <div className="mb-1 font-mono text-[11px] font-semibold text-ink-4">
+                {zone.id || `zona ${zoneIndex + 1}`}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {(Object.keys(NATURE) as NatureField[]).map((field) => {
+                  const value = zone.nature[field]
+                  const mark = corrections.some(
+                    (c) => c.path === `zones[${zone.id}].nature.${field}`,
+                  )
+                  const state = value === true ? 'sí' : value === false ? 'no' : 'sin declarar'
+                  return (
+                    <button
+                      key={field}
+                      type="button"
+                      disabled={signed}
+                      onClick={() => correctNature(zoneIndex, field)}
+                      title={`${NATURE[field].note} — en ${zone.id || `zona ${zoneIndex + 1}`}, ahora: ${state}`}
+                      className={`cursor-pointer rounded-[5px] border px-2.5 py-1.5 text-xs font-semibold ${
+                        mark ? 'border-accent' : 'border-line'
+                      } ${
+                        value === true
+                          ? 'bg-accent-tint text-accent'
+                          : value === false
+                            ? 'bg-surface-2 text-ink-3'
+                            : 'bg-surface-2 text-ink-5'
+                      }`}
+                    >
+                      {value === true ? '■' : value === false ? '□' : '·'} {NATURE[field].label}{' '}
+                      {mark ? '◆' : ''}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
           <Criticality draft={draft} />
         </div>
 
