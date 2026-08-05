@@ -78,6 +78,9 @@ def zone_context(zone: Zone, profile: AssetProfile) -> ZoneContext:
         domain=domain,
         target_sl=zone.target_sl,
         safety_relevant=safety,
+        # Carried verbatim, normalised: the role the profile declares is a premise
+        # of the zone, not a conclusion, and gating conditions on it directly.
+        role=(zone.role or "").strip().lower() or None,
         derivation=f"{domain_why}; {safety_why}",
         # Carried verbatim: the premises are the zone's own, and a hybrid asset
         # holds zones that disagree about every one of them (UCM-9).

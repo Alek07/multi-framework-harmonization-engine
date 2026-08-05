@@ -26,7 +26,7 @@ ZONE = ZoneContext(
 
 
 def test_version(gating_rules: GatingRules) -> None:
-    assert gating_rules.rules_version == "0.1.0"
+    assert gating_rules.rules_version == "0.2.0"
 
 
 def test_the_three_outcomes_of_the_ticket_are_all_seeded(gating_rules: GatingRules) -> None:
@@ -42,6 +42,24 @@ def test_a_rule_cannot_gate_a_control_the_catalog_does_not_have(catalog: Catalog
     broken.rules[0].control_ids = ["CTL-DOES-NOT-EXIST"]
     with pytest.raises(ValueError, match="non-existent control"):
         broken.validate_against(catalog)
+
+
+def test_a_condition_on_the_role_reads_what_the_profile_declares() -> None:
+    """The premise UCM-44 added: without it the SIS and the corridor are one zone."""
+    rule = GatingRule.model_validate(
+        {
+            "id": "GATE-TEST-ROLE",
+            "outcome": "not_applicable",
+            "control_ids": ["CTL-TEST"],
+            "applies_when": {"roles": ["Crown_Jewel"]},  # normalised on load
+            "rationale": "prueba",
+        }
+    )
+    crown_jewel = ZONE.model_copy(update={"role": "crown_jewel"})
+
+    assert rule.applies_to("CTL-TEST", crown_jewel)
+    assert not rule.applies_to("CTL-TEST", ZONE)  # the corridor declares no role
+    assert "la zona declara el rol «crown_jewel»" in rule.applies_when.evidence(crown_jewel)
 
 
 def test_a_condition_cannot_invoke_a_premise_the_profile_does_not_declare() -> None:

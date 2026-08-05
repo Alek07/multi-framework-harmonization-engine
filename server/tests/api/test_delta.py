@@ -43,12 +43,27 @@ DEMO: dict[str, Any] = {
     "zone_id": "Z-ENG-STATION",
 }
 
-# What UCM-3 named as the capabilities that carry the delta.
+# The capabilities that carry the delta. UCM-3 named five, against a catalog that
+# held NIS2 as three whole articles; v0.2.0 breaks art. 21(2) into its ten measures
+# (UCM-43), so the European overlay now lands on sixteen. That widening *is* the
+# regional delta getting sharper — "el art. 21 aplica" told the operator nothing
+# about which obligation was missing.
 NIS2_CAPABILITIES = {
+    "CAP-GOV-OVERSIGHT",
+    "CAP-GOV-POLICY",
     "CAP-GOV-RISK",
     "CAP-GOV-ROLES",
     "CAP-GOV-SUPPLY",
+    "CAP-ID-ASSET",
+    "CAP-ID-THREAT",
+    "CAP-PR-ACCESS",
     "CAP-PR-AWARENESS",
+    "CAP-PR-BACKUP",
+    "CAP-PR-CRYPTO",
+    "CAP-PR-MFA",
+    "CAP-PR-PATCH",
+    "CAP-RC-RECOVER",
+    "CAP-RS-IR",
     "CAP-RS-REPORT",
 }
 
@@ -68,7 +83,7 @@ def test_the_demo_zone_reads_under_both_regions(client: TestClient) -> None:
     assert body["profile_id"] == "PROFILE-B"
     assert body["zone"]["zone_id"] == "Z-ENG-STATION"
     assert body["regions"] == ["US", "EU"]
-    assert len(body["capabilities"]) == 24
+    assert len(body["capabilities"]) == 37
 
 
 def test_the_readings_are_cumulative_over_common_ground(client: TestClient) -> None:
@@ -98,7 +113,7 @@ def test_the_delta_falls_on_the_capabilities_ucm3_named(client: TestClient) -> N
     body = ask(client)
 
     assert set(body["changed_capability_ids"]) == NIS2_CAPABILITIES
-    assert len(body["unchanged_capability_ids"]) == 24 - len(NIS2_CAPABILITIES)
+    assert len(body["unchanged_capability_ids"]) == 37 - len(NIS2_CAPABILITIES)
 
 
 def test_what_plus_eu_adds_is_obligation_and_not_coverage(client: TestClient) -> None:

@@ -92,6 +92,14 @@ class ZoneContext(BaseModel):
     domain: ZoneDomain
     target_sl: int
     safety_relevant: bool
+    # Carried verbatim from the zone, and carried *separately* from
+    # `safety_relevant` on purpose. The role is what the profile declares
+    # ("crown_jewel" for the SIS); safety relevance is a conclusion the engine
+    # draws, and it draws it for the whole OT corridor too because the physical
+    # consequence is catastrophic. Folding one into the other — which is what
+    # v0.1.0 did — left the crown jewel with no premise of its own and made its
+    # baseline identical to the corridor's, mechanism for mechanism (UCM-44).
+    role: str | None = None
     derivation: str
     # Carried verbatim from the zone: the premises gating reads (UCM-9). They
     # travel *inside* the zone reading rather than beside it so no caller can pair
