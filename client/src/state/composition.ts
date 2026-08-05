@@ -153,7 +153,7 @@ export interface CompositionApi {
   startManualDraft: () => void
   correctTargetSL: (zoneIndex: number, value: number) => void
   correctSL: (zoneIndex: number, requirement: FoundationalRequirement) => void
-  correctNature: (field: NatureField) => void
+  correctNature: (zoneIndex: number, field: NatureField) => void
   correctCriticality: (scale: ConsequenceScale) => void
   /**
    * Any other edit to the draft, as a recipe over a copy of it.

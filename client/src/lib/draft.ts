@@ -44,6 +44,33 @@ export function profileIdFor(draft: AssetProfileDraft, explicit?: string | null)
   return slug ? `ASSET-${slug}` : 'ASSET'
 }
 
+/**
+ * A zone the operator adds by hand, with every premise undeclared.
+ *
+ * Nothing is guessed into it — least of all the five of `nature`, where a
+ * fabricated `false` silently removes mechanisms from the baseline and a
+ * fabricated `true` suppresses the exclusion an embedded controller is owed.
+ */
+export function emptyZone(id: string): ZoneDraft {
+  return {
+    id,
+    target_sl: null,
+    nature: {
+      general_purpose_os: null,
+      networked: null,
+      hybrid_it_ot: null,
+      interactive_users: null,
+      office_it_surface: null,
+    },
+    purdue: null,
+    role: null,
+    position: null,
+    sl_vector: null,
+    safety_out_of_scope: null,
+    reference: null,
+  }
+}
+
 /** An SL vector is all seven FRs or none: a half vector is a gap, not a value. */
 function missingSLVector(vector: SLVectorDraft, prefix: string): string[] {
   const present = FR_FIELDS.filter((fr) => vector[fr] != null)
@@ -54,6 +81,13 @@ function missingSLVector(vector: SLVectorDraft, prefix: string): string[] {
 function missingInZone(zone: ZoneDraft, index: number): string[] {
   const prefix = `zones[${zone.id || index}]`
   const missing = zone.target_sl == null ? [`${prefix}.target_sl`] : []
+  // Asked once per zone: gating reads these premises from the zone, so a zone
+  // left without them is a zone the core cannot gate (UCM-9).
+  missing.push(
+    ...NATURE_FIELDS.filter((field) => zone.nature?.[field] == null).map(
+      (field) => `${prefix}.nature.${field}`,
+    ),
+  )
   return zone.sl_vector ? [...missing, ...missingSLVector(zone.sl_vector, prefix)] : missing
 }
 
@@ -72,12 +106,6 @@ export function missingRequired(draft: AssetProfileDraft): string[] {
 
   if (draft.zones.length === 0) missing.push('zones')
   draft.zones.forEach((zone, index) => missing.push(...missingInZone(zone, index)))
-
-  missing.push(
-    ...NATURE_FIELDS.filter((field) => draft.nature[field] == null).map(
-      (field) => `nature.${field}`,
-    ),
-  )
 
   draft.conduits.forEach((conduit, index) => {
     const prefix = `conduits[${conduit.id || index}]`
@@ -104,6 +132,13 @@ function zoneOf(draft: ZoneDraft): Zone {
   return {
     id: draft.id,
     target_sl: draft.target_sl as number,
+    nature: {
+      general_purpose_os: draft.nature.general_purpose_os as boolean,
+      networked: draft.nature.networked as boolean,
+      hybrid_it_ot: draft.nature.hybrid_it_ot as boolean,
+      interactive_users: draft.nature.interactive_users as boolean,
+      office_it_surface: draft.nature.office_it_surface as boolean,
+    },
     ...(draft.purdue ? { purdue: draft.purdue } : {}),
     ...(draft.role ? { role: draft.role } : {}),
     ...(draft.position ? { position: draft.position } : {}),
@@ -149,13 +184,6 @@ export function toProfile(
     name: draft.name as string,
     case: draft.case!,
     zones: draft.zones.map(zoneOf),
-    nature: {
-      general_purpose_os: draft.nature.general_purpose_os as boolean,
-      networked: draft.nature.networked as boolean,
-      hybrid_it_ot: draft.nature.hybrid_it_ot as boolean,
-      interactive_users: draft.nature.interactive_users as boolean,
-      office_it_surface: draft.nature.office_it_surface as boolean,
-    },
     conduits,
     criticality,
   }
