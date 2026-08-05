@@ -24,7 +24,7 @@ FIRST_SL = re.compile(r"SL(\d)")
 
 
 def test_version(prioritization_rules: PrioritizationRules) -> None:
-    assert prioritization_rules.rules_version == "0.1.0"
+    assert prioritization_rules.rules_version == "0.2.0"
 
 
 def test_rules_validate_against_the_catalog(

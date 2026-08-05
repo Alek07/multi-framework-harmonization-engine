@@ -1,0 +1,724 @@
+{
+  "rules_version": "0.2.0",
+  "schema": "TFM-motor-armonizacion/prioritization",
+  "generated_for": "UCM-10/UCM-43 — priorización (Tier 0 por SL-objetivo · Tier 1 ordinal) sobre el catálogo v0.2.0",
+  "language_policy": "identificadores en inglés; rationale/notas en español",
+  "scope_note": "Reglas de priorización del núcleo determinista: qué exige el SL-objetivo de la zona (Tier 0), qué habilita a qué (orden parcial de dependencias) y cuánto cuesta en escala ordinal. Viven aparte del catálogo (que describe lo que existe), de la precedencia (que resuelve choques) y del gating (que decide qué mecanismo cabe en el activo). Ampliar la priorización es añadir entradas a este fichero, no rediseñar el motor. v0.2.0: se declara el SL exigible de los 51 SR del catálogo ampliado y el coste ordinal de las 37 capacidades. Ninguna puede quedarse sin coste — el motor se niega a arrancar si falta — porque un coste por defecto decidiría una hoja de ruta en silencio.",
+  "principles": [
+    "No se rankea todo junto: el Tier 0 es obligatorio por el SL-objetivo de la zona (o por obligación legal) y no se prioriza — se completa.",
+    "El Tier 1 es discrecional y se ordena con escalas ordinales: cobertura/apalancamiento frente a coste, nunca con números inventados.",
+    "Gordon-Loeb en espíritu: se compara reducción de riesgo por coste, pero de forma ordinal y con la tabla de decisión declarada; el motor no fabrica ROSI ni probabilidades que no tiene.",
+    "Las dependencias son un orden parcial, no un ranking: una capacidad nunca se programa antes que su prerrequisito.",
+    "Los IG de CIS (IG1/IG2/IG3) se reutilizan como priorización IT ya hecha: ordenan dentro de zonas IT/híbridas y son sólo informativos en zonas OT.",
+    "La priorización no elimina nada: toda capacidad del catálogo aparece en la hoja de ruta, con su fase y su justificación."
+  ],
+  "sl_mandates": [
+    {
+      "control_id": "CTL-IEC-SR11",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 1,
+      "rationale": "Identificar y autenticar a los usuarios humanos es exigencia base del FR1 desde SL1; sus refuerzos suben con el SL, pero la exigencia no depende de ellos."
+    },
+    {
+      "control_id": "CTL-IEC-SR12",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 2,
+      "rationale": "La identificación y autenticación de procesos y dispositivos (no sólo de personas) entra en el FR1 a partir de SL2."
+    },
+    {
+      "control_id": "CTL-IEC-SR13",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 1,
+      "rationale": "La gestión de cuentas del sistema de control es exigencia base del FR1 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR15",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 1,
+      "rationale": "La gestión del ciclo de vida de los autenticadores es exigencia base del FR1 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR17",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 3,
+      "rationale": "La fortaleza reforzada de las credenciales que el catálogo recoge para esta capacidad se exige al FR1 a partir de SL3."
+    },
+    {
+      "control_id": "CTL-IEC-SR113",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 3,
+      "rationale": "El control del acceso mediante canales no confiables con autenticación reforzada se exige al FR1 a partir de SL3."
+    },
+    {
+      "control_id": "CTL-IEC-SR21",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 1,
+      "rationale": "Hacer cumplir los permisos asignados (mínimo privilegio) es exigencia base del FR2 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR28",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 1,
+      "rationale": "Registrar los eventos auditables del uso del sistema es exigencia base del FR2 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR32",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 2,
+      "rationale": "La protección frente a código malicioso propia del sistema de control se exige al FR3 a partir de SL2."
+    },
+    {
+      "control_id": "CTL-IEC-SR33",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 2,
+      "rationale": "La verificación periódica del funcionamiento de los mecanismos de seguridad se exige al FR3 a partir de SL2."
+    },
+    {
+      "control_id": "CTL-IEC-SR34",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 3,
+      "rationale": "La integridad del software y de la información —la lógica del controlador— es la exigencia clave del FR3 a SL3: es la vía que TRITON/TRISIS explotó."
+    },
+    {
+      "control_id": "CTL-IEC-SR41",
+      "foundational_requirement": "FR4",
+      "required_at_sl": 2,
+      "rationale": "La confidencialidad de la información en reposo y en tránsito entra en el FR4 a partir de SL2."
+    },
+    {
+      "control_id": "CTL-IEC-SR43",
+      "foundational_requirement": "FR4",
+      "required_at_sl": 3,
+      "rationale": "El uso de criptografía conforme a buenas prácticas se exige al FR4 a partir de SL3: una zona con SL-objetivo FR4 menor no lo tiene mandado."
+    },
+    {
+      "control_id": "CTL-IEC-SR51",
+      "foundational_requirement": "FR5",
+      "required_at_sl": 1,
+      "rationale": "La segmentación de la red en zonas y conductos es exigencia base del FR5 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR52",
+      "foundational_requirement": "FR5",
+      "required_at_sl": 3,
+      "rationale": "La protección reforzada de la frontera de zona (sin ruta directa OT/IT) se exige al FR5 a partir de SL3."
+    },
+    {
+      "control_id": "CTL-IEC-SR61",
+      "foundational_requirement": "FR6",
+      "required_at_sl": 1,
+      "rationale": "La accesibilidad del registro de auditoría es exigencia base del FR6 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR62",
+      "foundational_requirement": "FR6",
+      "required_at_sl": 3,
+      "rationale": "La monitorización continua del comportamiento y de los comandos se exige al FR6 a partir de SL3."
+    },
+    {
+      "control_id": "CTL-IEC-SR73",
+      "foundational_requirement": "FR7",
+      "required_at_sl": 1,
+      "rationale": "La copia de seguridad del sistema de control es exigencia base del FR7 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR74",
+      "foundational_requirement": "FR7",
+      "required_at_sl": 1,
+      "rationale": "La recuperación y reconstitución a un estado conocido es exigencia base del FR7 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR76",
+      "foundational_requirement": "FR7",
+      "required_at_sl": 1,
+      "rationale": "Operar según una configuración de seguridad declarada y controlada es exigencia base del FR7 desde SL1."
+    },
+    {
+      "control_id": "CTL-IEC-SR78",
+      "foundational_requirement": "FR7",
+      "required_at_sl": 2,
+      "rationale": "El inventario de componentes del sistema de control entra en el FR7 a partir de SL2."
+    },
+    {
+      "control_id": "CTL-IEC-SR14",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 1,
+      "rationale": "La gestión de identificadores por usuario, grupo, rol o interfaz es exigencia base del FR1 desde SL1: sin identificador no hay a quién autenticar. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR16",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 1,
+      "rationale": "La autorización del acceso inalámbrico es exigencia base del FR1 desde SL1 cuando la zona tiene interfaz inalámbrica; si no la tiene, la exclusión la declara el gating, no la priorización. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR18",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 3,
+      "rationale": "La operación de certificados conforme a una PKI se exige al FR1 a partir de SL3. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR19",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 3,
+      "rationale": "La fortaleza de la autenticación basada en clave pública se exige al FR1 a partir de SL3. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR110",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 1,
+      "rationale": "Ocultar la realimentación del autenticador es exigencia base del FR1 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR111",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 1,
+      "rationale": "Limitar los intentos fallidos es exigencia base del FR1 desde SL1; que su reacción no pueda dejar fuera al operador en emergencia lo resuelve el gating, no el SL. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR112",
+      "foundational_requirement": "FR1",
+      "required_at_sl": 1,
+      "rationale": "El aviso de uso del sistema es exigencia base del FR1 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR22",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 1,
+      "rationale": "El control de uso inalámbrico es exigencia base del FR2 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR23",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 2,
+      "rationale": "El control de uso de dispositivos portátiles y móviles entra en el FR2 a partir de SL2: es el vector de entrada por medios extraíbles. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR24",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 1,
+      "rationale": "La restricción de código móvil es exigencia base del FR2 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR25",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 1,
+      "rationale": "El bloqueo de sesión por inactividad es exigencia base del FR2 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR26",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 2,
+      "rationale": "La terminación de la sesión remota entra en el FR2 a partir de SL2. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR27",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 3,
+      "rationale": "El control de sesiones concurrentes se exige al FR2 a partir de SL3. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR29",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 1,
+      "rationale": "Dimensionar el almacenamiento de auditoría es exigencia base del FR2 desde SL1: un registro que se desborda deja de ser registro. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR210",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 1,
+      "rationale": "La respuesta al fallo del procesamiento de auditoría es exigencia base del FR2 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR211",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 2,
+      "rationale": "Las marcas de tiempo fiables entran en el FR2 a partir de SL2. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR212",
+      "foundational_requirement": "FR2",
+      "required_at_sl": 3,
+      "rationale": "El no repudio se exige al FR2 a partir de SL3. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR31",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 1,
+      "rationale": "La integridad de la comunicación entre componentes es exigencia base del FR3 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR35",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 1,
+      "rationale": "La validación de entradas es exigencia base del FR3 desde SL1: una orden malformada no debe alcanzar el lazo de control. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR36",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 1,
+      "rationale": "La salida determinista ante pérdida de la operación normal es exigencia base del FR3 desde SL1; su frontera con la capa de safety queda declarada fuera de alcance. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR37",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 1,
+      "rationale": "El manejo de errores sin revelar información aprovechable es exigencia base del FR3 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR38",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 2,
+      "rationale": "La integridad de sesión frente a secuestro y reinyección entra en el FR3 a partir de SL2. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR39",
+      "foundational_requirement": "FR3",
+      "required_at_sl": 2,
+      "rationale": "La protección de la información de auditoría entra en el FR3 a partir de SL2: la evidencia sólo vale si nadie pudo tocarla. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR42",
+      "foundational_requirement": "FR4",
+      "required_at_sl": 2,
+      "rationale": "La persistencia de la información al liberar o retirar un componente entra en el FR4 a partir de SL2. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR53",
+      "foundational_requirement": "FR5",
+      "required_at_sl": 1,
+      "rationale": "La restricción de la mensajería de propósito general hacia la zona de control es exigencia base del FR5 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR54",
+      "foundational_requirement": "FR5",
+      "required_at_sl": 2,
+      "rationale": "El particionado de las aplicaciones críticas entra en el FR5 a partir de SL2. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR71",
+      "foundational_requirement": "FR7",
+      "required_at_sl": 1,
+      "rationale": "La protección frente a denegación de servicio es exigencia base del FR7 desde SL1: en un corredor de gas la disponibilidad del lazo es la consecuencia física. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR72",
+      "foundational_requirement": "FR7",
+      "required_at_sl": 1,
+      "rationale": "La gestión de recursos es exigencia base del FR7 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR75",
+      "foundational_requirement": "FR7",
+      "required_at_sl": 1,
+      "rationale": "La conmutación a energía de emergencia sin perder el estado de seguridad conocido es exigencia base del FR7 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    },
+    {
+      "control_id": "CTL-IEC-SR77",
+      "foundational_requirement": "FR7",
+      "required_at_sl": 1,
+      "rationale": "La funcionalidad mínima — puertos, servicios y funciones imprescindibles — es exigencia base del FR7 desde SL1. Atribución de SL tomada de fuentes secundarias públicas; pendiente de contraste con la norma comprada."
+    }
+  ],
+  "dependencies": [
+    {
+      "capability_id": "CAP-ID-RISK",
+      "requires": [
+        "CAP-ID-ASSET"
+      ],
+      "rationale": "No se evalúa el riesgo de lo que no está inventariado: la evaluación se apoya en el inventario de activos y de flujos."
+    },
+    {
+      "capability_id": "CAP-PR-ACCESS",
+      "requires": [
+        "CAP-PR-IDENTITY"
+      ],
+      "rationale": "El mínimo privilegio se aplica sobre identidades: sin identidad y autenticación no hay a quién restringir."
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "requires": [
+        "CAP-PR-IDENTITY"
+      ],
+      "rationale": "La autenticación reforzada refuerza un factor que ya debe existir: presupone la capacidad de identidad."
+    },
+    {
+      "capability_id": "CAP-PR-PAM",
+      "requires": [
+        "CAP-PR-IDENTITY",
+        "CAP-PR-ACCESS"
+      ],
+      "rationale": "El acceso privilegiado es un caso particular del control de acceso sobre identidades declaradas: ambas lo habilitan."
+    },
+    {
+      "capability_id": "CAP-PR-HARDENING",
+      "requires": [
+        "CAP-ID-ASSET"
+      ],
+      "rationale": "No se endurece lo que no se conoce: la configuración segura presupone el inventario del componente y de su versión."
+    },
+    {
+      "capability_id": "CAP-PR-INTEGRITY",
+      "requires": [
+        "CAP-ID-ASSET"
+      ],
+      "rationale": "Verificar la integridad de software, firmware y lógica exige saber antes qué versión legítima debería estar instalada."
+    },
+    {
+      "capability_id": "CAP-PR-ALLOWLIST",
+      "requires": [
+        "CAP-ID-ASSET"
+      ],
+      "rationale": "Una lista de permitidos es el inventario de software convertido en política: sin inventario no hay lista que aplicar."
+    },
+    {
+      "capability_id": "CAP-PR-MEDIA",
+      "requires": [
+        "CAP-PR-HARDENING"
+      ],
+      "rationale": "El control de medios extraíbles se ejerce sobre la configuración del componente (puertos, montaje, ejecución): la endurece."
+    },
+    {
+      "capability_id": "CAP-PR-SEGMENT",
+      "requires": [
+        "CAP-ID-ASSET"
+      ],
+      "rationale": "La frontera de zona y conducto se traza sobre activos y flujos conocidos; segmentar sin inventario es dibujar a ciegas."
+    },
+    {
+      "capability_id": "CAP-PR-PATCH",
+      "requires": [
+        "CAP-ID-ASSET",
+        "CAP-ID-RISK"
+      ],
+      "rationale": "La gestión de vulnerabilidades necesita el inventario (qué hay) y la evaluación de riesgo (qué exposición trata antes)."
+    },
+    {
+      "capability_id": "CAP-PR-BACKUP",
+      "requires": [
+        "CAP-ID-ASSET"
+      ],
+      "rationale": "Sin inventario no se sabe qué hay que respaldar ni qué se echará en falta al restaurar."
+    },
+    {
+      "capability_id": "CAP-PR-AWARENESS",
+      "requires": [
+        "CAP-GOV-ROLES"
+      ],
+      "rationale": "La formación se dirige a responsabilidades definidas: sin roles asignados no hay a quién formar en qué."
+    },
+    {
+      "capability_id": "CAP-DE-MONITOR",
+      "requires": [
+        "CAP-DE-LOG",
+        "CAP-PR-SEGMENT"
+      ],
+      "rationale": "La monitorización se apoya en el registro de eventos y en fronteras de zona donde observar el tráfico y los comandos."
+    },
+    {
+      "capability_id": "CAP-RS-IR",
+      "requires": [
+        "CAP-DE-LOG",
+        "CAP-DE-MONITOR"
+      ],
+      "rationale": "No se responde a lo que no se detecta: la respuesta a incidentes se apoya en la detección y en la evidencia registrada."
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "requires": [
+        "CAP-DE-LOG"
+      ],
+      "rationale": "Notificar en plazo (24h/72h/1 mes) exige evidencia fechada: el registro de eventos es lo que la sostiene."
+    },
+    {
+      "capability_id": "CAP-RC-RECOVER",
+      "requires": [
+        "CAP-PR-BACKUP"
+      ],
+      "rationale": "La reconstitución a un estado conocido presupone copias verificadas: sin respaldo la recuperación no tiene de dónde partir."
+    },
+    {
+      "capability_id": "CAP-GOV-RISK",
+      "requires": [
+        "CAP-GOV-CONTEXT"
+      ],
+      "rationale": "Los objetivos de riesgo se fijan contra una misión y unas obligaciones concretas: sin contexto declarado, el apetito de riesgo no tiene contra qué medirse."
+    },
+    {
+      "capability_id": "CAP-GOV-POLICY",
+      "requires": [
+        "CAP-GOV-CONTEXT"
+      ],
+      "rationale": "La política se redacta sobre el contexto organizativo y las obligaciones aplicables; antes de eso se redactaría en abstracto."
+    },
+    {
+      "capability_id": "CAP-GOV-OVERSIGHT",
+      "requires": [
+        "CAP-GOV-RISK"
+      ],
+      "rationale": "No se supervisa una estrategia que no existe: la revisión presupone objetivos de riesgo declarados."
+    },
+    {
+      "capability_id": "CAP-ID-IMPROVE",
+      "requires": [
+        "CAP-GOV-OVERSIGHT"
+      ],
+      "rationale": "La mejora se alimenta de lo que la supervisión encuentra: sin revisión, las lecciones no tienen dónde entrar."
+    },
+    {
+      "capability_id": "CAP-PR-SESSION",
+      "requires": [
+        "CAP-PR-IDENTITY"
+      ],
+      "rationale": "Bloquear o terminar una sesión exige saber de quién es la sesión."
+    },
+    {
+      "capability_id": "CAP-PR-REMOTE",
+      "requires": [
+        "CAP-PR-IDENTITY",
+        "CAP-PR-SEGMENT"
+      ],
+      "rationale": "El acceso remoto mediado se apoya en identidad autenticada y en una frontera donde colocar el punto de mediación: sin IDMZ no hay jump host."
+    },
+    {
+      "capability_id": "CAP-PR-DATACONF",
+      "requires": [
+        "CAP-PR-CRYPTO"
+      ],
+      "rationale": "La confidencialidad en tránsito y en reposo se ejerce con material criptográfico gestionado: sin claves ni certificados administrados, el cifrado es un ajuste sin ciclo de vida."
+    },
+    {
+      "capability_id": "CAP-PR-RESILIENCE",
+      "requires": [
+        "CAP-ID-ASSET"
+      ],
+      "rationale": "Dimensionar recursos y redundancia exige saber qué componentes sostienen el lazo."
+    },
+    {
+      "capability_id": "CAP-DE-ANOMALY",
+      "requires": [
+        "CAP-DE-LOG",
+        "CAP-DE-MONITOR"
+      ],
+      "rationale": "Correlacionar exige fuentes: el análisis de eventos adversos presupone registro y monitorización."
+    },
+    {
+      "capability_id": "CAP-RS-ANALYSIS",
+      "requires": [
+        "CAP-DE-LOG"
+      ],
+      "rationale": "No hay forense sin evidencia fechada e íntegra: el análisis se apoya en el registro."
+    },
+    {
+      "capability_id": "CAP-RS-CONTAIN",
+      "requires": [
+        "CAP-RS-IR",
+        "CAP-PR-SEGMENT"
+      ],
+      "rationale": "Contener es aislar dentro de un plan: exige respuesta organizada y fronteras por las que cortar."
+    },
+    {
+      "capability_id": "CAP-RC-COMMS",
+      "requires": [
+        "CAP-RS-REPORT"
+      ],
+      "rationale": "La comunicación de la recuperación continúa el canal que se abrió al notificar el incidente."
+    }
+  ],
+  "costs": [
+    {
+      "capability_id": "CAP-GOV-RISK",
+      "cost": "medium",
+      "rationale": "Programa de gestión del riesgo: esfuerzo sostenido de la organización, sin cambio técnico en el activo."
+    },
+    {
+      "capability_id": "CAP-GOV-ROLES",
+      "cost": "low",
+      "rationale": "Asignar y documentar responsabilidades es acto de dirección: no consume ventana operativa ni presupuesto de capital."
+    },
+    {
+      "capability_id": "CAP-GOV-SUPPLY",
+      "cost": "high",
+      "rationale": "Exige revisar contratos y cláusulas con fabricantes e integradores del sistema de control: negociación larga y con terceros."
+    },
+    {
+      "capability_id": "CAP-ID-ASSET",
+      "cost": "medium",
+      "rationale": "Inventariar en OT obliga a descubrimiento pasivo y a validación en campo, pero no requiere parar el proceso."
+    },
+    {
+      "capability_id": "CAP-ID-RISK",
+      "cost": "medium",
+      "rationale": "Evaluación de riesgo y modelado de amenazas: trabajo analítico con el personal de operación, sin intervención sobre el activo."
+    },
+    {
+      "capability_id": "CAP-PR-IDENTITY",
+      "cost": "medium",
+      "rationale": "Gestión de cuentas y autenticadores en equipos de control: alcanzable, con revisión de cuentas compartidas heredadas."
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "cost": "high",
+      "rationale": "En OT el segundo factor no vive en el equipo: exige infraestructura mediadora (jump host, IDMZ) y afecta al acceso de emergencia."
+    },
+    {
+      "capability_id": "CAP-PR-ACCESS",
+      "cost": "medium",
+      "rationale": "Aplicar mínimo privilegio exige revisar perfiles de operación y validar que ninguna restricción bloquea la maniobra."
+    },
+    {
+      "capability_id": "CAP-PR-PAM",
+      "cost": "high",
+      "rationale": "El acceso privilegiado mediado añade infraestructura, custodia de credenciales y grabación de sesión: proyecto propio."
+    },
+    {
+      "capability_id": "CAP-PR-DATACONF",
+      "cost": "medium",
+      "rationale": "Proteger información en tránsito y en reposo depende de lo que soporte el equipo; en el conducto es abordable."
+    },
+    {
+      "capability_id": "CAP-PR-INTEGRITY",
+      "cost": "high",
+      "rationale": "Verificar firmware y lógica exige soporte del fabricante, gestión de claves y revalidación tras cada cambio."
+    },
+    {
+      "capability_id": "CAP-PR-HARDENING",
+      "cost": "low",
+      "rationale": "Configuración segura declarada: cambios de configuración con la línea base del fabricante, sin infraestructura nueva."
+    },
+    {
+      "capability_id": "CAP-PR-ALLOWLIST",
+      "cost": "high",
+      "rationale": "El allowlisting exige inventario exacto, pruebas contra falsos positivos y mantenimiento con cada cambio de versión."
+    },
+    {
+      "capability_id": "CAP-PR-MALWARE",
+      "cost": "medium",
+      "rationale": "La protección frente a código malicioso admite mecanismos del propio sistema de control; el coste está en validarlos."
+    },
+    {
+      "capability_id": "CAP-PR-MEDIA",
+      "cost": "low",
+      "rationale": "Control de medios extraíbles: política, bloqueo de puertos y estación de descontaminación; barato frente a su exposición."
+    },
+    {
+      "capability_id": "CAP-PR-SEGMENT",
+      "cost": "high",
+      "rationale": "Segmentar toca la red del proceso: cambios de topología, cortafuegos de zona y ventanas de parada para conmutar."
+    },
+    {
+      "capability_id": "CAP-PR-PATCH",
+      "cost": "high",
+      "rationale": "Parchear equipo de control exige ventana operativa, revalidación de la función y coordinación con el fabricante."
+    },
+    {
+      "capability_id": "CAP-PR-AWARENESS",
+      "cost": "low",
+      "rationale": "Formación y concienciación: coste recurrente pero bajo, sin intervención técnica sobre la zona."
+    },
+    {
+      "capability_id": "CAP-PR-BACKUP",
+      "cost": "medium",
+      "rationale": "Respaldo de configuración y lógica: procedimiento y almacenamiento; el coste está en probar la restauración."
+    },
+    {
+      "capability_id": "CAP-DE-MONITOR",
+      "cost": "high",
+      "rationale": "Monitorización continua y de comandos: sensores, captura en la frontera de zona y personal que atienda lo detectado."
+    },
+    {
+      "capability_id": "CAP-DE-LOG",
+      "cost": "medium",
+      "rationale": "Registro y auditoría: recolección centralizada y retención; el equipo de control suele emitir menos de lo deseable."
+    },
+    {
+      "capability_id": "CAP-RS-IR",
+      "cost": "medium",
+      "rationale": "Plan de respuesta ejercitado sobre el activo: procedimiento, ensayos y coordinación con operación."
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "cost": "low",
+      "rationale": "Notificación y comunicación: procedimiento y plantillas con plazos; el coste es organizativo, no técnico."
+    },
+    {
+      "capability_id": "CAP-RC-RECOVER",
+      "cost": "medium",
+      "rationale": "Recuperación y reconstitución: procedimiento probado y tiempo de ensayo con ventana operativa acotada."
+    },
+    {
+      "capability_id": "CAP-GOV-CONTEXT",
+      "cost": "low",
+      "rationale": "Documentar misión, dependencias y obligaciones aplicables: trabajo de despacho, sin intervención sobre el activo."
+    },
+    {
+      "capability_id": "CAP-GOV-POLICY",
+      "cost": "low",
+      "rationale": "Redactar, aprobar y comunicar política: coste organizativo bajo, sin ventana operativa."
+    },
+    {
+      "capability_id": "CAP-GOV-OVERSIGHT",
+      "cost": "low",
+      "rationale": "Revisión periódica de la estrategia por la dirección: tiempo de comité, no inversión."
+    },
+    {
+      "capability_id": "CAP-ID-THREAT",
+      "cost": "low",
+      "rationale": "Suscribirse a los avisos del fabricante y de ICS-CERT y abrir un canal de divulgación: coste bajo y recurrente."
+    },
+    {
+      "capability_id": "CAP-ID-IMPROVE",
+      "cost": "medium",
+      "rationale": "Extraer y seguir mejoras exige evaluar y ejercitar, y en OT los ensayos compiten con la operación."
+    },
+    {
+      "capability_id": "CAP-PR-CRYPTO",
+      "cost": "high",
+      "rationale": "Criptografía y ciclo de vida de claves sobre equipo embebido: buena parte del corredor no soporta el mecanismo, y exige PKI y renovación gestionadas."
+    },
+    {
+      "capability_id": "CAP-PR-REMOTE",
+      "cost": "high",
+      "rationale": "Acceso remoto mediado: jump host, grabación de sesión y ruptura de la ruta directa; infraestructura nueva en la IDMZ."
+    },
+    {
+      "capability_id": "CAP-PR-SESSION",
+      "cost": "low",
+      "rationale": "Bloqueo y terminación de sesión: ajuste de configuración donde el sistema operativo lo soporta; el choque con la emergencia es de gating, no de coste."
+    },
+    {
+      "capability_id": "CAP-PR-RESILIENCE",
+      "cost": "high",
+      "rationale": "Disponibilidad frente a saturación y fallo del entorno: redundancia, dimensionado y energía de emergencia sobre equipo de proceso."
+    },
+    {
+      "capability_id": "CAP-DE-ANOMALY",
+      "cost": "high",
+      "rationale": "Correlacionar exige plataforma y, sobre todo, contexto de proceso: una alerta OT sin la consecuencia física asociada no es análisis."
+    },
+    {
+      "capability_id": "CAP-RS-ANALYSIS",
+      "cost": "medium",
+      "rationale": "Forense sobre equipo de control: procedimiento, herramienta y personal; la memoria del PLC no se conserva sola."
+    },
+    {
+      "capability_id": "CAP-RS-CONTAIN",
+      "cost": "medium",
+      "rationale": "Contener sin provocar una parada no controlada exige procedimientos ensayados con la operación."
+    },
+    {
+      "capability_id": "CAP-RC-COMMS",
+      "cost": "low",
+      "rationale": "Comunicación de la recuperación: plantillas y un canal que la notificación ya dejó abierto."
+    }
+  ],
+  "limitations": [
+    "El coste ordinal se declara por capacidad y es del catálogo, no del activo concreto: la restricción operativa del activo la expresa el gating (UCM-9), no esta escala.",
+    "Escalas ordinales deliberadamente: no hay ROSI, ni probabilidades, ni euros. Comparar 'alta' con 'media' es legítimo; sumarlas no.",
+    "El SL exigido por control se declara aquí y se contrasta con el SL-objetivo por FR que la zona declara (sl_vector); si la zona no declara vector, se usa su SL-objetivo escalar.",
+    "Las dependencias son juicio de autor sobre habilitación técnica, no un orden de proyecto: fijan qué no puede ir antes que qué, no una fecha.",
+    "Los IG de CIS ordenan sólo en zonas IT/híbridas: trasladar una priorización IT a una zona de control sin declararlo sería fabricar criterio.",
+    "La atribución de SL de los SR incorporados en v0.2.0 procede de fuentes secundarias públicas (sin acceso a la norma comprada) y queda pendiente de contraste; se declara aquí porque mueve la frontera Tier 0/Tier 1 de cada zona.",
+    "Con SL-objetivo 3 en casi todos los FR, declarar los 51 SR hace obligatoria la mayor parte del catálogo: es lo que la norma exige a este activo, no un efecto del motor. El reparto por zona se mide con scripts/catalog_report.py."
+  ]
+}
