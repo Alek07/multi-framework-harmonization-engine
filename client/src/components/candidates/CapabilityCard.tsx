@@ -4,13 +4,22 @@
  *
  * Order is the core's own — `mapping_type` first (total → partial →
  * compensatory → contextual), then framework in the catalog's fixed order — and
- * this component preserves it exactly. Nothing is sorted by "best", nothing is
- * hidden: a candidate the core superseded is folded away behind a count with its
- * rule next to it, never dropped, and a capability with no candidate at all
- * shows the gap the engine declared instead of an empty box.
+ * this component preserves it exactly. Nothing is sorted by "best" and nothing
+ * is dropped: long lists are folded behind a count that says how many are
+ * folded, a candidate the core superseded keeps its rule next to it, and a
+ * capability with no candidate at all shows the gap the engine declared instead
+ * of an empty box.
+ *
+ * Folding is a reading aid and stops there. It happens after the response, over
+ * a list the engine already computed in full: `/candidates` returns every
+ * option, the audit trail records every option, and the counts on screen are of
+ * the whole list, not of the visible part. The engine may not discard a
+ * candidate — there is not even a similarity threshold in the retriever, for
+ * exactly that reason (`RAG_TOP_K` in `server/app/core/config.py`) — so neither
+ * may this component pretend the folded ones are not there.
  */
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import type { CapabilityCandidates, Conflict } from '../../api/types'
 import {
@@ -25,6 +34,65 @@ import {
 import { declaredGap, useComposition } from '../../state/composition'
 import { Caps, Checkbox, Hint, Meter, Tag } from '../ui'
 import { CatalogOption, RetrievedOption } from './OptionCard'
+
+/** How many options stay open before the tail folds. */
+const CATALOG_SHOWN = 6
+const SUGGESTIONS_SHOWN = 5
+
+/**
+ * The first `limit` options, plus the first option of any framework that those
+ * would have left off screen.
+ *
+ * The exception is the whole point. The core orders candidates by mapping type,
+ * so a plain "first six" front-loads the `total` mappings and pushes the
+ * `contextual` ones — which is where NIS2 and IMO always are, by design, since a
+ * legal obligation is an exigency and never a mechanism — off the end. On
+ * `CAP-PR-CRYPTO` that cut would leave six IEC and CIS options on screen and
+ * fold away both CSF readings *and* the European obligation, on the one screen
+ * built to show the same requirement answered by different frameworks and
+ * jurisdictions. The fold may shorten the list; it may not quietly turn a
+ * multi-framework choice into a single-framework one.
+ */
+function foldTail<T>(
+  options: T[],
+  limit: number,
+  frameworkOf: (option: T) => string,
+): { shown: T[]; folded: T[] } {
+  if (options.length <= limit) return { shown: options, folded: [] }
+
+  const keep = new Set(options.slice(0, limit))
+  const represented = new Set(options.slice(0, limit).map(frameworkOf))
+  for (const option of options.slice(limit)) {
+    if (represented.has(frameworkOf(option))) continue
+    represented.add(frameworkOf(option))
+    keep.add(option)
+  }
+  // Both lists keep the core's order: folding rearranges nothing.
+  return {
+    shown: options.filter((option) => keep.has(option)),
+    folded: options.filter((option) => !keep.has(option)),
+  }
+}
+
+function FoldToggle({
+  open,
+  onToggle,
+  children,
+}: {
+  open: boolean
+  onToggle: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="cursor-pointer border-none bg-transparent pt-2 text-xs font-semibold text-ink-3 hover:text-ink"
+    >
+      {open ? '▾' : '▸'} {children}
+    </button>
+  )
+}
 
 function ConflictPanel({
   conflict,
@@ -106,6 +174,8 @@ export function CapabilityCard({
   } = useComposition()
 
   const [showSuperseded, setShowSuperseded] = useState(false)
+  const [showFoldedOptions, setShowFoldedOptions] = useState(false)
+  const [showFoldedSuggestions, setShowFoldedSuggestions] = useState(false)
   const zoneId = capability.zone_id
   const capabilityId = capability.capability_id
   const picked = selectionsFor(zoneId, capabilityId)
@@ -119,6 +189,12 @@ export function CapabilityCard({
   const suggestions = (capability.retrieval?.retrieved ?? []).filter(
     (hit) => hit.relation === 'widens',
   )
+  const options = foldTail(eligible, CATALOG_SHOWN, (o) => o.control.framework)
+  // No framework rule on the suggestions: they are declared *not* to be
+  // equivalences, so there is no side-by-side reading to protect here — only a
+  // long tail of near-matches, in descending similarity, that makes the screen
+  // unreadable before the operator reaches the options that are.
+  const suggested = foldTail(suggestions, SUGGESTIONS_SHOWN, () => '')
   const explanationOf = (controlId: string) =>
     capability.explanations?.explanations.find((e) => e.control_id === controlId)
 
@@ -258,18 +334,31 @@ export function CapabilityCard({
       ) : null}
 
       {eligible.length > 0 ? (
-        <div className="mt-2 grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(255px,1fr))]">
-          {eligible.map((option) => (
-            <CatalogOption
-              key={option.control.id}
-              option={option}
-              picked={picked.includes(option.control.id)}
-              disabled={signed}
-              onPick={() => toggleSelection(zoneId, capabilityId, option.control.id)}
-              explanation={explanationOf(option.control.id)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="mt-2 grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(255px,1fr))]">
+            {(showFoldedOptions ? eligible : options.shown).map((option) => (
+              <CatalogOption
+                key={option.control.id}
+                option={option}
+                picked={picked.includes(option.control.id)}
+                disabled={signed}
+                onPick={() => toggleSelection(zoneId, capabilityId, option.control.id)}
+                explanation={explanationOf(option.control.id)}
+              />
+            ))}
+          </div>
+          {options.folded.length > 0 ? (
+            <FoldToggle
+              open={showFoldedOptions}
+              onToggle={() => setShowFoldedOptions(!showFoldedOptions)}
+            >
+              {showFoldedOptions
+                ? `Plegar las ${options.folded.length} opción(es) del catálogo con menos cobertura`
+                : `Ver las otras ${options.folded.length} opción(es) del catálogo — se pliegan para
+                   poder leer la pantalla, no se descartan`}
+            </FoldToggle>
+          ) : null}
+        </>
       ) : (
         <div className="mt-2 rounded-md border border-dashed border-line-dashed bg-surface-2 px-3.5 py-2.5 text-[12.5px] leading-[1.5] text-ink-3">
           Ninguno de los controles del catálogo es aplicable a este activo tal y como está descrito.
@@ -287,7 +376,7 @@ export function CapabilityCard({
             ofrecen por si encajan. Adoptar uno es una decisión tuya y queda registrada como tal.
           </Hint>
           <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(255px,1fr))]">
-            {suggestions.map((hit) => (
+            {(showFoldedSuggestions ? suggestions : suggested.shown).map((hit) => (
               <RetrievedOption
                 key={hit.control.id}
                 hit={hit}
@@ -298,6 +387,16 @@ export function CapabilityCard({
               />
             ))}
           </div>
+          {suggested.folded.length > 0 ? (
+            <FoldToggle
+              open={showFoldedSuggestions}
+              onToggle={() => setShowFoldedSuggestions(!showFoldedSuggestions)}
+            >
+              {showFoldedSuggestions
+                ? `Plegar las ${suggested.folded.length} sugerencia(s) con menos parecido`
+                : `Ver las otras ${suggested.folded.length} sugerencia(s), de parecido decreciente`}
+            </FoldToggle>
+          ) : null}
         </>
       ) : null}
 
