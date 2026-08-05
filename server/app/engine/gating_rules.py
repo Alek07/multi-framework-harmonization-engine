@@ -52,18 +52,29 @@ class GatingCondition(BaseModel):
     domains: list[ZoneDomain] = Field(default_factory=list)
     nature: dict[str, bool] = Field(default_factory=dict)
     safety_relevant: bool | None = None
+    # The role the zone declares ("crown_jewel" for a safety instrumented
+    # system). Matched against the raw declared value rather than a boolean of
+    # our own so a third asset can bring a role this POC never met: extending
+    # coverage stays configuration, not redesign. Distinct from
+    # `safety_relevant`, which the engine concludes for the whole OT corridor —
+    # without this premise the SIS and the corridor behind it are the same zone
+    # to every rule, and their baselines came out identical (UCM-44).
+    roles: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _check_nature_flags(self) -> GatingCondition:
         unknown = sorted(set(self.nature) - set(TechNature.model_fields))
         if unknown:
             raise ValueError(f"condition references non-existent profile premises: {unknown}")
+        self.roles = [role.strip().lower() for role in self.roles]
         return self
 
     def matches(self, zone: ZoneContext) -> bool:
         if self.domains and zone.domain not in self.domains:
             return False
         if self.safety_relevant is not None and zone.safety_relevant is not self.safety_relevant:
+            return False
+        if self.roles and zone.role not in self.roles:
             return False
         return all(
             getattr(zone.nature, flag) is expected for flag, expected in self.nature.items()
@@ -75,7 +86,9 @@ class GatingCondition(BaseModel):
         A rule with no premises still says so: an exclusion never reaches the
         human with an empty justification.
         """
-        if not (self.domains or self.nature or self.safety_relevant is not None):
+        if not (
+            self.domains or self.nature or self.safety_relevant is not None or self.roles
+        ):
             return ["se aplica siempre, sin condición sobre el activo"]
 
         # Read as sentences rather than as the field paths they come from
@@ -83,6 +96,8 @@ class GatingCondition(BaseModel):
         # justification an operator is shown next to an excluded mechanism, and a
         # justification written in schema paths cannot be judged.
         found = [f"la zona es {say(zone.domain)}"] if self.domains else []
+        if self.roles:
+            found.append(f"la zona declara el rol «{zone.role}»")
         if self.safety_relevant is not None:
             found.append(
                 "la zona es relevante para la seguridad de las personas"

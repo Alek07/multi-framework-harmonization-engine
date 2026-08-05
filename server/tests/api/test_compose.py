@@ -149,7 +149,7 @@ def test_every_mandatory_capability_is_in_the_baseline(
 
     for zone in baseline["zones"]:
         tier_0 = [c for c in zone["capabilities"] if c["tier"] == "tier_0"]
-        assert len(tier_0) == 18
+        assert len(tier_0) == 30
         assert zone["tier_0_complete"] is True
         assert all(c["required"] is True for c in tier_0)
 
@@ -304,10 +304,13 @@ async def test_the_ledger_tells_a_ratification_from_a_choice(
     accepted = [e for e in human if e.event_type is AuditEventType.GAP_ACCEPTED]
     signed = [e for e in human if e.event_type is AuditEventType.BASELINE_SIGNED]
 
-    assert len(accepted) == 8
-    assert len(ratified) == 28
+    # 11 open mandates across the two zones of PROFILE-A (5 in the corridor, 6 in
+    # the crown jewel, which admits less) and 49 mandates the core already closed
+    # and the signature ratifies without asking the operator to re-justify them.
+    assert len(accepted) == 11
+    assert len(ratified) == 49
     assert len(signed) == 1
-    assert baseline["audit_events"] == len(human) == 37
+    assert baseline["audit_events"] == len(human) == 61
     assert all(e.baseline_id == UUID(baseline["baseline_id"]) for e in human)
     assert all("Ratificación, no selección" in e.rationale for e in ratified)
 

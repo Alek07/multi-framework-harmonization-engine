@@ -52,12 +52,24 @@ def test_not_applicable_excludes_the_mechanism_without_opening_a_gap(
 
 
 def test_justified_exclusions_are_a_deliverable_of_the_zone(gating_a: ProfileGating) -> None:
+    """Frozen on purpose: the excluded list is what the operator signs, not a side effect."""
     exclusions = gating_a.zone(ZONE_OT).justified_exclusions
     assert {d.control_id for d in exclusions} == {
         CIS_ANTIMALWARE,
         CIS_AUTORUN,
         CIS_DATA_AT_REST,
+        "CTL-CIS-0403",
+        "CTL-CIS-0506",
         "CTL-CIS-0603",
+        "CTL-CIS-0607",
+        "CTL-CIS-0608",
+        "CTL-CIS-1007",
+        "CTL-CIS-1102",
+        "CTL-CIS-1207",
+        "CTL-IEC-SR110",
+        "CTL-IEC-SR112",
+        "CTL-IEC-SR27",
+        "CTL-IEC-SR53",
     }
     assert all(d.rationale.strip() and d.evidence for d in exclusions)
 
@@ -81,18 +93,28 @@ def test_gating_reveals_the_coverage_it_costs_instead_of_hiding_it(
     # The only total mechanism (CIS 6.5) cannot live on an embedded controller:
     # what remains are partial pieces, and the engine says so.
     assert mfa.coverage_before_gating == 0.9
-    assert mfa.coverage == 0.7
+    assert mfa.coverage == 0.6
     assert mfa.gap is not None
     assert mfa.gap.kind.value == "partial_only"
-    assert mfa.gap.residual == 0.3
+    assert mfa.gap.residual == 0.4
 
 
 def test_a_capability_left_without_a_direct_mechanism_falls_back_to_compensation(
     gating_a: ProfileGating,
 ) -> None:
-    media = gating_a.zone(ZONE_OT).capability(MEDIA)
-    # Autorun/autoplay is an OS feature the controller does not have; the removable
-    # media requirement stands and is carried by the compensatory mapping.
+    """The crown jewel is where this happens, and only there.
+
+    In the corridor the OT mechanism survives — autorun/autoplay is an OS feature
+    the controller does not have, but SR 2.3 still governs portable devices. The
+    SIS accepts no portable media at all, so the capability is left with nothing
+    direct and falls back to the compensatory mapping. Same catalog, same
+    profile, different zone: that difference is the point of gating.
+    """
+    corridor = gating_a.zone(ZONE_OT).capability(MEDIA)
+    assert corridor.status is CapabilityStatus.COVERED_BY_MECHANISM
+    assert corridor.retained_control_ids == ["CTL-IEC-SR23"]
+
+    media = gating_a.zone(ZONE_SIS).capability(MEDIA)
     assert media.status is CapabilityStatus.COMPENSATORY_REQUIRED
     assert media.retained_control_ids == []
     assert media.compensatory_control_ids == [CSF_ALLOWLIST]
@@ -135,10 +157,24 @@ def test_a_partial_deferral_leaves_the_capability_in_the_asset(
     gating_a: ProfileGating,
 ) -> None:
     incident = gating_a.zone(ZONE_OT).capability(IR)
-    # Designating responders is organizational; executing the plan on the asset is not.
-    assert [d.control_id for d in incident.excluded] == ["CTL-CIS-1701"]
+    # Designating responders, keeping the process and escalating are organizational;
+    # executing the plan on the asset, triaging and categorising are not.
+    assert all(d.outcome is GatingOutcome.WRONG_SCOPE for d in incident.excluded)
+    assert {d.control_id for d in incident.excluded} == {
+        "CTL-CIS-1701",
+        "CTL-CIS-1704",
+        "CTL-CSF-GVSC08",
+        "CTL-CSF-IDIM04",
+        "CTL-CSF-RSMA04",
+        "CTL-NIS2-A21B",
+    }
     assert incident.status is CapabilityStatus.COVERED_BY_MECHANISM
-    assert incident.retained_control_ids == ["CTL-CSF-RSMA01"]
+    assert incident.retained_control_ids == [
+        "CTL-CSF-RSMA01",
+        "CTL-CSF-RSMA02",
+        "CTL-CSF-RSMA03",
+        "CTL-CSF-RSMA05",
+    ]
 
 
 # --- The golden rule ---------------------------------------------------------
@@ -276,4 +312,4 @@ def test_both_zones_of_the_ot_profile_are_gated(gating_a: ProfileGating) -> None
 def test_gating_reports_the_versions_it_ran_with(gating_a: ProfileGating) -> None:
     assert gating_a.catalog_version == "0.2.0"
     assert gating_a.rules_version == "0.1.0"
-    assert gating_a.gating_version == "0.1.0"
+    assert gating_a.gating_version == "0.2.0"

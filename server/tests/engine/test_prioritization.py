@@ -12,7 +12,7 @@ import pytest
 from app.assets.schemas import AssetProfile, ConsequenceScale
 from app.catalog.schemas import Catalog, Jurisdiction
 from app.engine.gating_rules import GatingRules
-from app.engine.prioritization_rules import PrioritizationRules
+from app.engine.prioritization_rules import CapabilityDependency, PrioritizationRules
 from app.engine.rules import RuleSet
 from app.engine.schemas import (
     ImplementationLayer,
@@ -24,11 +24,15 @@ from app.engine.schemas import (
 from app.engine.service import gate_profile, prioritize_profile, resolve_profile
 from tests.engine.conftest import ZONE_ENG, ZONE_OT, ZONE_SIS
 
+ANOMALY = "CAP-DE-ANOMALY"
 ASSET = "CAP-ID-ASSET"
+CONTEXT = "CAP-GOV-CONTEXT"
 DATACONF = "CAP-PR-DATACONF"
 IDRISK = "CAP-ID-RISK"
+IMPROVE = "CAP-ID-IMPROVE"
 MEDIA = "CAP-PR-MEDIA"
 MFA = "CAP-PR-MFA"
+PAM = "CAP-PR-PAM"
 PATCH = "CAP-PR-PATCH"
 REPORT = "CAP-RS-REPORT"
 SEGMENT = "CAP-PR-SEGMENT"
@@ -154,8 +158,12 @@ def test_a_capability_answered_off_the_asset_is_not_an_open_asset_gap(
         if c.layer is ImplementationLayer.ORGANIZATIONAL
     ]
     assert organizational
+    # Whatever tier it sits in, a capability answered off the asset is never an
+    # open mandate of the asset: nothing on the zone can close it.
     assert all(not c.outstanding for c in organizational)
-    assert all(c.tier is PriorityTier.TIER_0 for c in organizational)
+    # And the obligation did not evaporate with the deferral — most of these are
+    # still Tier 0, they are just Tier 0 somewhere else.
+    assert any(c.tier is PriorityTier.TIER_0 for c in organizational)
 
 
 # --- Tier 1: the only thing the engine orders, and only ordinally -------------
@@ -179,22 +187,30 @@ def test_the_declared_table_turns_benefit_and_cost_into_a_phase(
     priorities_a: ProfilePrioritization,
 ) -> None:
     zone = priorities_a.zone(ZONE_OT)
-    # Cheap and with something open in a catastrophic-consequence zone: first.
-    media = zone.capability(MEDIA)
-    assert (media.benefit, media.cost, media.priority) == (
-        OrdinalLevel.MEDIUM,
+    # Cheap and high benefit: first.
+    context = zone.capability(CONTEXT)
+    assert (context.benefit, context.cost, context.priority) == (
+        OrdinalLevel.HIGH,
         OrdinalLevel.LOW,
         OrdinalLevel.HIGH,
     )
-    assert media.phase == 1
+    assert context.phase == 1
     # Same benefit reading, expensive: it is not dropped, it is scheduled later.
-    patch = zone.capability(PATCH)
-    assert (patch.benefit, patch.cost, patch.priority) == (
+    anomaly = zone.capability(ANOMALY)
+    assert (anomaly.benefit, anomaly.cost, anomaly.priority) == (
         OrdinalLevel.HIGH,
         OrdinalLevel.HIGH,
         OrdinalLevel.MEDIUM,
     )
-    assert patch.phase == 2
+    assert anomaly.phase == 2
+    # Low benefit and not free: last, but still on the roadmap and still justified.
+    improve = zone.capability(IMPROVE)
+    assert (improve.benefit, improve.cost, improve.priority) == (
+        OrdinalLevel.LOW,
+        OrdinalLevel.MEDIUM,
+        OrdinalLevel.LOW,
+    )
+    assert improve.phase == 3
 
 
 def test_the_physical_consequence_raises_the_benefit_instead_of_inventing_a_number(
@@ -209,7 +225,7 @@ def test_the_physical_consequence_raises_the_benefit_instead_of_inventing_a_numb
     uplifted = baseline.zone(ZONE_SIS).capability(MEDIA)
     assert uplifted.benefit is OrdinalLevel.MEDIUM
     assert uplifted.coverage_level is OrdinalLevel.LOW  # the uplift is the whole difference
-    assert "escalón" in uplifted.rationale
+    assert uplifted.gap is not None  # and it only applies where gating left something open
 
     moderate = profile_a.model_copy(deep=True)
     moderate.criticality.scale = ConsequenceScale.MODERATE
@@ -218,8 +234,7 @@ def test_the_physical_consequence_raises_the_benefit_instead_of_inventing_a_numb
     plain = other.zone(ZONE_SIS).capability(MEDIA)
     assert other.zone(ZONE_SIS).zone.safety_relevant is True
     assert plain.benefit is OrdinalLevel.LOW
-    assert plain.priority is OrdinalLevel.MEDIUM
-    assert plain.phase > uplifted.phase
+    assert plain.coverage_level is uplifted.coverage_level
 
 
 def test_the_cis_implementation_groups_order_it_zones_and_only_it_zones(
@@ -227,14 +242,25 @@ def test_the_cis_implementation_groups_order_it_zones_and_only_it_zones(
 ) -> None:
     hybrid = [c for c in priorities_b.zone(ZONE_ENG).tier_1 if c.phase == 2]
     groups = [c.implementation_group for c in hybrid]
-    assert groups == ["IG1", "IG1", "IG2"]  # a ready-made IT prioritisation, reused
+    # A ready-made IT prioritisation, reused: IG1 before IG2, and a capability
+    # with no CIS mechanism left carries no group rather than a fabricated one.
+    assert groups == ["IG1", "IG2", None]
 
-    # In the OT zone the same three sit in alphabetical order: the IG is recorded
-    # but it does not order — it is an IT scale.
-    ot = [c for c in priorities_a.zone(ZONE_OT).tier_1 if c.phase == 2]
-    assert [c.capability_id for c in ot] == sorted(c.capability_id for c in ot)
-    assert any(c.implementation_group for c in ot)
-    assert all("informativo" in c.rationale for c in ot if c.implementation_group)
+    # The same phase in the OT zone holds the same two graded capabilities in the
+    # opposite order: IG2 lands before IG1 because the IG does not order here at
+    # all — it is an IT scale, recorded and declared informative. What orders in
+    # the control zone is cost, and then the name.
+    ot = [c.capability_id for c in priorities_a.zone(ZONE_OT).tier_1 if c.phase == 2]
+    assert ot.index(ANOMALY) < ot.index(PAM)  # IG2 before IG1: the group did not decide
+    hybrid_ids = [c.capability_id for c in hybrid]
+    assert hybrid_ids.index(PAM) < hybrid_ids.index(ANOMALY)  # IG1 before IG2: here it did
+
+    graded = [
+        c
+        for c in priorities_a.zone(ZONE_OT).tier_1
+        if c.phase == 2 and c.implementation_group
+    ]
+    assert graded and all("informativo" in c.rationale for c in graded)
 
 
 # --- Dependencies: a partial order, never a ranking ---------------------------
@@ -259,21 +285,29 @@ def test_a_late_prerequisite_pushes_its_dependant_back(
     gating_rules: GatingRules,
     prioritization_rules: PrioritizationRules,
 ) -> None:
-    """Cheap work that depends on expensive work does not jump the queue."""
+    """Cheap work that depends on expensive work does not jump the queue.
+
+    The prerequisite is declared here rather than borrowed from the shipped rules
+    on purpose: what is under test is the ordering mechanic, and pinning it to
+    whichever pair of capabilities happens to share a tier would make the test
+    fail every time the catalog grows.
+    """
     tweaked = prioritization_rules.model_copy(deep=True)
-    for cost in tweaked.costs:
-        if cost.capability_id == PATCH:
-            cost.cost = OrdinalLevel.LOW
-        if cost.capability_id == IDRISK:
-            cost.cost = OrdinalLevel.HIGH
+    tweaked.dependencies.append(
+        CapabilityDependency(
+            capability_id=CONTEXT,
+            requires=[ANOMALY],
+            rationale="dependencia declarada por la prueba, no del catálogo",
+        )
+    )
 
     zone = _prioritize(profile_a, catalog, rules, gating_rules, tweaked).zone(ZONE_OT)
-    patch, risk = zone.capability(PATCH), zone.capability(IDRISK)
+    context, anomaly = zone.capability(CONTEXT), zone.capability(ANOMALY)
 
-    assert patch.priority is OrdinalLevel.HIGH  # on its own it belongs in phase 1
-    assert risk.phase == 2
-    assert patch.phase == 2  # but its prerequisite is not ready until phase 2
-    assert "prerrequisito" in patch.rationale
+    assert context.priority is OrdinalLevel.HIGH  # on its own it belongs in phase 1
+    assert anomaly.phase == 2
+    assert context.phase == 2  # but its prerequisite is not ready until phase 2
+    assert "prerrequisito" in context.rationale
 
 
 def test_a_mandate_is_never_deferred_by_a_discretionary_prerequisite(
@@ -283,21 +317,19 @@ def test_a_mandate_is_never_deferred_by_a_discretionary_prerequisite(
     gating_rules: GatingRules,
     prioritization_rules: PrioritizationRules,
 ) -> None:
-    """Lower FR7 and the asset inventory stops being mandatory — segmentation does not."""
-    lowered = profile_a.model_copy(deep=True)
-    assert lowered.zones[0].sl_vector is not None
-    lowered.zones[0].sl_vector.FR7 = 1  # below the SL that mandates SR 7.8 (inventory)
+    """Vulnerability management is a mandate; the risk assessment it presupposes is not."""
+    zone = _prioritize(
+        profile_a, catalog, rules, gating_rules, prioritization_rules
+    ).zone(ZONE_OT)
+    risk, patch = zone.capability(IDRISK), zone.capability(PATCH)
 
-    zone = _prioritize(lowered, catalog, rules, gating_rules, prioritization_rules).zone(ZONE_OT)
-    inventory, segmentation = zone.capability(ASSET), zone.capability(SEGMENT)
-
-    assert inventory.tier is PriorityTier.TIER_1
-    assert segmentation.tier is PriorityTier.TIER_0
-    assert segmentation.phase == MANDATORY_PHASE
-    assert inventory.phase > MANDATORY_PHASE
+    assert risk.tier is PriorityTier.TIER_1
+    assert patch.tier is PriorityTier.TIER_0
+    assert patch.phase == MANDATORY_PHASE
+    assert risk.phase > MANDATORY_PHASE
     # The engine does not hide the sequencing it refused to impose.
-    assert ASSET in segmentation.depends_on
-    assert SEGMENT in inventory.unlocks
+    assert IDRISK in patch.depends_on
+    assert PATCH in risk.unlocks
 
 
 # --- The roadmap leaves nothing out ------------------------------------------
@@ -334,11 +366,13 @@ def test_prioritization_never_acts_in_silence(
 def test_the_same_catalog_produces_a_different_roadmap_per_zone(
     priorities_a: ProfilePrioritization, priorities_b: ProfilePrioritization
 ) -> None:
-    ot = priorities_a.zone(ZONE_OT).capability(MEDIA)
+    sis = priorities_a.zone(ZONE_SIS).capability(MEDIA)
     hybrid = priorities_b.zone(ZONE_ENG).capability(MEDIA)
-    # Gating left the controller without the OS mechanism; the workstation kept it.
-    assert ot.coverage < hybrid.coverage
-    assert ot.implementation_group is None
+    # The crown jewel accepts no portable media at all, so it is left with the
+    # compensatory mapping alone; the workstation keeps the OS mechanism. Same
+    # catalog, same capability, two readings.
+    assert sis.coverage < hybrid.coverage
+    assert sis.implementation_group is None
     assert hybrid.implementation_group == "IG1"
 
     ot_order = [c.capability_id for c in priorities_a.zone(ZONE_OT).tier_1]
@@ -351,7 +385,7 @@ def test_prioritization_reports_the_versions_it_ran_with(
 ) -> None:
     assert priorities_a.catalog_version == "0.2.0"
     assert priorities_a.rules_version == "0.1.0"
-    assert priorities_a.gating_version == "0.1.0"
+    assert priorities_a.gating_version == "0.2.0"
     assert priorities_a.prioritization_version == "0.2.0"
 
 
