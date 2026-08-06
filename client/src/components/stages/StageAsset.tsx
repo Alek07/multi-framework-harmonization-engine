@@ -38,6 +38,9 @@ import { Working } from '../Working'
 const INPUT =
   'rounded-[5px] border border-line bg-surface-2 px-2.5 py-1.5 text-xs text-ink outline-accent'
 
+/** How tall the two halves of the description grow before they scroll. */
+const PANE = 'max-h-[340px] overflow-y-auto'
+
 /** What the model is being asked to find, in the operator's own words. */
 const LOOKING_FOR = [
   'las zonas del activo y el nivel de seguridad que se les exige',
@@ -564,7 +567,7 @@ export function StageAsset() {
                   disabled={signed || parsing}
                   onChange={(event) => setDescription(event.target.value)}
                   placeholder="Por ejemplo: «Estación de regulación y medida de un gasoducto. Un PLC gobierna las válvulas de corte y un SCADA en Windows las supervisa desde la sala de control. El SCADA está en la red corporativa y el mantenimiento entra por VPN dos veces al mes. Una fuga afectaría a una zona habitada.»"
-                  className="min-h-[220px] w-full resize-y rounded-md border border-line-strong bg-surface-2 px-3.5 py-3 text-[13.5px] leading-[1.6] text-ink outline-accent"
+                  className={`min-h-[220px] w-full resize-y rounded-md border border-line-strong bg-surface-2 px-3.5 py-3 text-[13.5px] leading-[1.6] text-ink outline-accent ${PANE}`}
                 />
                 <div className="flex flex-wrap items-center gap-3.5">
                   <PrimaryButton
@@ -591,7 +594,9 @@ export function StageAsset() {
               </>
             ) : (
               <>
-                <div className="rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[13.5px] leading-[1.6] whitespace-pre-wrap">
+                <div
+                  className={`rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[13.5px] leading-[1.6] whitespace-pre-wrap ${PANE}`}
+                >
                   {description}
                 </div>
                 <div className="flex items-center gap-3">
@@ -619,6 +624,11 @@ export function StageAsset() {
 
           <div className="flex flex-col gap-2">
             <Caps>Lo que el asistente ha entendido</Caps>
+            {/* Capped like the description it answers, and scrolling inside: the
+                evidence list is one entry per extracted value, so on a long
+                description it would otherwise run several screens past the
+                textarea and leave the two halves of the stage unpaired. */}
+            <div className={`flex flex-col gap-2 ${PANE}`}>
             {/* While the model runs, this column is the working panel: the stale
                 evidence of a previous run belongs to that run, not to this one. */}
             {parsing ? (
@@ -656,6 +666,7 @@ export function StageAsset() {
                 {draft ? <EvidenceList notes={draft.notes} /> : null}
               </>
             ) : null}
+            </div>
           </div>
         </div>
       </Section>
