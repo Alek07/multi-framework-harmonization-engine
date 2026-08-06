@@ -23,6 +23,8 @@ import {
   JURISDICTION_SHORT,
   MAPPING_TYPE,
   PROVENANCE,
+  STRENGTH_KIND,
+  strengthText,
 } from '../../lib/labels'
 
 interface Common {
@@ -110,10 +112,10 @@ function Shell({
       </div>
       <div className="flex flex-wrap items-center gap-2.5 text-[11.5px] text-ink-2">{meta}</div>
       <div
-        className="text-[10px] text-ink-4"
-        title={`Referencia interna en el catálogo: ${control.id}`}
+        className="cursor-help text-[10px] text-ink-4"
+        title={`${STRENGTH_KIND[control.strength.kind].note} Referencia interna en el catálogo: ${control.id}.`}
       >
-        Exigencia del control: {control.strength}
+        Exigencia del control: {strengthText(control.strength)}
       </div>
 
       {banner}

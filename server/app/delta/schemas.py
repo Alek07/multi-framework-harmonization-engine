@@ -36,7 +36,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.assets.schemas import AssetProfile
-from app.catalog.schemas import Framework, Jurisdiction, MappingType
+from app.catalog.schemas import ControlStrength, Framework, Jurisdiction, MappingType
 from app.engine.schemas import CapabilityGap, ZoneContext
 from app.retrieval.schemas import PayloadFilter
 
@@ -107,7 +107,7 @@ class RegionalRequirement(BaseModel):
     coverage_weight: float
     # What the control demands, as the catalog declares it: an outcome, a CIS
     # implementation group, an SL, or a statutory obligation with its deadlines.
-    strength: str
+    strength: ControlStrength
     # Which reading brought it in.
     added_by: Jurisdiction
     # Whether it moves the capability's coverage, or only what is owed.

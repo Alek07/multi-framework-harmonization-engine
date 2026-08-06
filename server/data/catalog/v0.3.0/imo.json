@@ -9,7 +9,7 @@
       "title": "Maritime Cyber Risk Management in Safety Management Systems",
       "paraphrased_description": "Exige abordar el riesgo cibernético dentro del sistema de gestión de la seguridad (SMS).",
       "jurisdiction": "INTL-MARITIME",
-      "strength": "obligación (SMS)",
+      "strength": {"kind": "legal", "note": "dentro del SMS"},
       "type": "legal"
     },
     {
@@ -19,7 +19,7 @@
       "title": "Govern (functional element)",
       "paraphrased_description": "Establecer y supervisar la estrategia, las expectativas y las políticas de gestión del riesgo cibernético, definir roles y responsabilidades del personal, y asegurar la continuidad del negocio y la gestión de crisis.",
       "jurisdiction": "INTL-MARITIME",
-      "strength": "directriz (SMS)",
+      "strength": {"kind": "guideline", "note": "dentro del SMS"},
       "type": "technical"
     },
     {
@@ -29,7 +29,7 @@
       "title": "Identify (functional element)",
       "paraphrased_description": "Identificar roles, sistemas y datos cuyo compromiso pondría en riesgo la operación.",
       "jurisdiction": "INTL-MARITIME",
-      "strength": "directriz (SMS)",
+      "strength": {"kind": "guideline", "note": "dentro del SMS"},
       "type": "technical"
     },
     {
@@ -39,7 +39,7 @@
       "title": "Protect (functional element)",
       "paraphrased_description": "Aplicar medidas de control de riesgo y planes de contingencia proporcionados al riesgo identificado.",
       "jurisdiction": "INTL-MARITIME",
-      "strength": "directriz (SMS)",
+      "strength": {"kind": "guideline", "note": "dentro del SMS"},
       "type": "technical"
     },
     {
@@ -49,7 +49,7 @@
       "title": "Detect (functional element)",
       "paraphrased_description": "Disponer de actividades que detecten a tiempo un evento cibernético.",
       "jurisdiction": "INTL-MARITIME",
-      "strength": "directriz (SMS)",
+      "strength": {"kind": "guideline", "note": "dentro del SMS"},
       "type": "technical"
     },
     {
@@ -59,7 +59,7 @@
       "title": "Respond (functional element)",
       "paraphrased_description": "Actuar ante el evento para restablecer los sistemas necesarios para la operación.",
       "jurisdiction": "INTL-MARITIME",
-      "strength": "directriz (SMS)",
+      "strength": {"kind": "guideline", "note": "dentro del SMS"},
       "type": "technical"
     },
     {
@@ -69,7 +69,7 @@
       "title": "Recover (functional element)",
       "paraphrased_description": "Restaurar los sistemas afectados y volver a la operación normal.",
       "jurisdiction": "INTL-MARITIME",
-      "strength": "directriz (SMS)",
+      "strength": {"kind": "guideline", "note": "dentro del SMS"},
       "type": "technical"
     }
   ],

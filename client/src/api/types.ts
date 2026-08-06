@@ -29,6 +29,20 @@ export interface Capability {
   ot_refinements: string[]
 }
 
+/** The scale a framework grades its controls on (server StrengthKind). */
+export type StrengthKind = 'ig' | 'sl_baseline' | 'outcome' | 'legal' | 'guideline'
+
+/**
+ * What a control demands, on the scale of the framework that publishes it.
+ * Structured because the engine reads it: `level` is the CIS IG or the SL at
+ * which an IEC SR becomes mandatory. `note` is presentational.
+ */
+export interface ControlStrength {
+  kind: StrengthKind
+  level: number | null
+  note: string
+}
+
 export interface FrameworkControl {
   id: string
   framework: Framework
@@ -36,7 +50,7 @@ export interface FrameworkControl {
   title: string
   paraphrased_description: string
   jurisdiction: Jurisdiction
-  strength: string
+  strength: ControlStrength
   type: ControlType
 }
 
@@ -689,7 +703,7 @@ export interface RegionalRequirement {
   jurisdiction: Jurisdiction
   mapping_type: MappingType
   coverage_weight: number
-  strength: string
+  strength: ControlStrength
   added_by: Jurisdiction
   /** Whether it moves coverage, or only what is owed. Both travel together. */
   changes_coverage: boolean

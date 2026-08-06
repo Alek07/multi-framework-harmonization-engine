@@ -322,7 +322,7 @@ def _candidate_lines(position: int, candidate: CandidateFacts) -> list[str]:
         f"CANDIDATO {position} [origen={candidate.origin.value}] control_id={control.id}",
         f"  identificador oficial: {control.official_id} — {control.title}",
         f"  marco: {control.framework.value} · jurisdicción: "
-        f"{JURISDICTION_LABELS[control.jurisdiction]} · fuerza: {control.strength} · "
+        f"{JURISDICTION_LABELS[control.jurisdiction]} · fuerza: {control.strength.label} · "
         f"tipo de control: {CONTROL_TYPE_LABELS[control.control_type]}",
         f"  paráfrasis: {control.paraphrased_description}",
     ]

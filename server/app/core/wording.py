@@ -116,3 +116,23 @@ def say(value: Enum | str) -> str:
 def say_all(values: Iterable[Enum | str]) -> str:
     """The same, over an iterable, joined for a sentence."""
     return ", ".join(say(value) for value in values)
+
+
+# `strength` is the one field whose words need composing rather than looking up:
+# the scale, the level on it and a free note are three values that read as one
+# phrase. It stays here, with the rest of the Spanish, so the schema that carries
+# the structure holds no prose. Takes primitives, not the model, to keep this
+# module importable from `catalog.schemas` without a cycle.
+_STRENGTH_PHRASES: dict[str, str] = {
+    "ig": "IG{level} — grupo de implantación CIS",
+    "sl_baseline": "exigible desde SL{level}",
+    "outcome": "resultado esperado, no mecanismo",
+    "legal": "obligación legal",
+    "guideline": "directriz, no obligación",
+}
+
+
+def strength_words(kind: str, level: int | None, note: str = "") -> str:
+    """The Spanish phrase for one control's declared demand."""
+    phrase = _STRENGTH_PHRASES.get(kind, kind).format(level=level)
+    return f"{phrase} ({note})" if note else phrase
