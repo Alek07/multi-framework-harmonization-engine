@@ -188,7 +188,7 @@ export function StageDelta() {
                     <span title={MAPPING_TYPE[requirement.mapping_type].note}>
                       · {MAPPING_TYPE[requirement.mapping_type].label}
                     </span>{' '}
-                    <span title={STRENGTH_KIND[requirement.strength.kind].note}>
+                    <span title={STRENGTH_KIND[requirement.strength.kind]?.note}>
                       · exigencia {strengthText(requirement.strength)}
                     </span>
                     <div className="mt-0.5">{requirement.rationale}</div>

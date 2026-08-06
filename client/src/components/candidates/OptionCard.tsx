@@ -124,9 +124,20 @@ function Shell({
         {control.title}
       </div>
       <div className="flex flex-wrap items-center gap-2.5 text-[11.5px] text-ink-2">{meta}</div>
+      {/*
+        The scale is looked up defensively on purpose. A client talking to a
+        server one version behind sees a `kind` this table does not have, and a
+        tooltip is never worth taking the card tree down for — same reason
+        `say()` falls back to the raw value instead of raising (core/wording.py).
+      */}
       <div
         className="cursor-help text-[10px] text-ink-4"
-        title={`${STRENGTH_KIND[control.strength.kind].note} Referencia interna en el catálogo: ${control.id}.`}
+        title={[
+          STRENGTH_KIND[control.strength.kind]?.note,
+          `Referencia interna en el catálogo: ${control.id}.`,
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
         Exigencia del control: {strengthText(control.strength)}
       </div>
