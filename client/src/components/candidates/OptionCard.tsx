@@ -26,6 +26,7 @@ import {
   STRENGTH_KIND,
   strengthText,
 } from '../../lib/labels'
+import { Fold } from '../ui'
 
 interface Common {
   control: FrameworkControl
@@ -46,12 +47,21 @@ function Shell({
   origin,
   meta,
   banner,
+  bannerLabel,
 }: Common & {
   dotted: boolean
   faded?: boolean
   origin: 'catalog' | 'retrieval'
   meta: React.ReactNode
   banner?: React.ReactNode
+  /**
+   * When the banner is a paragraph rather than a line, the sentence that stands
+   * in for it while it is folded. The prose blocks at the foot of the card are
+   * the longest thing in it and the operator reads them once, if at all, so they
+   * start closed — folded, never dropped: what the engine said about an option
+   * stays one click away on the option itself.
+   */
+  bannerLabel?: string
 }) {
   const framework = FRAMEWORK[control.framework]
   return (
@@ -142,25 +152,33 @@ function Shell({
         Exigencia del control: {strengthText(control.strength)}
       </div>
 
-      {banner}
+      {banner && bannerLabel ? <Fold summary={bannerLabel}>{banner}</Fold> : banner}
 
       {explanation ? (
-        <div className="rounded-[5px] border border-dashed border-line-dashed bg-surface-4 px-2.5 py-[7px]">
-          <div className="text-[10.5px] font-semibold text-ink-4">
-            {explanation.status === 'generated'
-              ? 'Explicación del asistente — solo para ayudarte a leer; no cambia el orden ni marca preferencias'
-              : 'Explicación del sistema'}
+        <Fold
+          summary={
+            explanation.status === 'generated'
+              ? 'Explicación del asistente'
+              : 'Explicación del sistema'
+          }
+        >
+          <div className="mt-1.5 rounded-[5px] border border-dashed border-line-dashed bg-surface-4 px-2.5 py-[7px]">
+            {explanation.status === 'generated' ? (
+              <div className="text-[10.5px] font-semibold text-ink-4">
+                Solo para ayudarte a leer; no cambia el orden ni marca preferencias
+              </div>
+            ) : null}
+            <div className="mt-1 text-xs leading-[1.5] text-ink-3">{explanation.text}</div>
+            {explanation.notice ? (
+              <div className="mt-1 text-[10px] text-warn">{explanation.notice}</div>
+            ) : null}
+            {explanation.basis.length > 0 ? (
+              <div className="mt-1 text-[10px] text-ink-4">
+                Se basa en: {explanation.basis.join(', ')}
+              </div>
+            ) : null}
           </div>
-          <div className="mt-1 text-xs leading-[1.5] text-ink-3">{explanation.text}</div>
-          {explanation.notice ? (
-            <div className="mt-1 text-[10px] text-warn">{explanation.notice}</div>
-          ) : null}
-          {explanation.basis.length > 0 ? (
-            <div className="mt-1 text-[10px] text-ink-4">
-              Se basa en: {explanation.basis.join(', ')}
-            </div>
-          ) : null}
-        </div>
+        </Fold>
       ) : null}
     </div>
   )
@@ -288,8 +306,9 @@ export function RetrievedOption({
           ) : null}
         </>
       }
+      bannerLabel="Por qué se te ofrece esta sugerencia"
       banner={
-        <div className="rounded-[5px] bg-surface-2 px-2.5 py-1.5 text-[11px] leading-[1.45] text-ink-3">
+        <div className="mt-1.5 rounded-[5px] bg-surface-2 px-2.5 py-1.5 text-[11px] leading-[1.45] text-ink-3">
           {hit.rationale}
         </div>
       }

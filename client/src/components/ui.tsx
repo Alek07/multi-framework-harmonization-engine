@@ -1,6 +1,6 @@
 /** Shared shapes of the UCM-21 design: the card, its header, the small chips. */
 
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 export function Section({
   id,
@@ -290,5 +290,46 @@ export function InfoButton({ children, onClick }: { children: ReactNode; onClick
     >
       ⓘ {children}
     </button>
+  )
+}
+
+/**
+ * A block the operator opens by hand.
+ *
+ * The summary carries the count of what is inside, always of the whole list:
+ * folding shortens the screen and may not make anything look smaller than it is.
+ * The click is stopped here because these live inside cards that are themselves
+ * clickable.
+ */
+export function Fold({
+  summary,
+  defaultOpen = false,
+  className = '',
+  children,
+}: {
+  summary: ReactNode
+  defaultOpen?: boolean
+  className?: string
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className={className}>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={(event) => {
+          event.stopPropagation()
+          setOpen(!open)
+        }}
+        // The option cards are themselves a checkbox: without this, opening a
+        // fold with the keyboard would also tick the option it lives in.
+        onKeyDown={(event) => event.stopPropagation()}
+        className="cursor-pointer border-none bg-transparent p-0 text-left text-xs font-semibold text-ink-3 hover:text-ink"
+      >
+        {open ? '▾' : '▸'} {summary}
+      </button>
+      {open ? children : null}
+    </div>
   )
 }
