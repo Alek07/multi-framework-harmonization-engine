@@ -62,6 +62,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const [requestedStep, setStep] = useState<Step>(1)
   const [zoneId, setZoneIdState] = useState<string | null>(null)
   const [focusRequest, setFocusRequest] = useState<string | null>(null)
+  const [expandRequest, setExpandRequest] = useState<string | null>(null)
 
   const [source, setSource] = useState<ProfileSource>('parse')
   const [description, setDescription] = useState('')
@@ -620,6 +621,9 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
       setZoneIdState(zone)
       setStep(next)
       setFocusRequest(domId)
+      // Outlives the scroll: whoever is at `domId` may need to open itself, and
+      // the scroll request is gone by the render after this one.
+      setExpandRequest(domId)
     },
     [stepLocks],
   )
@@ -634,6 +638,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     zoneId,
     setZoneId,
     focusRequest,
+    expandRequest,
     focusOn,
     clearFocus,
 

@@ -132,6 +132,16 @@ export interface CompositionApi {
   zoneId: string | null
   setZoneId: (zoneId: string) => void
   focusRequest: string | null
+  /**
+   * The card a `focusOn` sent the operator to, kept after the scroll is done.
+   *
+   * `focusRequest` lives for exactly one scroll and is cleared by the stage that
+   * performs it. A capability card that also has to *open* needs the request to
+   * still be readable on the render after that, so the destination is recorded
+   * separately: a blocker in step 4 that lands the operator on a closed header
+   * would be answering the link with the question again.
+   */
+  expandRequest: string | null
   focusOn: (domId: string, zoneId: string, step: Step) => void
   clearFocus: () => void
 

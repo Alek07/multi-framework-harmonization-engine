@@ -324,11 +324,14 @@ export function StageCandidates() {
             </div>
           ) : null}
 
+          {/* Keyed by zone as well as capability: the cards hold their own
+              open/closed state, and switching zone starts a new reading. */}
           <div className="flex flex-col gap-4">
-            {zone.capabilities.map((capability) => (
+            {zone.capabilities.map((capability, index) => (
               <CapabilityCard
-                key={capability.capability_id}
+                key={`${zone.zone.zone_id}-${capability.capability_id}`}
                 capability={capability}
+                defaultOpen={index === 0}
                 conflicts={zone.open_decisions.filter(
                   (conflict) => conflict.capability_id === capability.capability_id,
                 )}
