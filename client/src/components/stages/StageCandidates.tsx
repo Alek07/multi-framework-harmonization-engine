@@ -13,7 +13,7 @@
  * label maps and in tooltips, never in a visible label.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   GATING_OUTCOME,
@@ -25,7 +25,7 @@ import {
 } from '../../lib/labels'
 import { useActiveZone, useComposition } from '../../state/composition'
 import { CapabilityCard } from '../candidates/CapabilityCard'
-import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../ui'
+import { Caps, Hint, InfoButton, Modal, Notice, PrimaryButton, Section, Tag } from '../ui'
 import { Working } from '../Working'
 
 /** The deterministic pipeline, named the way the operator reads it. */
@@ -37,11 +37,15 @@ const COMPUTING = [
   'consultando el buscador para añadir sugerencias, que solo amplían las opciones',
 ]
 
-/** Read once, and the rest of the screen becomes readable. */
+/**
+ * Read once, and the rest of the screen becomes readable — so it is offered
+ * rather than imposed. It teaches the notation; it declares nothing, which is
+ * what makes it safe to keep behind a button while the engine's own statements
+ * (gaps, conflicts, exclusions) stay on the page where they cannot be closed.
+ */
 function Legend() {
   return (
-    <div className="mb-4 rounded-md border border-line-2 bg-surface-2 px-3.5 py-3">
-      <Caps className="mb-2">Cómo leer las opciones</Caps>
+    <div>
       <div className="grid gap-x-6 gap-y-1.5 text-[11.5px] leading-[1.5] text-ink-3 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
         {(['total', 'partial', 'compensatory', 'contextual'] as const).map((type) => (
           <div key={type}>
@@ -186,6 +190,8 @@ export function StageCandidates() {
     explaining,
   } = useComposition()
   const zone = useActiveZone()
+  const [showDerivation, setShowDerivation] = useState(false)
+  const [showLegend, setShowLegend] = useState(false)
 
   const ready = Boolean(profile)
   // `explaining` is a "zone|capability" key; the operator needs the name.
@@ -227,13 +233,27 @@ export function StageCandidates() {
       hint="Para cada requisito de esta zona verás, unas al lado de otras, todas las opciones equivalentes que ofrecen los distintos marcos. Marca la que vas a implantar y escribe por qué: esa razón es la que quedará registrada."
       scope={zone ? `${ZONE_DOMAIN[zone.zone.domain]} · ${zone.zone.zone_id}` : undefined}
     >
-      {zone ? (
-        <div className="m-0 mb-3 rounded-md border border-line-2 bg-surface-2 px-3.5 py-2.5 text-[12px] leading-[1.5] text-ink-3">
-          <b>Por qué esta zona es así:</b> {zone.zone.derivation}
-        </div>
-      ) : null}
+      {/* Two explanations of the screen, offered instead of imposed: the stage
+          opens on the options themselves, and the operator asks for the reading
+          they need. Nothing the engine *decided* is behind a button. */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {zone ? (
+          <InfoButton onClick={() => setShowDerivation(true)}>Por qué esta zona es así</InfoButton>
+        ) : null}
+        <InfoButton onClick={() => setShowLegend(true)}>Cómo leer las opciones</InfoButton>
+      </div>
 
-      <Legend />
+      <Modal
+        open={showDerivation && zone !== null}
+        onClose={() => setShowDerivation(false)}
+        title="Por qué esta zona es así"
+      >
+        <p className="m-0 text-[13px] leading-[1.6] text-ink-2">{zone?.zone.derivation}</p>
+      </Modal>
+
+      <Modal open={showLegend} onClose={() => setShowLegend(false)} title="Cómo leer las opciones">
+        <Legend />
+      </Modal>
 
       {candidatesLoading ? (
         <div className="mb-4">

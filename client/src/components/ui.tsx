@@ -1,6 +1,6 @@
 /** Shared shapes of the UCM-21 design: the card, its header, the small chips. */
 
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
 export function Section({
   id,
@@ -220,5 +220,75 @@ export function Notice({
       ) : null}
       <span>{children}</span>
     </div>
+  )
+}
+
+/**
+ * Reference material the operator opens when they want it.
+ *
+ * Only for text that explains the screen — never for a decision, a warning or
+ * anything the engine declared: those stay on the page, where they cannot be
+ * closed. A dialog the operator never opens must not change what they know.
+ */
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
+}) {
+  useEffect(() => {
+    if (!open) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose, open])
+
+  if (!open) return null
+
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-100 flex items-center justify-center bg-[rgba(24,34,48,.45)] p-6"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(event) => event.stopPropagation()}
+        className="max-h-[80vh] w-full max-w-[660px] overflow-y-auto rounded-[10px] bg-surface px-7 py-6 shadow-[0_20px_60px_rgba(24,34,48,.3)]"
+      >
+        <div className="mb-3 flex items-baseline justify-between gap-4">
+          <h3 className="m-0 text-base font-semibold">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-none cursor-pointer border-none bg-transparent p-0 text-[11.5px] font-semibold text-ink-3 hover:text-ink"
+          >
+            cerrar ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** The quiet button that opens a `Modal`: an offer to read, not a state. */
+export function InfoButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="cursor-pointer rounded-[5px] border border-line-strong bg-transparent px-3 py-1.5 text-[11.5px] font-semibold text-ink-2 hover:border-accent hover:text-accent"
+    >
+      ⓘ {children}
+    </button>
   )
 }
