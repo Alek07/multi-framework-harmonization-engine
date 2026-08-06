@@ -39,7 +39,7 @@ import {
   coverageText,
 } from '../../lib/labels'
 import { declaredGap, useComposition } from '../../state/composition'
-import { Caps, Checkbox, Hint, Meter, Tag } from '../ui'
+import { Caps, Checkbox, Fold, Hint, Meter, Tag } from '../ui'
 import { CatalogOption, RetrievedOption } from './OptionCard'
 
 /** How many options stay open before the tail folds. */
@@ -441,10 +441,18 @@ export function CapabilityCard({
             </div>
           )}
 
+          {/* Closed until asked for: these are not equivalences, and the screen is
+              about the ones that are. The count is of the whole set, always. */}
           {suggestions.length > 0 ? (
-            <>
-              <Caps className="mt-3.5 mb-1">Otros controles parecidos que quizá te sirvan</Caps>
-              <Hint className="mb-1.5">
+            <Fold
+              className="mt-3.5"
+              summary={
+                <span className="label-caps">
+                  Otros controles parecidos que quizá te sirvan ({suggestions.length})
+                </span>
+              }
+            >
+              <Hint className="mt-1.5 mb-1.5">
                 No son equivalencias del catálogo: son controles que se parecen a este requisito y se te
                 ofrecen por si encajan. Adoptar uno es una decisión tuya y queda registrada como tal.
               </Hint>
@@ -470,7 +478,7 @@ export function CapabilityCard({
                     : `Ver las otras ${suggested.folded.length} sugerencia(s), de parecido decreciente`}
                 </FoldToggle>
               ) : null}
-            </>
+            </Fold>
           ) : null}
 
           {superseded.length > 0 ? (
@@ -501,16 +509,20 @@ export function CapabilityCard({
           ) : null}
 
           {capability.retrieval && capability.retrieval.set_aside.length > 0 ? (
-            <div
-              className="mt-2.5 rounded-[5px] border border-line-2 bg-surface-2 px-2.5 py-2 text-[11px] leading-[1.5] text-ink-3"
-              title="Se apartan por el filtro de jurisdicción, zona o tipo de equivalencia que se ha declarado para esta búsqueda"
+            <Fold
+              className="mt-1"
+              summary={`Sugerencias fuera del filtro de esta zona (${capability.retrieval.set_aside.length})`}
             >
-              <b>Sugerencias fuera del filtro de esta zona</b> — no se ofrecen aquí, pero se dejan a
-              la vista porque apartar no es descartar:{' '}
-              {capability.retrieval.set_aside
-                .map((candidate) => `${candidate.official_id} (${candidate.excluded_by.join('/')})`)
-                .join(' · ')}
-            </div>
+              <div
+                className="mt-1.5 rounded-[5px] border border-line-2 bg-surface-2 px-2.5 py-2 text-[11px] leading-[1.5] text-ink-3"
+                title="Se apartan por el filtro de jurisdicción, zona o tipo de equivalencia que se ha declarado para esta búsqueda"
+              >
+                No se ofrecen aquí, pero se dejan a la vista porque apartar no es descartar:{' '}
+                {capability.retrieval.set_aside
+                  .map((candidate) => `${candidate.official_id} (${candidate.excluded_by.join('/')})`)
+                  .join(' · ')}
+              </div>
+            </Fold>
           ) : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
