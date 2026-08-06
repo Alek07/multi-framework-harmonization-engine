@@ -23,10 +23,14 @@ import {
   TIER,
   ZONE_DOMAIN,
 } from '../../lib/labels'
+import { usePage } from '../../lib/paging'
 import { useActiveZone, useComposition } from '../../state/composition'
 import { CapabilityCard } from '../candidates/CapabilityCard'
-import { Caps, Hint, InfoButton, Modal, Notice, PrimaryButton, Section, Tag } from '../ui'
+import { Caps, Hint, InfoButton, Modal, Notice, Pager, PrimaryButton, Section, Tag } from '../ui'
 import { Working } from '../Working'
+
+/** How many discarded controls are readable at once. */
+const GATING_PER_PAGE = 5
 
 /** The deterministic pipeline, named the way the operator reads it. */
 const COMPUTING = [
@@ -82,15 +86,26 @@ function Legend() {
   )
 }
 
+/**
+ * Paged at five, and the count in the heading is the count of the whole list.
+ *
+ * This panel is a deliverable — it is what answers an auditor asking why a
+ * catalog control is not in the baseline — so the pager may shorten the scroll
+ * and nothing else: every exclusion is still here, page by page, in the core's
+ * own order.
+ */
 function GatingPanel() {
   const zone = useActiveZone()
+  const decisions = zone?.capabilities.flatMap((capability) => capability.gating.excluded) ?? []
+  const page = usePage(decisions, GATING_PER_PAGE, zone?.zone.zone_id)
   if (!zone) return null
-
-  const decisions = zone.capabilities.flatMap((capability) => capability.gating.excluded)
 
   return (
     <div className="mt-6 border-t border-line-2 pt-4">
-      <Caps className="mb-1">Controles descartados en esta zona, y por qué</Caps>
+      <Caps className="mb-1">
+        Controles descartados en esta zona, y por qué
+        {decisions.length > 0 ? ` (${decisions.length})` : ''}
+      </Caps>
       <Hint className="mb-2.5">
         Esta lista forma parte del entregable: justifica ante un auditor por qué un control del
         catálogo no aparece en la línea base. Descartar un <b>control</b> nunca elimina el{' '}
@@ -102,11 +117,11 @@ function GatingPanel() {
         </p>
       ) : (
         <div className="flex flex-col gap-1.5">
-          {decisions.map((decision, index) => {
+          {page.slice.map((decision, index) => {
             const outcome = GATING_OUTCOME[decision.outcome]
             return (
               <div
-                key={`${decision.control_id}-${decision.capability_id}-${index}`}
+                key={`${decision.control_id}-${decision.capability_id}-${page.from + index}`}
                 data-testid="gating-decision"
                 data-outcome={decision.outcome}
                 className="flex flex-wrap items-baseline gap-2.5 rounded-[5px] border border-line-2 bg-surface-2 px-3 py-2 text-[12.5px]"
@@ -135,6 +150,15 @@ function GatingPanel() {
           })}
         </div>
       )}
+      <Pager
+        page={page.page}
+        pages={page.pages}
+        from={page.from}
+        to={page.to}
+        total={page.total}
+        noun="controles descartados"
+        onPage={page.setPage}
+      />
     </div>
   )
 }

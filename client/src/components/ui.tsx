@@ -333,3 +333,45 @@ export function Fold({
     </div>
   )
 }
+
+/** The controls for a `usePage` slice (`lib/paging.ts`). */
+export function Pager({
+  page,
+  pages,
+  from,
+  to,
+  total,
+  noun,
+  onPage,
+}: {
+  page: number
+  pages: number
+  from: number
+  to: number
+  total: number
+  /** What is being paged, in the plural: «controles», «anotaciones». */
+  noun: string
+  onPage: (page: number) => void
+}) {
+  if (pages <= 1) return null
+  const step =
+    'cursor-pointer rounded-[5px] border border-line-strong bg-transparent px-2.5 py-1 text-[11px] font-semibold text-ink-2 hover:border-accent hover:text-accent disabled:cursor-default disabled:opacity-40 disabled:hover:border-line-strong disabled:hover:text-ink-2'
+  return (
+    <div className="mt-2.5 flex flex-wrap items-center gap-2.5 text-[11.5px] text-ink-3">
+      <button type="button" className={step} disabled={page === 0} onClick={() => onPage(page - 1)}>
+        ‹ anteriores
+      </button>
+      <span>
+        {from + 1}–{to} de {total} {noun} · página {page + 1} de {pages}
+      </span>
+      <button
+        type="button"
+        className={step}
+        disabled={page >= pages - 1}
+        onClick={() => onPage(page + 1)}
+      >
+        siguientes ›
+      </button>
+    </div>
+  )
+}
