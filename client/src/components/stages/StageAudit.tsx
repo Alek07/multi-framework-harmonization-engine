@@ -17,10 +17,27 @@ import { useState } from 'react'
 
 import type { AuditActor, AuditEventType } from '../../api/types'
 import { ACTOR, AUDIT_EVENT, fieldLabel } from '../../lib/labels'
+import { usePage } from '../../lib/paging'
 import { useComposition } from '../../state/composition'
-import { Hint, Notice, Section } from '../ui'
+import { Hint, Notice, Pager, Section } from '../ui'
 
 const COLUMNS = '34px 150px 74px 210px 1fr 1fr'
+
+/** How many entries are readable at once. */
+const PER_PAGE = 10
+
+/** One line of the trail, whether it is already recorded or still pending. */
+interface Row {
+  n: string
+  when: string
+  actor: AuditActor
+  event: string
+  /** The raw event type, for the tooltip and the test hook — never on screen. */
+  raw: string
+  what: string
+  why: string
+  key: string
+}
 
 function Header() {
   return (
@@ -75,7 +92,7 @@ export function StageAudit() {
     })),
   ]
 
-  const rows = signed
+  const rows: Row[] = signed
     ? (auditLog?.events ?? [])
         .filter((event) => filter === 'todos' || event.actor === filter)
         .map((event, index) => ({
@@ -100,6 +117,11 @@ export function StageAudit() {
           why: row.why,
           key: `pending-${index}`,
         }))
+
+  // The numbers in the first column are the ledger's own `sequence`, so page 2
+  // starts at 11 and not at 01: the reader is looking at part of one record,
+  // not at a record of its own.
+  const page = usePage(rows, PER_PAGE, `${filter}-${signed}`)
 
   return (
     <Section
@@ -161,7 +183,7 @@ export function StageAudit() {
             Todavía no has tomado ninguna decisión que registrar.
           </div>
         ) : null}
-        {rows.map((row) => (
+        {page.slice.map((row) => (
           <div
             key={row.key}
             data-testid="audit-row"
@@ -187,6 +209,16 @@ export function StageAudit() {
           </div>
         ))}
       </div>
+
+      <Pager
+        page={page.page}
+        pages={page.pages}
+        from={page.from}
+        to={page.to}
+        total={page.total}
+        noun="anotaciones"
+        onPage={page.setPage}
+      />
 
       <Hint className="mt-2">
         Este registro solo admite añadir. No hay ninguna forma de editar ni de borrar una anotación
