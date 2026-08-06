@@ -39,7 +39,7 @@ def test_every_entry_says_who_what_and_why(
             assert entry.profile_id
             # Reproducibility travels with the decision, not just with the run.
             assert entry.versions == {
-                "catalog": "0.2.0",
+                "catalog": "0.3.0",
                 "rules": "0.1.0",
                 "gating": "0.2.0",
                 "prioritization": "0.2.0",

@@ -33,8 +33,10 @@ import type {
   ProvenanceSource,
   ResolutionMethod,
   RetrievalStatus,
+  StrengthKind,
   ZoneDomain,
 } from '../api/types'
+import type { ControlStrength } from '../api/types'
 
 interface Chip {
   label: string
@@ -357,6 +359,44 @@ export function fieldLabel(path: string): string {
   if (criticality) return `criticidad · ${FIELD_WORDS[criticality[1]] ?? criticality[1]}`
 
   return FIELD_WORDS[path] ?? path
+}
+
+/**
+ * What a control demands, written for the operator.
+ *
+ * Mirrors `strength_words` in server/app/core/wording.py: the server needs the
+ * same phrase inside the Spanish rationales it composes, so the two have to say
+ * the same thing. `level` is the only part the engine reads — the words are ours.
+ */
+export const STRENGTH_KIND: Record<StrengthKind, { phrase: string; note: string }> = {
+  ig: {
+    phrase: 'IG{level}',
+    note: 'Grupo de implantación de CIS: IG1 es higiene básica, IG3 el nivel más exigente. El motor lo reutiliza para ordenar lo discrecional en zonas IT.',
+  },
+  sl_baseline: {
+    phrase: 'exigible desde SL{level}',
+    note: 'Nivel de seguridad de IEC 62443 a partir del cual la norma exige este requisito. Si es menor o igual al SL-objetivo de la zona, es obligatorio.',
+  },
+  outcome: {
+    phrase: 'resultado esperado',
+    note: 'El CSF describe resultados, no mecanismos: dice qué hay que conseguir, no con qué.',
+  },
+  legal: {
+    phrase: 'obligación legal',
+    note: 'Lo exige una norma jurídica. Es obligatorio con independencia del nivel de seguridad de la zona.',
+  },
+  guideline: {
+    phrase: 'directriz',
+    note: 'Es una recomendación, no una obligación: orienta sin imponer un mecanismo.',
+  },
+}
+
+/** The phrase for one control's declared demand, with its level filled in. */
+export function strengthText(strength: ControlStrength): string {
+  const kind = STRENGTH_KIND[strength.kind]
+  if (!kind) return strength.note || strength.kind
+  const phrase = kind.phrase.replace('{level}', String(strength.level ?? ''))
+  return strength.note ? `${phrase} (${strength.note})` : phrase
 }
 
 export function coverageText(coverage: number): string {

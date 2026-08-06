@@ -146,7 +146,7 @@ def build_payloads(catalog: Catalog) -> dict[str, ControlPayload]:
             title=control.title,
             jurisdiction=control.jurisdiction.value,
             control_type=control.control_type.value,
-            strength=control.strength,
+            strength=control.strength.label,
             capability_ids=capabilities[control.id],
             # Deduplicated and sorted: a filter asks "does this control take part
             # in a total mapping anywhere", not "how many times".

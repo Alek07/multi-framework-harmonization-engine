@@ -19,7 +19,14 @@
 
 import { useEffect } from 'react'
 
-import { FRAMEWORK, JURISDICTION_SHORT, MAPPING_TYPE, coverageText } from '../../lib/labels'
+import {
+  FRAMEWORK,
+  JURISDICTION_SHORT,
+  MAPPING_TYPE,
+  STRENGTH_KIND,
+  coverageText,
+  strengthText,
+} from '../../lib/labels'
 import { DELTA_ORDERS, useComposition } from '../../state/composition'
 import { Caps, Hint, Notice, Section, Tag } from '../ui'
 
@@ -181,7 +188,9 @@ export function StageDelta() {
                     <span title={MAPPING_TYPE[requirement.mapping_type].note}>
                       · {MAPPING_TYPE[requirement.mapping_type].label}
                     </span>{' '}
-                    · exigencia {requirement.strength}
+                    <span title={STRENGTH_KIND[requirement.strength.kind].note}>
+                      · exigencia {strengthText(requirement.strength)}
+                    </span>
                     <div className="mt-0.5">{requirement.rationale}</div>
                   </Entry>
                 )),

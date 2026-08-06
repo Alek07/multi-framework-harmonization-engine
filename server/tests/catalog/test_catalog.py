@@ -1,9 +1,17 @@
-"""UCM-7/UCM-43 - The v0.2.0 catalog loads, validates and meets its invariants."""
+"""UCM-7/UCM-43 - The v0.3.0 catalog loads, validates and meets its invariants."""
 
 from collections import Counter
 
+import pytest
+
 from app.catalog.loader import load_catalog
-from app.catalog.schemas import ControlType, Framework, Jurisdiction, MappingType
+from app.catalog.schemas import (
+    ControlType,
+    Framework,
+    Jurisdiction,
+    MappingType,
+    ProvenanceSource,
+)
 
 CATALOG = load_catalog()
 
@@ -20,14 +28,14 @@ JURISDICTION_OF = {
 
 
 def test_version() -> None:
-    assert CATALOG.catalog_version == "0.2.0"
+    assert CATALOG.catalog_version == "0.3.0"
 
 
 def test_counts() -> None:
-    # Frozen for v0.2.0 (regression). Update on every version bump.
+    # Frozen for v0.3.0 (regression). Update on every version bump.
     assert len(CATALOG.capabilities) == 37
-    assert len(CATALOG.controls) == 225
-    assert len(CATALOG.mappings) == 263
+    assert len(CATALOG.controls) == 226
+    assert len(CATALOG.mappings) == 266
 
 
 def test_counts_per_framework() -> None:
@@ -39,13 +47,20 @@ def test_counts_per_framework() -> None:
         Framework.IEC62443: 51,
         Framework.CIS: 49,
         Framework.NIS2: 13,
-        Framework.IMO: 6,
+        # Six functional elements since MSC-FAL.1/Circ.3/Rev.3 put Govern first,
+        # plus the binding resolution MSC.428(98) itself.
+        Framework.IMO: 7,
     }
 
 
-def test_v0_1_0_ids_all_survive() -> None:
-    """v0.2.0 is a strict superset: the rule files still name 41 of these controls."""
-    previous = load_catalog("data/catalog/catalog.v0.1.0.json")
+@pytest.mark.parametrize("version", ["0.1.0", "0.2.0"])
+def test_earlier_ids_all_survive(version: str) -> None:
+    """Every version is a strict superset: the rule files still name these controls.
+
+    Realigning the IMO to Rev.3 moved `official_id`s, not identities, so nothing
+    a rule or a test cites can go missing by a catalog bump.
+    """
+    previous = load_catalog(f"data/catalog/catalog.v{version}.json")
 
     assert previous.control_ids <= CATALOG.control_ids
     assert previous.capability_ids <= CATALOG.capability_ids
@@ -117,3 +132,60 @@ def test_regional_delta_is_seeded() -> None:
         if m.mapping_type is MappingType.CONTEXTUAL and m.provenance.jurisdiction.value == "EU"
     ]
     assert eu_contextual, "there must be at least one contextual mapping with EU jurisdiction"
+
+
+# --- What may call itself an official crosswalk -----------------------------
+
+
+def test_only_csf_and_cis_may_claim_an_official_crosswalk() -> None:
+    """No published crosswalk reaches IEC 62443, NIS2 or the IMO circular.
+
+    The equivalences into those three are the author's, and saying otherwise
+    would borrow authority the catalog does not have.
+    """
+    claimed = {
+        control.framework
+        for control in CATALOG.controls
+        for mapping in CATALOG.mappings
+        if mapping.control_id == control.id
+        and mapping.provenance.source is ProvenanceSource.OFFICIAL_CROSSWALK
+    }
+
+    assert claimed <= {Framework.CSF, Framework.CIS}
+
+
+def test_the_official_crosswalk_claims_stay_where_they_were_verified() -> None:
+    """Frozen after checking all 121 v0.2.0 claims against NIST's own references.
+
+    Ten CIS claims and two CSF ones were not backed — seven of the CIS safeguards
+    are not referenced by the CSF 2.0 crosswalk at all — and are now declared
+    `author_judgment`. The count is pinned because the failure mode is silent: a
+    later edit can re-mark a mapping as official and nothing else would notice.
+    Raising these numbers is legitimate only with a source that backs them.
+    """
+    official = Counter(
+        control.framework
+        for control in CATALOG.controls
+        for mapping in CATALOG.mappings
+        if mapping.control_id == control.id
+        and mapping.provenance.source is ProvenanceSource.OFFICIAL_CROSSWALK
+    )
+
+    assert official == {Framework.CSF: 100, Framework.CIS: 9}
+
+
+def test_every_downgraded_mapping_says_why() -> None:
+    """A mapping that stopped claiming a crosswalk has to carry the reason it stopped.
+
+    Two reasons, and the note distinguishes them because they are different
+    admissions: NIST's references do not reach the safeguard at all, or they
+    reach it from a category other than the capability's seed.
+    """
+    unreferenced = [m for m in CATALOG.mappings if "no referencia" in m.provenance.note]
+    other_category = [m for m in CATALOG.mappings if "desde otra categoría" in m.provenance.note]
+    wrong_seed = [m for m in CATALOG.mappings if "categoría semilla" in m.provenance.note]
+
+    assert (len(unreferenced), len(other_category), len(wrong_seed)) == (7, 3, 2)
+    for mapping in (*unreferenced, *other_category, *wrong_seed):
+        assert mapping.provenance.source is ProvenanceSource.AUTHOR_JUDGMENT, mapping.control_id
+        assert "juicio de autor" in mapping.provenance.note, mapping.control_id

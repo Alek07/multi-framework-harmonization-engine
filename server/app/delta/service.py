@@ -292,7 +292,7 @@ class RegionalDeltaService:
                 f"{control.official_id} ({control.framework.value}, {control.jurisdiction.value}) "
                 f"añade exigencia, no mecanismo: es un mapeo contextual de peso "
                 f"{option.coverage_weight} y la cobertura de «{resolution.capability.name}» no se "
-                f"mueve. Lo que cambia es lo que se debe — «{control.strength}» — sobre una "
+                f"mueve. Lo que cambia es lo que se debe — «{control.strength.label}» — sobre una "
                 "capacidad que el terreno común ya cubre técnicamente."
             )
         else:
@@ -300,7 +300,7 @@ class RegionalDeltaService:
                 f"{control.official_id} ({control.framework.value}, {control.jurisdiction.value}) "
                 f"añade mecanismo: mapeo {say(option.mapping_type)} de peso "
                 f"{option.coverage_weight} sobre «{resolution.capability.name}». La lectura "
-                f"anterior no lo ofrecía. Exigencia declarada: «{control.strength}»."
+                f"anterior no lo ofrecía. Exigencia declarada: «{control.strength.label}»."
             )
         return RegionalRequirement(
             control_id=control.id,
@@ -370,7 +370,7 @@ class RegionalDeltaService:
             text += (
                 f"{names} añade(n) obligación sin mover la cobertura: mapeo contextual sobre una "
                 "capacidad que el terreno común ya cubre. La diferencia está en la exigencia "
-                f"— «{obligations[0].strength}» — no en el mecanismo. "
+                f"— «{obligations[0].strength.label}» — no en el mecanismo. "
             )
         if mechanisms:
             names = ", ".join(f"{r.official_id} ({r.added_by.value})" for r in mechanisms)

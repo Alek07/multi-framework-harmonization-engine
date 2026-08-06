@@ -150,7 +150,8 @@ def test_the_notification_deadlines_are_the_headline_of_the_delta(
     added = capability["added"][0]
 
     assert added["official_id"] == "Art. 23"
-    assert "24h/72h" in added["strength"]
+    assert added["strength"]["kind"] == "legal"
+    assert "24 h" in added["strength"]["note"] and "72 h" in added["strength"]["note"]
     assert "CTL-CSF-RSCO02" in capability["common_control_ids"]
     assert "obligación legal" in capability["rationale"]
 

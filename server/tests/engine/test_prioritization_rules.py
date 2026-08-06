@@ -5,22 +5,16 @@ what enables what, and what it costs — so the rule set has to prove they are
 declared, consistent with the catalog, and complete.
 """
 
-import re
-
 import pytest
 from pydantic import ValidationError
 
-from app.catalog.schemas import Catalog, Framework
+from app.catalog.schemas import Catalog, Framework, StrengthKind
 from app.engine.prioritization_rules import (
     CapabilityDependency,
     PrioritizationRules,
     load_prioritization_rules,
 )
 from app.engine.schemas import FoundationalRequirement, OrdinalLevel
-
-# The catalog publishes the SL of an SR in prose ("base SL1", "requerido a SL2-3");
-# the rules declare it as a number. The first SL named must be the same one.
-FIRST_SL = re.compile(r"SL(\d)")
 
 
 def test_version(prioritization_rules: PrioritizationRules) -> None:
@@ -48,9 +42,9 @@ def test_the_declared_sl_agrees_with_the_strength_the_catalog_publishes(
 ) -> None:
     controls = {c.id: c for c in catalog.controls}
     for mandate in prioritization_rules.sl_mandates:
-        published = FIRST_SL.search(controls[mandate.control_id].strength)
-        assert published, controls[mandate.control_id].strength
-        assert int(published.group(1)) == mandate.required_at_sl, mandate.control_id
+        published = controls[mandate.control_id].strength
+        assert published.kind is StrengthKind.SL_BASELINE, mandate.control_id
+        assert published.level == mandate.required_at_sl, mandate.control_id
 
 
 def test_the_declared_fr_agrees_with_the_sr_number(

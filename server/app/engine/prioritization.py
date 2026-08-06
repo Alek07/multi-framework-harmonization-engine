@@ -41,11 +41,17 @@ exactly one phase of every zone, with its tier, its evidence and its rationale.
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 
 from app.assets.schemas import ConsequenceScale
-from app.catalog.schemas import Catalog, ControlType, Framework, FrameworkControl, MappingType
+from app.catalog.schemas import (
+    Catalog,
+    ControlType,
+    Framework,
+    FrameworkControl,
+    MappingType,
+    StrengthKind,
+)
 from app.core.wording import say
 from app.engine.prioritization_rules import PrioritizationRules
 from app.engine.schemas import (
@@ -110,8 +116,7 @@ PRIORITY_MATRIX: dict[OrdinalLevel, dict[OrdinalLevel, OrdinalLevel]] = {
 HIGH_CONSEQUENCE_SCALES = frozenset({ConsequenceScale.CATASTROPHIC, ConsequenceScale.HIGH})
 
 # The catalog publishes the CIS Implementation Group in `strength`; it is read
-# verbatim for CIS controls and never inferred for anything else.
-IG_PATTERN = re.compile(r"^IG[1-3]$")
+# from the declared scale for CIS controls and never inferred for anything else.
 IG_ORDERING_DOMAINS = frozenset({ZoneDomain.IT, ZoneDomain.HYBRID})
 
 MANDATORY_PHASE = 0
@@ -349,14 +354,16 @@ def _implementation_group(
     gating: CapabilityGating, controls: dict[str, FrameworkControl]
 ) -> str | None:
     """The CIS IG of what survived gating — an IT prioritisation already done elsewhere."""
-    groups = sorted(
-        controls[control_id].strength.strip()
-        for control_id in (*gating.retained_control_ids, *gating.compensatory_control_ids)
-        if control_id in controls
-        and controls[control_id].framework is Framework.CIS
-        and IG_PATTERN.match(controls[control_id].strength.strip())
-    )
-    return groups[0] if groups else None
+    levels: list[int] = []
+    for control_id in (*gating.retained_control_ids, *gating.compensatory_control_ids):
+        control = controls.get(control_id)
+        if control is None or control.framework is not Framework.CIS:
+            continue
+        strength = control.strength
+        if strength.kind is StrengthKind.IG and strength.level is not None:
+            levels.append(strength.level)
+    # The lowest IG present: the earliest phase any surviving mechanism belongs to.
+    return f"IG{min(levels)}" if levels else None
 
 
 def _is_outstanding(tier: PriorityTier, gating: CapabilityGating) -> bool:
