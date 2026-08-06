@@ -18,7 +18,10 @@
  *
  * `missing_required` is what stands between a draft and a profile, and it is
  * listed in full, path by path. While it is non-empty the flow does not advance:
- * a profile with an invented SL would produce a baseline nobody decided.
+ * a profile with an invented SL would produce a baseline nobody decided. Each of
+ * those paths is also marked on the field it belongs to, so the list at the foot
+ * of the card says *how many* and the card itself says *which* — a list of
+ * fourteen paths is not an answer to "what do I fill in".
  */
 
 import {
@@ -40,6 +43,29 @@ const INPUT =
 
 /** How tall the two halves of the description grow before they scroll. */
 const PANE = 'max-h-[340px] overflow-y-auto'
+
+/** A field `missingRequired` is still asking for. */
+const MISSING = 'border-warn-line bg-warn-tint'
+
+/** Where the notice at the foot of the card sends the operator. */
+function fieldId(path: string): string {
+  return `f-${path.replace(/[[\].]/g, '-')}`
+}
+
+function jumpTo(path: string) {
+  const element = document.getElementById(fieldId(path))
+  if (!element) return
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+/** The mark on a group of controls, where a border alone would not read. */
+function Falta() {
+  return (
+    <span className="rounded-sm bg-warn-tint px-1.5 py-0.5 text-[10px] font-semibold text-warn-ink">
+      falta
+    </span>
+  )
+}
 
 /** What the model is being asked to find, in the operator's own words. */
 const LOOKING_FOR = [
@@ -84,14 +110,18 @@ function EvidenceList({ notes }: { notes: ParseNote[] }) {
 
 /** Name and case: the two fields the core needs and no grid covers. */
 function Identity({ draft }: { draft: AssetProfileDraft }) {
-  const { patchDraft, parseResult, signed } = useComposition()
+  const { patchDraft, parseResult, signed, missing } = useComposition()
   const model = parseResult?.draft
+  const lacks = (path: string) => missing.includes(path)
 
   return (
     <div className="mb-4 grid grid-cols-2 gap-5">
       <div>
-        <Caps className="mb-2">Nombre del activo</Caps>
+        <Caps className="mb-2 flex items-center gap-2">
+          Nombre del activo {lacks('name') ? <Falta /> : null}
+        </Caps>
         <input
+          id={fieldId('name')}
           value={draft.name ?? ''}
           disabled={signed}
           placeholder="p. ej. Corredor OT de la terminal de GNL"
@@ -103,12 +133,14 @@ function Identity({ draft }: { draft: AssetProfileDraft }) {
               { path: 'name', from: model?.name ?? '—', to: event.target.value || '—' },
             )
           }
-          className={`w-full ${INPUT}`}
+          className={`w-full ${INPUT} ${lacks('name') ? MISSING : ''}`}
         />
       </div>
       <div>
-        <Caps className="mb-2">Tipo de activo</Caps>
-        <div className="flex gap-1.5">
+        <Caps className="mb-2 flex items-center gap-2">
+          Tipo de activo {lacks('case') ? <Falta /> : null}
+        </Caps>
+        <div id={fieldId('case')} className="flex gap-1.5">
           {(['PURE_OT', 'HYBRID_IT_OT'] as CaseType[]).map((value) => (
             <button
               key={value}
@@ -126,7 +158,7 @@ function Identity({ draft }: { draft: AssetProfileDraft }) {
               className={`cursor-pointer rounded-[5px] border px-3 py-1.5 text-[11.5px] font-semibold ${
                 draft.case === value
                   ? 'border-accent bg-accent-tint text-accent'
-                  : 'border-line bg-surface-2 text-ink-3'
+                  : `text-ink-3 ${lacks('case') ? MISSING : 'border-line bg-surface-2'}`
               }`}
             >
               {CASE_TYPE[value].label}
@@ -140,8 +172,9 @@ function Identity({ draft }: { draft: AssetProfileDraft }) {
 }
 
 function SLGrid({ draft }: { draft: AssetProfileDraft }) {
-  const { correctSL, correctTargetSL, patchDraft, corrections, signed } = useComposition()
+  const { correctSL, correctTargetSL, patchDraft, corrections, signed, missing } = useComposition()
   const corrected = (path: string) => corrections.some((c) => c.path === path)
+  const lacks = (path: string) => missing.includes(path)
 
   return (
     <>
@@ -192,6 +225,11 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
           const zoneCorrections = corrections.filter((c) =>
             c.path.startsWith(`zones[${zone.id}]`),
           ).length
+          // The same prefix `missingRequired` builds, index and all: a zone whose
+          // id the operator has just blanked still has to be able to say what
+          // it is missing (`lib/draft.ts`).
+          const prefix = `zones[${zone.id || zoneIndex}]`
+          const zoneMissing = missing.filter((path) => path.startsWith(`${prefix}.`)).length
           return (
             <div key={zoneIndex} className="contents">
               <input
@@ -207,13 +245,16 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
               />
               <button
                 type="button"
+                id={fieldId(`${prefix}.target_sl`)}
                 disabled={signed}
                 onClick={() => correctTargetSL(zoneIndex, ((zone.target_sl ?? 0) % 4) + 1)}
                 title="Nivel de seguridad objetivo de la zona, de 1 a 4. Pulsa para cambiarlo."
                 className={`h-[30px] cursor-pointer rounded-[5px] border font-mono text-[13px] font-semibold ${
                   corrected(`zones[${zone.id}].target_sl`)
                     ? 'border-accent bg-accent-tint text-accent'
-                    : 'border-line bg-surface-2 text-ink'
+                    : lacks(`${prefix}.target_sl`)
+                      ? `${MISSING} text-warn-ink`
+                      : 'border-line bg-surface-2 text-ink'
                 }`}
               >
                 {zone.target_sl ?? '·'}
@@ -221,25 +262,38 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
               {FR_FIELDS.map((fr) => {
                 const value = zone.sl_vector?.[fr]
                 const mark = corrected(`zones[${zone.id}].sl_vector.${fr}`)
+                const empty = lacks(`${prefix}.sl_vector.${fr}`)
                 return (
                   <button
                     key={fr}
                     type="button"
+                    id={fieldId(`${prefix}.sl_vector.${fr}`)}
                     disabled={signed}
-                    title={`${FR_MEANING[fr]} — nivel exigido en esta zona. Pulsa para cambiarlo.`}
+                    title={`${FR_MEANING[fr]} — nivel exigido en esta zona. Pulsa para cambiarlo.${
+                      empty
+                        ? ' Falta: el vector está a medias, y se declara entero o no se declara.'
+                        : ''
+                    }`}
                     onClick={() => correctSL(zoneIndex, fr)}
                     className={`h-[30px] cursor-pointer rounded-[5px] border font-mono text-[13px] font-semibold ${
                       mark
                         ? 'border-accent bg-accent-tint text-accent'
-                        : `border-line text-ink ${(value ?? 0) >= 3 ? 'bg-line-3' : 'bg-surface-2'}`
+                        : empty
+                          ? `${MISSING} text-warn-ink`
+                          : `border-line text-ink ${(value ?? 0) >= 3 ? 'bg-line-3' : 'bg-surface-2'}`
                     }`}
                   >
                     {value ?? '·'}
                   </button>
                 )
               })}
-              <span className="pl-1.5 text-[11px] font-semibold text-accent">
-                {zoneCorrections ? `◆ ${zoneCorrections} corregido(s)` : ''}
+              <span className="flex items-center gap-2 pl-1.5 text-[11px] font-semibold">
+                {zoneMissing ? (
+                  <span className="text-warn-ink">▲ faltan {zoneMissing}</span>
+                ) : null}
+                <span className="text-accent">
+                  {zoneCorrections ? `◆ ${zoneCorrections} corregido(s)` : ''}
+                </span>
               </span>
               <button
                 type="button"
@@ -263,11 +317,14 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
 }
 
 function Criticality({ draft }: { draft: AssetProfileDraft }) {
-  const { correctCriticality, patchDraft, corrections, signed, parseResult } = useComposition()
+  const { correctCriticality, patchDraft, corrections, signed, parseResult, missing } =
+    useComposition()
   const model = parseResult?.draft
+  const lacks = (path: string) => missing.includes(path)
 
   const text = (field: 'physical_consequence' | 'threat_model', placeholder: string) => (
     <input
+      id={fieldId(`criticality.${field}`)}
       value={draft.criticality[field] ?? ''}
       disabled={signed}
       placeholder={placeholder}
@@ -283,19 +340,22 @@ function Criticality({ draft }: { draft: AssetProfileDraft }) {
           },
         )
       }
-      className={`w-full ${INPUT}`}
+      className={`w-full ${INPUT} ${lacks(`criticality.${field}`) ? MISSING : ''}`}
     />
   )
 
   return (
     <>
-      <Caps className="mt-4 mb-1">Qué pasa en el mundo físico si esto falla</Caps>
+      <Caps className="mt-4 mb-1 flex items-center gap-2">
+        Qué pasa en el mundo físico si esto falla
+        {missing.some((path) => path.startsWith('criticality.')) ? <Falta /> : null}
+      </Caps>
       <Hint className="mb-2">
         No es la importancia del equipo, sino el daño real que se produciría: fuga, sobrepresión,
         parada de servicio, riesgo para personas.
       </Hint>
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-1.5">
+        <div id={fieldId('criticality.scale')} className="flex items-center gap-1.5">
           {(Object.keys(CONSEQUENCE_SCALE) as ConsequenceScale[]).map((scale) => (
             <button
               key={scale}
@@ -305,7 +365,7 @@ function Criticality({ draft }: { draft: AssetProfileDraft }) {
               className={`cursor-pointer rounded-[5px] border px-3 py-1.5 text-xs font-semibold ${
                 draft.criticality.scale === scale
                   ? 'border-accent bg-accent-tint text-accent'
-                  : 'border-line bg-surface-2 text-ink-3'
+                  : `text-ink-3 ${lacks('criticality.scale') ? MISSING : 'border-line bg-surface-2'}`
               }`}
             >
               {CONSEQUENCE_SCALE[scale]}
@@ -329,12 +389,16 @@ function Criticality({ draft }: { draft: AssetProfileDraft }) {
 }
 
 function Conduits({ draft }: { draft: AssetProfileDraft }) {
-  const { patchDraft, signed } = useComposition()
+  const { patchDraft, signed, missing } = useComposition()
+  const lacks = (path: string) => missing.includes(path)
 
   return (
     <>
       <div className="mb-1 flex items-baseline justify-between">
-        <Caps>Enlaces entre zonas</Caps>
+        <Caps className="flex items-center gap-2">
+          Enlaces entre zonas
+          {missing.some((path) => path.startsWith('conduits[')) ? <Falta /> : null}
+        </Caps>
         <button
           type="button"
           disabled={signed}
@@ -364,59 +428,64 @@ function Conduits({ draft }: { draft: AssetProfileDraft }) {
             válida: no hace falta inventarse uno.
           </span>
         ) : null}
-        {draft.conduits.map((conduit, index) => (
-          <div key={index} className="flex items-center gap-1.5">
-            <input
-              value={conduit.id}
-              disabled={signed}
-              title="Nombre corto del enlace"
-              onChange={(event) =>
-                patchDraft((next) => {
-                  next.conduits[index].id = event.target.value.toUpperCase()
-                })
-              }
-              className={`w-24 font-mono ${INPUT}`}
-            />
-            <input
-              value={conduit.endpoints.join(', ')}
-              disabled={signed}
-              placeholder="Zonas que conecta, separadas por comas"
-              onChange={(event) =>
-                patchDraft((next) => {
-                  next.conduits[index].endpoints = event.target.value
-                    .split(',')
-                    .map((part) => part.trim())
-                    .filter(Boolean)
-                })
-              }
-              className={`flex-1 ${INPUT}`}
-            />
-            <input
-              value={conduit.control ?? ''}
-              disabled={signed}
-              placeholder="Qué protege el paso, p. ej. «equipo de salto»"
-              onChange={(event) =>
-                patchDraft((next) => {
-                  next.conduits[index].control = event.target.value || null
-                })
-              }
-              className={`flex-1 ${INPUT}`}
-            />
-            <button
-              type="button"
-              disabled={signed}
-              title="Quitar este enlace"
-              onClick={() =>
-                patchDraft((next) => {
-                  next.conduits.splice(index, 1)
-                })
-              }
-              className="cursor-pointer border-none bg-transparent text-[13px] text-ink-5 hover:text-alert"
-            >
-              ✕
-            </button>
-          </div>
-        ))}
+        {draft.conduits.map((conduit, index) => {
+          const prefix = `conduits[${conduit.id || index}]`
+          return (
+            <div key={index} className="flex items-center gap-1.5">
+              <input
+                value={conduit.id}
+                disabled={signed}
+                title="Nombre corto del enlace"
+                onChange={(event) =>
+                  patchDraft((next) => {
+                    next.conduits[index].id = event.target.value.toUpperCase()
+                  })
+                }
+                className={`w-24 font-mono ${INPUT}`}
+              />
+              <input
+                id={fieldId(`${prefix}.endpoints`)}
+                value={conduit.endpoints.join(', ')}
+                disabled={signed}
+                placeholder="Zonas que conecta, separadas por comas"
+                onChange={(event) =>
+                  patchDraft((next) => {
+                    next.conduits[index].endpoints = event.target.value
+                      .split(',')
+                      .map((part) => part.trim())
+                      .filter(Boolean)
+                  })
+                }
+                className={`flex-1 ${INPUT} ${lacks(`${prefix}.endpoints`) ? MISSING : ''}`}
+              />
+              <input
+                id={fieldId(`${prefix}.control`)}
+                value={conduit.control ?? ''}
+                disabled={signed}
+                placeholder="Qué protege el paso, p. ej. «equipo de salto»"
+                onChange={(event) =>
+                  patchDraft((next) => {
+                    next.conduits[index].control = event.target.value || null
+                  })
+                }
+                className={`flex-1 ${INPUT} ${lacks(`${prefix}.control`) ? MISSING : ''}`}
+              />
+              <button
+                type="button"
+                disabled={signed}
+                title="Quitar este enlace"
+                onClick={() =>
+                  patchDraft((next) => {
+                    next.conduits.splice(index, 1)
+                  })
+                }
+                className="cursor-pointer border-none bg-transparent text-[13px] text-ink-5 hover:text-alert"
+              >
+                ✕
+              </button>
+            </div>
+          )
+        })}
       </div>
     </>
   )
@@ -454,14 +523,17 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
               <div className="flex flex-wrap gap-1.5">
                 {(Object.keys(NATURE) as NatureField[]).map((field) => {
                   const value = zone.nature[field]
+                  const path = `zones[${zone.id || zoneIndex}].nature.${field}`
                   const mark = corrections.some(
                     (c) => c.path === `zones[${zone.id}].nature.${field}`,
                   )
+                  const empty = missing.includes(path)
                   const state = value === true ? 'sí' : value === false ? 'no' : 'sin declarar'
                   return (
                     <button
                       key={field}
                       type="button"
+                      id={fieldId(path)}
                       disabled={signed}
                       onClick={() => correctNature(zoneIndex, field)}
                       title={`${NATURE[field].note} — en ${zone.id || `zona ${zoneIndex + 1}`}, ahora: ${state}`}
@@ -472,7 +544,9 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
                           ? 'bg-accent-tint text-accent'
                           : value === false
                             ? 'bg-surface-2 text-ink-3'
-                            : 'bg-surface-2 text-ink-5'
+                            : empty
+                              ? `${MISSING} text-warn-ink`
+                              : 'bg-surface-2 text-ink-5'
                       }`}
                     >
                       {value === true ? '■' : value === false ? '□' : '·'} {NATURE[field].label}{' '}
@@ -513,13 +587,22 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
         <div className="mt-4">
           <Notice tone="warn" label="FALTAN DATOS">
             <div className="mb-1.5">
-              Faltan {missing.length} dato(s) por rellenar antes de poder continuar. No se ponen
-              valores por defecto a propósito: un nivel de seguridad que nadie ha decidido produciría
-              una línea base que nadie ha decidido.
+              Faltan {missing.length} dato(s) por rellenar antes de poder continuar. Están marcados
+              en amarillo ahí arriba; pulsa cualquiera de estas líneas para ir directamente a él. No
+              se ponen valores por defecto a propósito: un nivel de seguridad que nadie ha decidido
+              produciría una línea base que nadie ha decidido.
             </div>
             <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5 text-[12px]">
               {missing.map((path) => (
-                <li key={path}>{fieldLabel(path)}</li>
+                <li key={path}>
+                  <button
+                    type="button"
+                    onClick={() => jumpTo(path)}
+                    className="cursor-pointer border-none bg-transparent p-0 text-left text-[12px] text-warn-ink underline decoration-dotted"
+                  >
+                    {fieldLabel(path)}
+                  </button>
+                </li>
               ))}
             </ul>
           </Notice>
