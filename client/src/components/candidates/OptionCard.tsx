@@ -106,9 +106,22 @@ function Shell({
         </span>
       </div>
 
-      <div className="text-[12.5px] leading-[1.35] font-semibold">{control.title}</div>
-      <div className="text-[11.5px] leading-[1.45] text-ink-3">
+      {/*
+        The paraphrase leads and the official title follows, quieter. The two are
+        in different languages on purpose: the paraphrase is the operator's
+        (Spanish, ours, CLAUDE.md §8) and the title is the standard's, verbatim
+        and untranslated so it stays citable and contrastable against the source.
+        Leading with the English made a Spanish screen read as half-translated.
+      */}
+      <div className="text-[12.5px] leading-[1.35] font-semibold">
         {control.paraphrased_description}
+      </div>
+      <div
+        lang="en"
+        title="Título oficial del control en su norma, sin traducir: es el texto que hay que citar para localizarlo en la fuente."
+        className="cursor-help text-[10.5px] leading-[1.4] text-ink-4"
+      >
+        {control.title}
       </div>
       <div className="flex flex-wrap items-center gap-2.5 text-[11.5px] text-ink-2">{meta}</div>
       <div
