@@ -48,7 +48,7 @@ def test_the_collection_holds_the_whole_catalog(index: CatalogIndex, catalog: Ca
     stored = index.client.count(index.collection, exact=True).count
 
     assert stored == len(catalog.controls)
-    assert index.collection.startswith("catalog_v0_2_0_")
+    assert index.collection.startswith("catalog_v0_3_0_")
 
 
 def test_populating_twice_changes_nothing(index: CatalogIndex, catalog: Catalog) -> None:

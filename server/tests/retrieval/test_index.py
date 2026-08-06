@@ -61,7 +61,7 @@ def test_the_collection_name_fingerprints_the_catalog(catalog: Catalog) -> None:
     """A catalog bump — or an edit in place — is a different collection, not stale vectors."""
     name = collection_name(catalog)
 
-    assert name.startswith(f"{settings.QDRANT_COLLECTION_PREFIX}_v0_2_0_")
+    assert name.startswith(f"{settings.QDRANT_COLLECTION_PREFIX}_v0_3_0_")
     assert catalog_digest(catalog) in name
     assert "." not in name
 
