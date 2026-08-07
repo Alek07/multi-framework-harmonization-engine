@@ -1,9 +1,8 @@
-# Compose environment (UCM-20) — `.env.example` is the tracked template.
 .env
 
 # Editors
 .vscode/
 .idea/
 
-# Artefactos del navegador cuando se conduce la UI con el MCP de Playwright
+# Playwright MCP
 .playwright-mcp/

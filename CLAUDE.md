@@ -140,6 +140,11 @@ adding JSON + repopulating Qdrant, configuration not redesign).
 ## Commands
 
 ```bash
+# whole system (from the repo root) — detects the GPU, waits, verifies where the model landed
+./scripts/start.sh      # .\scripts\start.ps1 on Windows
+./scripts/start.sh --cpu    # force the portable path (the reproducible one)
+./scripts/start.sh --down   # stop; volumes are kept
+
 # server (from server/)
 uv sync                 # install deps
 uv run uvicorn app.main:app --reload

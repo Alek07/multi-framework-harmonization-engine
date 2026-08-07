@@ -15,7 +15,7 @@ __pycache__/
 *.db
 *.sqlite3
 
-# Embedding model cache (multilingual-e5-base, ~1.1 GB) — pulled, never tracked
+# Embedding model cache
 .cache/
 
 # Editors

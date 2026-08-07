@@ -1,18 +1,9 @@
-# UCM-20 — optional overlay: let Ollama use an NVIDIA GPU.
+# UCM-20 — optional overlay: let Ollama use an NVIDIA GPU. `./scripts/start.sh` applies it
+# when Docker can provide a card. Separate file because a device reservation makes
+# `docker compose up` *fail* where there is none, and starting anywhere is UCM-22.
 #
-#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up
-#
-# Separate file because a device reservation makes `docker compose up` *fail* on a
-# machine without an NVIDIA card, and UCM-22 requires it to start anywhere.
-# `scripts/up.sh` / `scripts/up.ps1` pick it automatically.
-#
-# Measured, same description, weights resident: CPU 77.3 s / 1933 B · GPU 33.5 s / 4036 B.
-# The two drafts differ (profile_id, zone ids, 0 vs 6 notes): CUDA and CPU resolve a
-# logit near-tie differently even at temp 0. Reproducibility holds within a hardware
-# path, not across them, so switching this on is a versioned act — the memoir names
-# the path its UCM-18 numbers came from.
-#
-# `curl localhost:11434/api/ps` — `size_vram` 0 means it all stayed on the CPU.
+# Measured: parse 356 s on CPU, 31 s here. The two paths can resolve a logit
+# near-tie differently, so reproducibility holds within a path, not across them.
 
 services:
   ollama:

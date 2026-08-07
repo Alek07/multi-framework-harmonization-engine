@@ -1,14 +1,5 @@
-# UCM-20 (partial) — runtime services for the AI layer (M2).
-#
-# Only the two services M2 needs are declared for now: `ollama` (asset parse,
-# UCM-12) and `qdrant` (candidate retrieval, UCM-13). While M2 is in progress the
-# backend runs natively (`uv run uvicorn`), so both publish their ports to the
-# host. M5 *extends* this same file with the `backend` and `frontend` services
-# rather than replacing it, so what the tutors run is what was developed against.
-#
-# Images are pinned by tag *and* digest. A tag alone is mutable, and the
-# reproducibility invariant is that a foreign 8–16 GB machine gets the same
-# result (UCM-22) — a silently upgraded runtime would break it without a trace.
+# UCM-20 — the whole system in four containers. See README.md.
+# Images pinned by tag *and* digest: a tag alone is mutable and pins nothing (UCM-22).
 
 name: tfm-harmonization-engine
 
@@ -18,37 +9,26 @@ services:
     container_name: tfm-harmonization-engine-ollama
     entrypoint: ["/bin/sh", "/entrypoint.sh"]
     environment:
-      # Which model the entrypoint pulls. Flipping this to the 3B build is the
-      # documented 8 GB fallback (UCM-22): configuration, never a code change.
+      # Read by the backend too, so the two halves cannot disagree on the weights.
       LLM_MODEL: ${LLM_MODEL:-qwen2.5:7b-instruct-q4_K_M}
-      # Keep the model resident. A cold reload changes latency, not output, but
-      # it makes the ≤5 min demo (UCM-26) unpredictable to record.
       OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
-      # Context window for every request. Ollama's OpenAI-compatible endpoint has
-      # no field for it (UCM-12), and its default — 4096 — is smaller than the
-      # parse prompt plus the JSON schema it constrains decoding with. A window
-      # too small does not fail: it drops the oldest tokens, which here are the
-      # instructions. Mirrors LLM_NUM_CTX on the backend.
+      # Ollama's OpenAI-compatible endpoint has no context field, and its default
+      # 4096 silently truncates the parse prompt plus its JSON schema.
       OLLAMA_CONTEXT_LENGTH: ${LLM_NUM_CTX:-8192}
-      # One request at a time. Concurrent decoding batches requests together and
-      # batched matmuls are not bit-reproducible, which would perturb greedy
-      # sampling. Determinism outranks throughput for a single-operator POC.
+      # Batched decoding is not bit-reproducible; determinism outranks throughput.
       OLLAMA_NUM_PARALLEL: "1"
     volumes:
       - ./docker/ollama/entrypoint.sh:/entrypoint.sh:ro
-      # The ~4.7 GB model lives here, pulled on first start and cached across
-      # runs. It is never baked into the image.
+      # The ~4.7 GB model, pulled on first start. Never baked into the image.
       - ollama_models:/root/.ollama
     ports:
       - "${OLLAMA_PORT:-11434}:11434"
     healthcheck:
-      # Healthy only once the pull has finished, so nothing ever talks to a
-      # model that is not on disk yet.
+      # Healthy only once the pull has finished.
       test: ["CMD-SHELL", "test -f /tmp/model-ready && ollama list >/dev/null 2>&1"]
       interval: 10s
       timeout: 5s
-      # ~20 min of grace: the first pull on a slow link is the worst case, and
-      # failing it would look like a broken POC rather than a slow download.
+      # ~20 min of grace for a first pull on a slow link.
       retries: 120
       start_period: 30s
     restart: unless-stopped
@@ -62,8 +42,7 @@ services:
       - "${QDRANT_PORT:-6333}:6333"
       - "${QDRANT_GRPC_PORT:-6334}:6334"
     healthcheck:
-      # The image ships neither curl nor wget; bash's /dev/tcp is the probe that
-      # works without adding a layer just to health-check it.
+      # The image ships neither curl nor wget.
       test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
       interval: 5s
       timeout: 3s
@@ -71,6 +50,84 @@ services:
       start_period: 5s
     restart: unless-stopped
 
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: tfm-harmonization-engine-backend:0.1.0
+    container_name: tfm-harmonization-engine-backend
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      QDRANT_URL: http://qdrant:6333
+
+      # The audit log — the only mutable state (invariant 5) — on its own volume.
+      DATABASE_URL: sqlite+aiosqlite:////var/lib/tfm/db/app.db
+
+      # Derived data, on a separate volume: losing it costs a download, not the trail.
+      EMBEDDING_CACHE_DIR: /var/lib/tfm/cache/models
+      HF_HOME: /var/lib/tfm/cache/hf
+
+      # Same variables the ollama service reads: the 8 GB fallback stays one edit.
+      # The digest moves with the tag — an Ollama tag pins nothing on its own.
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:7b-instruct-q4_K_M}
+      LLM_MODEL_DIGEST: ${LLM_MODEL_DIGEST:-845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e}
+      LLM_NUM_CTX: ${LLM_NUM_CTX:-8192}
+      LLM_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+
+      EXPLAIN_ENABLED: ${EXPLAIN_ENABLED:-true}
+
+      # Unused on the packaged path (single origin); matters for `bun run dev`.
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-["http://localhost:8080","http://localhost:5173"]}
+    volumes:
+      - backend_db:/var/lib/tfm/db
+      - embedding_cache:/var/lib/tfm/cache
+    ports:
+      # Swagger at /docs is the declared plan B of the demo (invariant 6).
+      - "${BACKEND_PORT:-8000}:8000"
+    healthcheck:
+      # `python:3.12-slim` ships neither curl nor wget.
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/api/v1/health")
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      ollama:
+        # `service_started`, not `service_healthy`: ollama reports healthy only
+        # after the ~4.7 GB pull, and composing, signing, the trail and the delta
+        # all work without AI. Only parsing waits.
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: tfm-harmonization-engine-frontend:0.1.0
+    container_name: tfm-harmonization-engine-frontend
+    ports:
+      # 8080, so the stack and `bun run dev` can be up at the same time.
+      - "${FRONTEND_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   ollama_models:
   qdrant_storage:
+  # The audit log: the only volume whose loss is irreversible.
+  backend_db:
+  embedding_cache:
