@@ -21,23 +21,41 @@ costs roughly 2–4× more per parse, and a cold model adds ~185 s to the first 
 
 Start in this order. Each step has a check; do not move on until it answers.
 
+**Packaged — the one the tutors run** (four containers, one command; see
+[README](../README.md)):
+
 | # | Command (from repo root) | Check | Expected |
 | - | - | - | - |
-| 1 | `.\scripts\up.ps1` (or `docker compose up -d`) | `docker compose ps` | `ollama` and `qdrant` healthy |
-| 2 | — | `curl localhost:11434/api/ps` | model listed; `size_vram > 0` = GPU, `0` = CPU |
-| 3 | — | `curl localhost:6333/collections` | a `catalog_v0_2_0_*` collection exists |
-| 4 | `cd server && uv run uvicorn app.main:app` | `curl localhost:8000/api/v1/health` | `{"status":"ok"}` |
-| 5 | `cd client && bun run dev` | open `http://localhost:5173` | step 1 renders, no "Servicio no disponible" |
+| 1 | `.\scripts\start.ps1` (or `./scripts/start.sh`) | its own output | all four `listo`, then a `Verificado` line |
+| 2 | — | that `Verificado` line | `residente en GPU: … (100 %)`, or `en CPU` — know which you are on |
+| 3 | — | `curl localhost:6333/collections` | a `catalog_v0_3_0_*` collection exists |
+| 4 | — | open `http://localhost:8080` | step 1 renders, no "Servicio no disponible" |
+
+The launcher waits for all four services and preloads the weights, so when it prints `Listo` the
+stack really is ready — including the model, which is the part that used to be paid by whoever
+clicked first. On the CPU path expect a parse to take ~6 min; on GPU, ~30 s.
+
+On a **first** start, this includes ~5.8 GB of model downloads and takes 15–30 min. Do that the day
+before, not with the camera rolling.
+
+**Native — for development**, the two halves outside the containers:
+
+| # | Command (from repo root) | Check | Expected |
+| - | - | - | - |
+| 1 | `docker compose up -d ollama qdrant` | `docker compose ps` | `ollama` and `qdrant` healthy |
+| 2 | `cd server && uv run uvicorn app.main:app` | `curl localhost:8000/api/v1/health` | `{"status":"ok"}` |
+| 3 | `cd client && bun run dev` | open `http://localhost:5173` | as above |
 
 Notes worth having in your head before you present:
 
 - **Warm the model before the camera rolls.** Step 1 preloads it and the backend preloads it again
   (`LLM_WARM_ON_STARTUP`), but if the machine has been idle past `OLLAMA_KEEP_ALIVE` (30 min), the
   first parse pays the reload. Run any parse once as a warm-up.
-- **`server/.env` is optional.** Every value has a default in `app/core/config.py`; the run below
-  used no `.env` at all.
+- **A `.env` is optional on either path.** Every value has a default — in `app/core/config.py` for
+  the backend, in `docker-compose.yml` for the packaged stack; the run below used none at all.
 - **Turn the explanation layer off for the demo** — see [§6, known risks](#6-known-risks-before-you-present).
-  `EXPLAIN_ENABLED=false` in `server/.env`, restart the backend.
+  `EXPLAIN_ENABLED=false` in the root `.env` and `docker compose up -d` (packaged), or in
+  `server/.env` and restart the backend (native).
 - **Plan B is Swagger** (`http://localhost:8000/docs`), and it is a declared plan B, not an excuse.
   The five endpoints are all reachable there; compose and delta work with Ollama and Qdrant off.
 
