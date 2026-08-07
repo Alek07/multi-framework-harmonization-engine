@@ -18,6 +18,10 @@ versionados).
 .\scripts\start.ps1       # Windows
 ```
 
+No hace falta llamar a `docker compose` por tu cuenta: el script comprueba primero Docker, el
+hardware y el modelo, y con eso resuelto ejecuta él mismo `docker compose up -d` con los ficheros
+que correspondan.
+
 | | URL |
 | -- | -- |
 | Aplicación | <http://localhost:8080> |
