@@ -8,8 +8,8 @@
  * reason there is none in the candidate cards.
  */
 
-import { useComposition } from '../state/composition'
-import { PrimaryButton } from './ui'
+import { useComposition } from './composition'
+import { PrimaryButton } from '../../components/ui'
 
 export function ComposerDock({ onOpenSign }: { onOpenSign: () => void }) {
   const { progress, signed, candidates, focusOn } = useComposition()

@@ -9,11 +9,14 @@
  * step what they could have been told at the first.
  */
 
-import { useComposition } from '../../state/composition'
-import { PrimaryButton, Section } from '../ui'
+import { useNavigate } from '@tanstack/react-router'
+
+import { useComposition } from '../composition'
+import { GhostButton, PrimaryButton, Section } from '../../../components/ui'
 
 export function StageSign({ onOpenSign }: { onOpenSign: () => void }) {
   const { progress, signed, baseline, candidates, focusOn, choices } = useComposition()
+  const navigate = useNavigate()
   const blocked = signed || !candidates || progress.blockers.length > 0
 
   return (
@@ -76,11 +79,15 @@ export function StageSign({ onOpenSign }: { onOpenSign: () => void }) {
         </p>
       )}
 
-      {!signed ? (
+      {signed ? (
+        <GhostButton className="mt-4" onClick={() => void navigate({ to: '/' })}>
+          Volver a líneas base
+        </GhostButton>
+      ) : (
         <PrimaryButton tone="ink" className="mt-4" disabled={blocked} onClick={onOpenSign}>
           Firmar la línea base
         </PrimaryButton>
-      ) : null}
+      )}
     </Section>
   )
 }

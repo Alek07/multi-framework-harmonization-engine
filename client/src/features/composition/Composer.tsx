@@ -3,26 +3,23 @@
  * it, compose from the options the engine laid side by side, compare regions,
  * sign, read the trail.
  *
- * Every fact on screen comes from an engine response, and when the backend is
- * not there this component says so plainly rather than pretending to work
- * offline. What it never says is *how* it asked: routes, schema names and rule
- * identifiers are the engineer's vocabulary, not the operator's.
+ * Every fact on screen comes from an engine response, and routes, schema names
+ * and rule identifiers stay the engineer's vocabulary, not the operator's.
  */
 
 import { useState } from 'react'
 
-import { ComposerDock } from './components/ComposerDock'
-import { ReproducibilityBar } from './components/ReproducibilityBar'
-import { SignDialog } from './components/SignDialog'
-import { StageRail } from './components/StageRail'
-import { StageAsset } from './components/stages/StageAsset'
-import { StageAudit } from './components/stages/StageAudit'
-import { StageCandidates } from './components/stages/StageCandidates'
-import { StageDelta } from './components/stages/StageDelta'
-import { StageSign } from './components/stages/StageSign'
-import { GhostButton, PrimaryButton } from './components/ui'
-import { CompositionProvider } from './state/CompositionProvider'
-import { useComposition, type Step, type StepLocks } from './state/composition'
+import { useComposition, type Step, type StepLocks } from './composition'
+import { ComposerDock } from './ComposerDock'
+import { ReproducibilityBar } from './ReproducibilityBar'
+import { SignDialog } from './SignDialog'
+import { StageRail } from './StageRail'
+import { StageAsset } from './stages/StageAsset'
+import { StageAudit } from './stages/StageAudit'
+import { StageCandidates } from './stages/StageCandidates'
+import { StageDelta } from './stages/StageDelta'
+import { StageSign } from './stages/StageSign'
+import { GhostButton, PrimaryButton } from '../../components/ui'
 
 const STEP_LABELS: Record<Step, string> = {
   1: 'Describir el activo',
@@ -30,31 +27,6 @@ const STEP_LABELS: Record<Step, string> = {
   3: 'Comparar por región',
   4: 'Revisar y firmar',
   5: 'Registro de decisiones',
-}
-
-function BackendDown() {
-  return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center bg-page p-6">
-      <div className="max-w-[460px] text-center">
-        <div className="mb-3 text-[11px] font-semibold tracking-[0.1em] text-ink-4 uppercase">
-          Servicio no disponible
-        </div>
-        <h2 className="m-0 mb-2.5 text-xl font-semibold">No se puede conectar con el sistema</h2>
-        <p className="m-0 mb-5 text-sm leading-[1.6] text-ink-3">
-          La aplicación no ha podido contactar con el servicio que compone las líneas base. No se ha
-          perdido nada: nada se guarda hasta que firmas. Comprueba que el sistema esté arrancado y
-          vuelve a intentarlo.
-        </p>
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="cursor-pointer rounded-md border-none bg-accent px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-accent-ink"
-        >
-          Reintentar
-        </button>
-      </div>
-    </div>
-  )
 }
 
 /**
@@ -103,11 +75,9 @@ function StepNav({
   )
 }
 
-function Composition() {
-  const { backendUp, step, goToStep, stepLocks, signed, baseline } = useComposition()
+export function Composer() {
+  const { step, goToStep, stepLocks, signed, baseline } = useComposition()
   const [signOpen, setSignOpen] = useState(false)
-
-  if (backendUp === false) return <BackendDown />
 
   return (
     <div className="min-h-screen">
@@ -141,13 +111,5 @@ function Composition() {
       <ComposerDock onOpenSign={() => setSignOpen(true)} />
       <SignDialog open={signOpen} onClose={() => setSignOpen(false)} />
     </div>
-  )
-}
-
-export default function App() {
-  return (
-    <CompositionProvider>
-      <Composition />
-    </CompositionProvider>
   )
 }

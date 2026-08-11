@@ -15,11 +15,11 @@
 
 import { useState } from 'react'
 
-import type { AuditActor, AuditEventType } from '../../api/types'
-import { ACTOR, AUDIT_EVENT, fieldLabel } from '../../lib/labels'
-import { usePage } from '../../lib/paging'
-import { useComposition } from '../../state/composition'
-import { Hint, Notice, Pager, Section } from '../ui'
+import type { AuditActor, AuditEventType } from '../../../api/types'
+import { ACTOR, AUDIT_EVENT, fieldLabel } from '../../../lib/labels'
+import { usePage } from '../../../lib/paging'
+import { useComposition } from '../composition'
+import { Hint, Notice, Pager, Section } from '../../../components/ui'
 
 const COLUMNS = '34px 150px 74px 210px 1fr 1fr'
 

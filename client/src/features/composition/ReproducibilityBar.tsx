@@ -14,7 +14,9 @@
  * regulatory catalog was used.
  */
 
-import { useComposition } from '../state/composition'
+import { Link } from '@tanstack/react-router'
+
+import { useComposition } from './composition'
 
 function Sep() {
   return <span className="mx-2.5 flex-none text-bar-sep">·</span>
@@ -34,6 +36,13 @@ export function ReproducibilityBar() {
       className="fixed inset-x-0 top-0 z-50 flex h-9 items-center overflow-x-auto whitespace-nowrap bg-bar px-4 text-[11.5px] leading-none font-medium text-bar-ink"
       data-screen-label="ReproducibilityBar"
     >
+      <Link
+        to="/"
+        title="Volver a la lista. Lo que llevas compuesto se guarda en este navegador."
+        className="mr-3.5 flex-none rounded border border-[#3c4b62] px-2.5 py-1 text-[10.5px] font-semibold text-bar-ink no-underline hover:border-bar-muted hover:text-bar-ink hover:no-underline"
+      >
+        ← Líneas base
+      </Link>
       <span className="label-caps mr-4 flex-none text-bar-muted">Trazabilidad de esta sesión</span>
 
       {candidates ? (

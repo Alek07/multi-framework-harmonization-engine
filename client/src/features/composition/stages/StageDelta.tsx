@@ -26,9 +26,9 @@ import {
   STRENGTH_KIND,
   coverageText,
   strengthText,
-} from '../../lib/labels'
-import { DELTA_ORDERS, useComposition } from '../../state/composition'
-import { Caps, Hint, Notice, Section, Tag } from '../ui'
+} from '../../../lib/labels'
+import { DELTA_ORDERS, useComposition } from '../composition'
+import { Caps, Hint, Notice, Section, Tag } from '../../../components/ui'
 
 function Column({
   title,

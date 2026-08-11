@@ -22,11 +22,11 @@ import {
   RETRIEVAL_STATUS,
   TIER,
   ZONE_DOMAIN,
-} from '../../lib/labels'
-import { usePage } from '../../lib/paging'
-import { useActiveZone, useComposition } from '../../state/composition'
+} from '../../../lib/labels'
+import { usePage } from '../../../lib/paging'
+import { useActiveZone, useComposition } from '../composition'
 import { CapabilityCard } from '../candidates/CapabilityCard'
-import { Caps, Hint, InfoButton, Modal, Notice, Pager, PrimaryButton, Section, Tag } from '../ui'
+import { Caps, Hint, InfoButton, Modal, Notice, Pager, PrimaryButton, Section, Tag } from '../../../components/ui'
 import { Working } from '../Working'
 
 /** How many discarded controls are readable at once. */

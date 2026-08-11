@@ -12,9 +12,9 @@
 
 import { useState } from 'react'
 
-import { CHOICE_KIND } from '../lib/labels'
-import { useComposition } from '../state/composition'
-import { Checkbox, PrimaryButton } from './ui'
+import { CHOICE_KIND } from '../../lib/labels'
+import { useComposition } from './composition'
+import { Checkbox, PrimaryButton } from '../../components/ui'
 
 function Row({ label, value }: { label: string; value: number | string }) {
   return (

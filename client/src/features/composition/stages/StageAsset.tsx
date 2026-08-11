@@ -31,11 +31,11 @@ import {
   type ConsequenceScale,
   type NatureField,
   type ParseNote,
-} from '../../api/types'
-import { emptyZone } from '../../lib/draft'
-import { CASE_TYPE, CONSEQUENCE_SCALE, FR_MEANING, NATURE, fieldLabel } from '../../lib/labels'
-import { useComposition } from '../../state/composition'
-import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../ui'
+} from '../../../api/types'
+import { emptyZone } from '../../../lib/draft'
+import { CASE_TYPE, CONSEQUENCE_SCALE, FR_MEANING, NATURE, fieldLabel } from '../../../lib/labels'
+import { useComposition } from '../composition'
+import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../../../components/ui'
 import { Working } from '../Working'
 
 const INPUT =

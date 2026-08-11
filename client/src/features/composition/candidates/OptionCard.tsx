@@ -15,7 +15,7 @@ import type {
   FrameworkControl,
   Mapping,
   RetrievedControl,
-} from '../../api/types'
+} from '../../../api/types'
 import {
   CANDIDATE_STATUS,
   FRAMEWORK,
@@ -25,8 +25,8 @@ import {
   PROVENANCE,
   STRENGTH_KIND,
   strengthText,
-} from '../../lib/labels'
-import { Fold } from '../ui'
+} from '../../../lib/labels'
+import { Fold } from '../../../components/ui'
 
 interface Common {
   control: FrameworkControl

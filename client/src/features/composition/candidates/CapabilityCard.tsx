@@ -28,7 +28,7 @@
 
 import { useState, type ReactNode } from 'react'
 
-import type { CapabilityCandidates, Conflict } from '../../api/types'
+import type { CapabilityCandidates, Conflict } from '../../../api/types'
 import {
   CAPABILITY_STATUS,
   CONFLICT_TYPE,
@@ -37,9 +37,9 @@ import {
   RESOLUTION_METHOD,
   TIER,
   coverageText,
-} from '../../lib/labels'
-import { declaredGap, useComposition } from '../../state/composition'
-import { Caps, Checkbox, Fold, Hint, Meter, Tag } from '../ui'
+} from '../../../lib/labels'
+import { declaredGap, useComposition } from '../composition'
+import { Caps, Checkbox, Fold, Hint, Meter, Tag } from '../../../components/ui'
 import { CatalogOption, RetrievedOption } from './OptionCard'
 
 /** How many options stay open before the tail folds. */

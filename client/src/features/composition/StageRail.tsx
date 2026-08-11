@@ -10,10 +10,10 @@
 
 import { useState } from 'react'
 
-import { FR_FIELDS, type SLVector } from '../api/types'
-import { CONSEQUENCE_SCALE, FR_MEANING, ZONE_DOMAIN } from '../lib/labels'
-import { useComposition, type Step } from '../state/composition'
-import { Caps } from './ui'
+import { FR_FIELDS, type SLVector } from '../../api/types'
+import { CONSEQUENCE_SCALE, FR_MEANING, ZONE_DOMAIN } from '../../lib/labels'
+import { useComposition, type Step } from './composition'
+import { Caps } from '../../components/ui'
 
 const STEP_NAMES: Record<Step, string> = {
   1: 'Describir el activo',

@@ -7,7 +7,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
-import type { AssetProfileDraft, ParseResult } from '../api/types'
+import type { AssetProfileDraft, ParseResult } from '../../api/types'
 import type { Correction, ProfileSource, Step } from './composition'
 
 // Versioned: a shape change must not resurrect a half-read composition.

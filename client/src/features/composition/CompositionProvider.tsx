@@ -24,7 +24,7 @@ import {
   health,
   parseAsset,
   profileRef,
-} from '../api/client'
+} from '../../api/client'
 import type {
   AssetProfileDraft,
   BaselineAuditLog,
@@ -36,8 +36,8 @@ import type {
   NatureField,
   RegionalDelta,
   Signature,
-} from '../api/types'
-import { cloneDraft, emptyZone, missingRequired, toProfile } from '../lib/draft'
+} from '../../api/types'
+import { cloneDraft, emptyZone, missingRequired, toProfile } from '../../lib/draft'
 import {
   CompositionContext,
   DELTA_ORDERS,

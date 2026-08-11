@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
@@ -15,7 +16,14 @@ const proxy = {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  // The router plugin generates `src/routeTree.gen.ts` from `src/routes` and has
+  // to run before the React one. `autoCodeSplitting` keeps the composer out of
+  // the bundle the list route loads.
+  plugins: [
+    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+    react(),
+    tailwindcss(),
+  ],
   server: { port: 5173, proxy },
   // `bun run preview` serves the production bundle the same way, so the built
   // artefact can be checked against a running backend before it is packaged.

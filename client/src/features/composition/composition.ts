@@ -28,7 +28,7 @@ import type {
   RegionalDelta,
   Signature,
   ZoneCandidates,
-} from '../api/types'
+} from '../../api/types'
 
 export type Step = 1 | 2 | 3 | 4 | 5
 
