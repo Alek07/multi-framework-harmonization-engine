@@ -1,13 +1,15 @@
 /**
  * The state of a composition session — the human's side of it, and only that.
  *
- * Every call to the five endpoints lives here, so there is exactly one place
- * that talks to the engine and one place that holds what the operator decided.
- * The arithmetic in `progress` mirrors `_check_mandates`
+ * Every call to the engine lives here, so there is exactly one place that talks
+ * to it. The arithmetic in `progress` mirrors `_check_mandates`
  * (`server/app/baseline/service.py`) and nothing else: it decides whether the
  * *button* is enabled, and the server verifies the same thing again before
  * signing — so a client that got it wrong could only ever be wrong in the
  * direction of asking, never of signing.
+ *
+ * What the operator decided lives in `session.ts` and outlives the tab (UCM-21);
+ * what the engine answered stays here and dies with the page.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -32,7 +34,6 @@ import type {
   ConsequenceScale,
   FoundationalRequirement,
   NatureField,
-  ParseResult,
   RegionalDelta,
   Signature,
 } from '../api/types'
@@ -45,12 +46,11 @@ import {
   stepLocksFor,
   type Blocker,
   type CompositionApi,
-  type Correction,
-  type ProfileSource,
   type Progress,
   type Step,
   type ZoneProgress,
 } from './composition'
+import { useSession } from './session'
 
 function messageOf(error: unknown): string {
   if (error instanceof ApiError || error instanceof OfflineError) return error.message
@@ -58,29 +58,34 @@ function messageOf(error: unknown): string {
 }
 
 export function CompositionProvider({ children }: { children: ReactNode }) {
+  // Persisted: the same object across a reload.
+  const session = useSession()
+  const {
+    step: requestedStep,
+    zoneId,
+    source,
+    description,
+    descriptionLocked,
+    parseResult,
+    draft,
+    corrections,
+    selections,
+    reasons,
+    gaps,
+  } = session
+
+  // The engine's answers and the screen's own state. Neither outlives the page.
   const [backendUp, setBackendUp] = useState<boolean | null>(null)
-  const [requestedStep, setStep] = useState<Step>(1)
-  const [zoneId, setZoneIdState] = useState<string | null>(null)
   const [focusRequest, setFocusRequest] = useState<string | null>(null)
   const [expandRequest, setExpandRequest] = useState<string | null>(null)
 
-  const [source, setSource] = useState<ProfileSource>('parse')
-  const [description, setDescription] = useState('')
-  const [descriptionLocked, setDescriptionLocked] = useState(false)
   const [parsing, setParsing] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
-  const [parseResult, setParseResult] = useState<ParseResult | null>(null)
-  const [draft, setDraft] = useState<AssetProfileDraft | null>(null)
-  const [corrections, setCorrections] = useState<Correction[]>([])
 
   const [candidates, setCandidates] = useState<CandidatesResponse | null>(null)
   const [candidatesLoading, setCandidatesLoading] = useState(false)
   const [candidatesError, setCandidatesError] = useState<string | null>(null)
   const [explaining, setExplaining] = useState<string | null>(null)
-
-  const [selections, setSelections] = useState<Record<string, string[]>>({})
-  const [reasons, setReasons] = useState<Record<string, string>>({})
-  const [gaps, setGaps] = useState<Record<string, boolean>>({})
 
   const [delta, setDelta] = useState<RegionalDelta | null>(null)
   const [deltaLoading, setDeltaLoading] = useState(false)
@@ -113,11 +118,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     setParseError(null)
     try {
       const result = await parseAsset({ description })
-      setParseResult(result)
-      setDraft(cloneDraft(result.draft))
-      setCorrections([])
-      setDescriptionLocked(true)
-      setSource('parse')
+      useSession.getState().startParsed(result, cloneDraft(result.draft))
       setCandidates(null)
       setDelta(null)
     } catch (error) {
@@ -137,13 +138,9 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
    */
   const startManualDraft = useCallback(() => {
     if (signed) return
-    setSource('manual')
-    setParseResult(null)
-    setCorrections([])
-    setDescriptionLocked(false)
     setCandidates(null)
     setDelta(null)
-    setDraft({
+    useSession.getState().startManual({
       name: null,
       case: null,
       zones: [emptyZone('Z-1')],
@@ -160,84 +157,10 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     })
   }, [signed])
 
-  /** Record a correction against what the model proposed, or drop it if undone. */
-  const recordCorrection = useCallback((path: string, from: unknown, to: unknown) => {
-    setCorrections((current) => {
-      const rest = current.filter((correction) => correction.path !== path)
-      if (String(from) === String(to)) return rest
-      return [...rest, { path, from: String(from), to: String(to) }]
-    })
-  }, [])
-
   const modelDraft = parseResult?.draft ?? null
 
-  const correctTargetSL = useCallback(
-    (zoneIndex: number, value: number) => {
-      if (signed || !draft) return
-      const next = cloneDraft(draft)
-      next.zones[zoneIndex].target_sl = value
-      setDraft(next)
-      recordCorrection(
-        `zones[${next.zones[zoneIndex].id}].target_sl`,
-        modelDraft?.zones[zoneIndex]?.target_sl ?? '—',
-        value,
-      )
-    },
-    [draft, modelDraft, recordCorrection, signed],
-  )
-
-  const correctSL = useCallback(
-    (zoneIndex: number, requirement: FoundationalRequirement) => {
-      if (signed || !draft) return
-      const next = cloneDraft(draft)
-      const zone = next.zones[zoneIndex]
-      const vector = zone.sl_vector ?? {}
-      // 1..4, then back to "not stated": an SL the text never gave is a value the
-      // operator may legitimately want to leave empty rather than guess.
-      const current = vector[requirement]
-      const value = current == null ? 1 : current >= 4 ? null : current + 1
-      zone.sl_vector = { ...vector, [requirement]: value }
-      setDraft(next)
-      recordCorrection(
-        `zones[${zone.id}].sl_vector.${requirement}`,
-        modelDraft?.zones[zoneIndex]?.sl_vector?.[requirement] ?? '—',
-        value ?? '—',
-      )
-    },
-    [draft, modelDraft, recordCorrection, signed],
-  )
-
-  const correctNature = useCallback(
-    (zoneIndex: number, field: NatureField) => {
-      if (signed || !draft) return
-      const next = cloneDraft(draft)
-      const zone = next.zones[zoneIndex]
-      const current = zone.nature[field]
-      // true -> false -> "the text does not say". The third state stays reachable
-      // because a guessed `false` silently removes mechanisms from the baseline.
-      zone.nature[field] = current == null ? true : current ? false : null
-      setDraft(next)
-      recordCorrection(
-        `zones[${zone.id}].nature.${field}`,
-        modelDraft?.zones[zoneIndex]?.nature?.[field] ?? '—',
-        zone.nature[field] ?? '—',
-      )
-    },
-    [draft, modelDraft, recordCorrection, signed],
-  )
-
-  const correctCriticality = useCallback(
-    (scale: ConsequenceScale) => {
-      if (signed || !draft) return
-      const next = cloneDraft(draft)
-      next.criticality.scale = scale
-      setDraft(next)
-      recordCorrection('criticality.scale', modelDraft?.criticality.scale ?? '—', scale)
-    },
-    [draft, modelDraft, recordCorrection, signed],
-  )
-
-  const patchDraft = useCallback(
+  /** One edit to the draft and the correction it records, applied together. */
+  const correct = useCallback(
     (
       recipe: (draft: AssetProfileDraft) => void,
       correction?: { path: string; from: unknown; to: unknown },
@@ -245,11 +168,93 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
       if (signed || !draft) return
       const next = cloneDraft(draft)
       recipe(next)
-      setDraft(next)
-      if (correction) recordCorrection(correction.path, correction.from, correction.to)
+      const store = useSession.getState()
+      store.setDraft(next)
+      if (correction) store.recordCorrection(correction.path, correction.from, correction.to)
     },
-    [draft, recordCorrection, signed],
+    [draft, signed],
   )
+
+  const correctTargetSL = useCallback(
+    (zoneIndex: number, value: number) => {
+      const zone = draft?.zones[zoneIndex]
+      if (!zone) return
+      correct(
+        (next) => {
+          next.zones[zoneIndex].target_sl = value
+        },
+        {
+          path: `zones[${zone.id}].target_sl`,
+          from: modelDraft?.zones[zoneIndex]?.target_sl ?? '—',
+          to: value,
+        },
+      )
+    },
+    [correct, draft, modelDraft],
+  )
+
+  const correctSL = useCallback(
+    (zoneIndex: number, requirement: FoundationalRequirement) => {
+      const zone = draft?.zones[zoneIndex]
+      if (!zone) return
+      // 1..4, then back to "not stated": an SL the text never gave is a value the
+      // operator may legitimately want to leave empty rather than guess.
+      const current = zone.sl_vector?.[requirement]
+      const value = current == null ? 1 : current >= 4 ? null : current + 1
+      correct(
+        (next) => {
+          const target = next.zones[zoneIndex]
+          target.sl_vector = { ...(target.sl_vector ?? {}), [requirement]: value }
+        },
+        {
+          path: `zones[${zone.id}].sl_vector.${requirement}`,
+          from: modelDraft?.zones[zoneIndex]?.sl_vector?.[requirement] ?? '—',
+          to: value ?? '—',
+        },
+      )
+    },
+    [correct, draft, modelDraft],
+  )
+
+  const correctNature = useCallback(
+    (zoneIndex: number, field: NatureField) => {
+      const zone = draft?.zones[zoneIndex]
+      if (!zone) return
+      // true -> false -> "the text does not say". The third state stays reachable
+      // because a guessed `false` silently removes mechanisms from the baseline.
+      const current = zone.nature[field]
+      const value = current == null ? true : current ? false : null
+      correct(
+        (next) => {
+          next.zones[zoneIndex].nature[field] = value
+        },
+        {
+          path: `zones[${zone.id}].nature.${field}`,
+          from: modelDraft?.zones[zoneIndex]?.nature?.[field] ?? '—',
+          to: value ?? '—',
+        },
+      )
+    },
+    [correct, draft, modelDraft],
+  )
+
+  const correctCriticality = useCallback(
+    (scale: ConsequenceScale) => {
+      correct(
+        (next) => {
+          next.criticality.scale = scale
+        },
+        {
+          path: 'criticality.scale',
+          from: modelDraft?.criticality.scale ?? '—',
+          to: scale,
+        },
+      )
+    },
+    [correct, modelDraft],
+  )
+
+  const patchDraft = correct
 
   // --- stage 2 ---------------------------------------------------------------
 
@@ -279,10 +284,10 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
           ...(explain ? { explain } : {}),
         })
         setCandidates(response)
-        setZoneIdState((current) => {
-          const stillThere = response.zones.some((zone) => zone.zone.zone_id === current)
-          return stillThere ? current : (response.zones[0]?.zone.zone_id ?? null)
-        })
+        // From the store, not a closure: the zone may have moved during the await.
+        const store = useSession.getState()
+        const stillThere = response.zones.some((zone) => zone.zone.zone_id === store.zoneId)
+        if (!stillThere) store.setZoneId(response.zones[0]?.zone.zone_id ?? null)
       } catch (error) {
         setCandidatesError(messageOf(error))
       } finally {
@@ -334,17 +339,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const toggleSelection = useCallback(
     (zone: string, capabilityId: string, controlId: string) => {
       if (signed) return
-      const key = keyOf(zone, capabilityId)
-      setSelections((current) => {
-        const picked = current[key] ?? []
-        const next = picked.includes(controlId)
-          ? picked.filter((id) => id !== controlId)
-          : [...picked, controlId]
-        return { ...current, [key]: next }
-      })
-      // Adopting a mechanism and accepting the gap say opposite things; the
-      // server refuses the pair, so the UI never offers it (`_check_coherent`).
-      setGaps((current) => ({ ...current, [key]: false }))
+      useSession.getState().toggleSelection(keyOf(zone, capabilityId), controlId)
     },
     [signed],
   )
@@ -357,7 +352,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const setReason = useCallback(
     (zone: string, capabilityId: string, value: string) => {
       if (signed) return
-      setReasons((current) => ({ ...current, [keyOf(zone, capabilityId)]: value }))
+      useSession.getState().setReason(keyOf(zone, capabilityId), value)
     },
     [signed],
   )
@@ -370,12 +365,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const toggleGap = useCallback(
     (zone: string, capabilityId: string) => {
       if (signed) return
-      const key = keyOf(zone, capabilityId)
-      setGaps((current) => {
-        const next = !(current[key] ?? false)
-        if (next) setSelections((picked) => ({ ...picked, [key]: [] }))
-        return { ...current, [key]: next }
-      })
+      useSession.getState().toggleGap(keyOf(zone, capabilityId))
     },
     [signed],
   )
@@ -567,13 +557,15 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
           signature,
         })
         setBaseline(composed)
+        // Ends the draft: read-only from here, and not resumed on the next visit.
+        useSession.getState().markSigned(composed.baseline_id)
         try {
           setAuditLog(await fetchAuditLog(composed.baseline_id))
           setAuditLogError(null)
         } catch (error) {
           setAuditLogError(messageOf(error))
         }
-        setStep(5)
+        useSession.getState().setStep(5)
         return true
       } catch (error) {
         setSignError(messageOf(error))
@@ -607,19 +599,20 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const goToStep = useCallback(
     (next: Step) => {
       if (stepLocks[next]) return
-      setStep(next)
+      useSession.getState().setStep(next)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     },
     [stepLocks],
   )
 
-  const setZoneId = useCallback((next: string) => setZoneIdState(next), [])
+  const setZoneId = useCallback((next: string) => useSession.getState().setZoneId(next), [])
 
   const focusOn = useCallback(
     (domId: string, zone: string, next: Step) => {
       if (stepLocks[next]) return
-      setZoneIdState(zone)
-      setStep(next)
+      const store = useSession.getState()
+      store.setZoneId(zone)
+      store.setStep(next)
       setFocusRequest(domId)
       // Outlives the scroll: whoever is at `domId` may need to open itself, and
       // the scroll request is gone by the render after this one.
@@ -644,9 +637,9 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
 
     source,
     description,
-    setDescription,
+    setDescription: session.setDescription,
     descriptionLocked,
-    unlockDescription: () => setDescriptionLocked(false),
+    unlockDescription: session.unlockDescription,
     parsing,
     parseError,
     parseResult,
