@@ -82,13 +82,40 @@ export function Tag({
   )
 }
 
-/** A progress bar the *server* filled in: the client never computes coverage. */
-export function Meter({ value, className }: { value: number; className: string }) {
+/**
+ * A two-layer bar: what is on offer, and how much of it has been taken.
+ *
+ * `ceiling` is the engine's own figure and is drawn as a ghost segment; `value`
+ * is what the operator's selection reaches and is drawn solid on top of it. The
+ * ghost is what keeps the reading honest — a solid bar at 40 % would look like a
+ * shortfall of the engine's, when the other 60 % is simply not chosen yet.
+ *
+ * The client may compute `value`, and only `value`: a provisional readout of the
+ * human's own selection, over weights the server sent, with the server's own
+ * formula (`pickedCoverage`). Every figure that reaches a baseline or the audit
+ * trail is still the engine's, computed at compose time.
+ */
+export function Meter({
+  value,
+  ceiling,
+  className,
+}: {
+  value: number
+  ceiling?: number
+  className: string
+}) {
+  const clamp = (n: number) => Math.round(Math.max(0, Math.min(1, n)) * 100)
   return (
-    <span className="inline-block h-1.75 w-22.5 overflow-hidden rounded-sm bg-track">
+    <span className="relative inline-block h-1.75 w-22.5 overflow-hidden rounded-sm bg-track">
+      {ceiling === undefined ? null : (
+        <span
+          className={`absolute inset-y-0 left-0 opacity-25 ${className}`}
+          style={{ width: `${clamp(ceiling)}%` }}
+        />
+      )}
       <span
-        className={`block h-full ${className}`}
-        style={{ width: `${Math.round(Math.max(0, Math.min(1, value)) * 100)}%` }}
+        className={`absolute inset-y-0 left-0 ${className}`}
+        style={{ width: `${clamp(value)}%` }}
       />
     </span>
   )

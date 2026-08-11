@@ -247,3 +247,57 @@ export function declaredGap(capability: CapabilityCandidates): CapabilityGap | n
     null
   )
 }
+
+/** How much the operator's current selection covers, and what it cannot weigh. */
+export interface PickedCoverage {
+  value: number
+  /** Picked controls that carry no weight — listed, never counted as zero. */
+  unweighted: string[]
+}
+
+/**
+ * The engine's own coverage formula, applied to the subset the human picked.
+ *
+ * This is the one figure the client computes, and it exists because selections
+ * never leave the browser until `POST /baseline/compose`: between the engine's
+ * answer and the signature there is nobody else who could report what the
+ * composition covers. It is provisional by construction — the number that
+ * reaches the baseline and the trail is the engine's, computed at compose time.
+ *
+ * Three decisions, and each one mirrors `resolve_capability` on purpose:
+ *
+ * * **The best option, not the sum.** The core takes `max(coverage_weight)`
+ *   over the effective options; adding two partial mechanisms together would
+ *   claim a coverage the engine never grants, on the screen where the operator
+ *   decides whether the requirement is answered.
+ * * **A contextual overlay weighs nothing.** The core leaves it out of coverage
+ *   because a jurisdictional obligation is an exigency, not a mechanism, and
+ *   choosing one does not implement anything.
+ * * **A superseded option the human picked does count** — and here the mirror
+ *   is deliberately broken. The core drops it because its rule set set it
+ *   aside; overriding that is a supported move with its own written reason, and
+ *   once the operator takes it, it is their mechanism and covers what it covers.
+ *
+ * Retrieved suggestions carry a similarity score and no weight — that is the
+ * retriever's contract, not an omission — so picking one is a real decision
+ * with an unquantifiable contribution. It goes to `unweighted`, to be named on
+ * screen rather than silently rounded to nothing (invariant 2).
+ */
+export function pickedCoverage(
+  capability: CapabilityCandidates,
+  picked: string[],
+): PickedCoverage {
+  let value = 0
+  const unweighted: string[] = []
+
+  for (const controlId of picked) {
+    const option = capability.resolution.options.find((o) => o.control.id === controlId)
+    if (!option || option.mapping.type === 'contextual') {
+      unweighted.push(controlId)
+      continue
+    }
+    value = Math.max(value, option.mapping.coverage_weight)
+  }
+
+  return { value, unweighted }
+}

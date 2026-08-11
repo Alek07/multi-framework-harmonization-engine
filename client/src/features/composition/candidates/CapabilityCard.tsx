@@ -38,7 +38,7 @@ import {
   TIER,
   coverageText,
 } from '../../../lib/labels'
-import { declaredGap, useComposition } from '../composition'
+import { declaredGap, pickedCoverage, useComposition } from '../composition'
 import { Caps, Checkbox, Fold, Hint, Meter, Tag } from '../../../components/ui'
 import { CatalogOption, RetrievedOption } from './OptionCard'
 
@@ -214,6 +214,12 @@ export function CapabilityCard({
     capability.explanations?.explanations.find((e) => e.control_id === controlId)
 
   const decided = picked.length > 0 || accepted
+  // What this zone can reach, and what the selection reaches of it. The first is
+  // the engine's; the second is provisional until the baseline is composed.
+  const available = capability.resolution.coverage
+  const chosen = pickedCoverage(capability, picked)
+  const meterTone =
+    chosen.value >= 1 ? 'bg-ok' : accepted || (gap && picked.length === 0) ? 'bg-alert' : 'bg-accent'
   const busy = explaining === `${zoneId}|${capabilityId}`
   const domId = `cap-${zoneId}-${capabilityId}`
   const openConflicts = conflicts.filter(
@@ -308,17 +314,31 @@ export function CapabilityCard({
         ) : null}
         <span
           className="ml-auto flex items-center gap-2 max-narrow:ml-0 max-narrow:w-full"
-          title="Cuánto del requisito queda cubierto por los controles disponibles en esta zona. Lo calcula el sistema, no la pantalla."
+          title={
+            'Lo que cubre lo que has elegido, sobre lo que esta zona puede ofrecer. La barra tenue ' +
+            'es el máximo disponible; la sólida, lo que alcanza tu selección. Se calcula igual que ' +
+            'lo calcula el motor —la mejor opción elegida, nunca la suma de varias— y es ' +
+            'provisional: la cifra que se firma la calcula el motor al componer la línea base.'
+          }
         >
-          <Meter
-            value={capability.resolution.coverage}
-            className={
-              gap ? 'bg-alert' : capability.resolution.has_full_mechanism ? 'bg-ok' : 'bg-accent'
-            }
-          />
+          <Meter value={chosen.value} ceiling={available} className={meterTone} />
           <span className="text-xs font-semibold">
-            {coverageText(capability.resolution.coverage)} cubierto
+            {accepted
+              ? 'aceptado sin cubrir'
+              : picked.length === 0
+                ? `sin elegir · hasta el ${coverageText(available)}`
+                : `${coverageText(chosen.value)} elegido · hasta el ${coverageText(available)}`}
           </span>
+          {/* Named, not folded into the number: a decision that cannot be weighed
+              is still a decision, and rounding it to zero would hide it. */}
+          {chosen.unweighted.length > 0 ? (
+            <span
+              className="text-[10.5px] text-ink-4"
+              title="Controles que has elegido y no llevan peso de cobertura: las sugerencias del buscador puntúan por parecido, no por cobertura, y una obligación contextual es una exigencia, no un mecanismo. Cuentan como decisión y quedan en el registro; no suman porcentaje."
+            >
+              + {chosen.unweighted.length} sin peso
+            </span>
+          ) : null}
         </span>
       </div>
 
