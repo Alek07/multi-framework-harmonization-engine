@@ -37,10 +37,10 @@ function DraftRow({ onContinue }: { onContinue: () => void }) {
 
   return (
     <div className="overflow-hidden rounded-lg border border-line border-l-4 border-l-warn-line bg-surface">
-      <div className="grid items-center gap-4 px-[18px] py-4 [grid-template-columns:1.9fr_1.1fr_.9fr_1.2fr_auto]">
+      <div className="grid items-center gap-4 px-4.5 py-4 grid-cols-[1.9fr_1.1fr_.9fr_1.2fr_auto] max-mid:grid-cols-1 max-mid:items-start max-mid:gap-2">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11.5px] leading-[1.5] font-semibold text-ink-4">
+            <span className="font-mono text-[11.5px] leading-normal font-semibold text-ink-4">
               sin referencia
             </span>
             <Tag prose className="bg-warn-tint text-warn">
@@ -73,7 +73,7 @@ function DraftRow({ onContinue }: { onContinue: () => void }) {
             : '—'}
         </div>
 
-        <div className="flex flex-wrap gap-[5px]">
+        <div className="flex flex-wrap gap-1.25">
           {missing.length > 0 ? (
             <Tag prose className="bg-warn-tint text-warn">
               {missing.length} dato(s) por rellenar
@@ -93,7 +93,7 @@ function DraftRow({ onContinue }: { onContinue: () => void }) {
           </Tag>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end max-mid:justify-start">
           <PrimaryButton tone="ink" onClick={onContinue}>
             Continuar
           </PrimaryButton>
@@ -125,7 +125,7 @@ export function BaselinesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1080px] px-6 pt-14 pb-20">
+    <div className="mx-auto max-w-270 px-6 pt-14 pb-20">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-6">
         <div>
           <Caps className="mb-2">Motor de armonización</Caps>
@@ -145,7 +145,7 @@ export function BaselinesPage() {
         </PrimaryButton>
       </div>
 
-      <div className="mb-5 flex flex-wrap gap-6 rounded-lg border border-line bg-surface px-[18px] py-3.5">
+      <div className="mb-5 flex flex-wrap gap-6 rounded-lg border border-line bg-surface px-4.5 py-3.5">
         <Stat label="Líneas base" value={String(baselines.length + (draft ? 1 : 0))} />
         <Stat label="Firmadas" value={String(baselines.length)} />
         <Stat label="En composición" value={draft ? '1' : '0'} />
@@ -183,7 +183,7 @@ export function BaselinesPage() {
         </div>
       ) : null}
 
-      <div className="mb-2 hidden gap-4 px-[18px] pb-2 md:grid [grid-template-columns:1.9fr_1.1fr_.9fr_1.2fr_auto]">
+      <div className="mb-2 grid gap-4 px-4.5 pb-2 grid-cols-[1.9fr_1.1fr_.9fr_1.2fr_auto] max-mid:hidden">
         <Caps>Línea base</Caps>
         <Caps>Firmante</Caps>
         <Caps>Fecha</Caps>

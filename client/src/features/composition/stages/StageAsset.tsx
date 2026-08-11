@@ -42,7 +42,7 @@ const INPUT =
   'rounded-[5px] border border-line bg-surface-2 px-2.5 py-1.5 text-xs text-ink outline-accent'
 
 /** How tall the two halves of the description grow before they scroll. */
-const PANE = 'max-h-[340px] overflow-y-auto'
+const PANE = 'max-h-85 overflow-y-auto'
 
 /** A field `missingRequired` is still asking for. */
 const MISSING = 'border-warn-line bg-warn-tint'
@@ -88,7 +88,7 @@ function EvidenceList({ notes }: { notes: ParseNote[] }) {
       {notes.map((note, index) => (
         <div
           key={`${note.field}-${index}`}
-          className="rounded-md border border-line-2 bg-surface-2 px-3 py-2 text-[11.5px] leading-[1.5]"
+          className="rounded-md border border-line-2 bg-surface-2 px-3 py-2 text-[11.5px] leading-normal"
         >
           <div className="flex flex-wrap items-baseline gap-2">
             <span className="text-[11px] font-semibold text-accent">{fieldLabel(note.field)}</span>
@@ -115,7 +115,7 @@ function Identity({ draft }: { draft: AssetProfileDraft }) {
   const lacks = (path: string) => missing.includes(path)
 
   return (
-    <div className="mb-4 grid grid-cols-2 gap-5">
+    <div className="mb-4 grid grid-cols-2 gap-5 max-mid:grid-cols-1">
       <div>
         <Caps className="mb-2 flex items-center gap-2">
           Nombre del activo {lacks('name') ? <Falta /> : null}
@@ -201,7 +201,8 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
         subir su valor; al pasar de 4 vuelve a «sin declarar».
       </Hint>
 
-      <div className="mb-4 grid items-center gap-1 text-xs [grid-template-columns:190px_54px_repeat(7,44px)_auto_28px]">
+      <div className="max-mid:overflow-x-auto">
+      <div className="mb-4 grid items-center gap-1 text-xs grid-cols-[190px_54px_repeat(7,44px)_auto_28px] max-mid:min-w-125">
         <span className="text-[10.5px] font-semibold text-ink-4">Zona</span>
         <span
           title="Nivel de seguridad objetivo de la zona, de 1 a 4"
@@ -249,7 +250,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
                 disabled={signed}
                 onClick={() => correctTargetSL(zoneIndex, ((zone.target_sl ?? 0) % 4) + 1)}
                 title="Nivel de seguridad objetivo de la zona, de 1 a 4. Pulsa para cambiarlo."
-                className={`h-[30px] cursor-pointer rounded-[5px] border font-mono text-[13px] font-semibold ${
+                className={`h-7.5 cursor-pointer rounded-[5px] border font-mono text-[13px] font-semibold ${
                   corrected(`zones[${zone.id}].target_sl`)
                     ? 'border-accent bg-accent-tint text-accent'
                     : lacks(`${prefix}.target_sl`)
@@ -275,7 +276,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
                         : ''
                     }`}
                     onClick={() => correctSL(zoneIndex, fr)}
-                    className={`h-[30px] cursor-pointer rounded-[5px] border font-mono text-[13px] font-semibold ${
+                    className={`h-7.5 cursor-pointer rounded-[5px] border font-mono text-[13px] font-semibold ${
                       mark
                         ? 'border-accent bg-accent-tint text-accent'
                         : empty
@@ -311,6 +312,7 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
             </div>
           )
         })}
+      </div>
       </div>
     </>
   )
@@ -505,7 +507,7 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
       <Identity draft={draft} />
       <SLGrid draft={draft} />
 
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-2 gap-5 max-mid:grid-cols-1">
         <div>
           <Caps className="mb-1">Cómo es cada zona por dentro</Caps>
           <Hint className="mb-2">
@@ -572,7 +574,7 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
                 {draft.unmapped.map((statement, index) => (
                   <li
                     key={index}
-                    className="rounded-[5px] border border-dashed border-line-dashed bg-surface-2 px-2.5 py-[7px] text-xs text-ink-3"
+                    className="rounded-[5px] border border-dashed border-line-dashed bg-surface-2 px-2.5 py-1.75 text-[12px] text-ink-3"
                   >
                     {statement}
                   </li>
@@ -640,7 +642,7 @@ export function StageAsset() {
         hint="Cuenta qué es el activo, qué controla, cómo está conectado y quién lo usa. El asistente leerá tu texto y rellenará una ficha con lo que haya entendido, señalando de qué frase sale cada dato. No decide nada: solo lee."
         scope="afecta a todo el activo"
       >
-        <div className="grid grid-cols-2 items-start gap-5">
+        <div className="grid grid-cols-2 items-start gap-5 max-mid:grid-cols-1">
           <div className="flex flex-col gap-2.5">
             <Caps>Tu descripción</Caps>
             {!descriptionLocked ? (
@@ -650,7 +652,7 @@ export function StageAsset() {
                   disabled={signed || parsing}
                   onChange={(event) => setDescription(event.target.value)}
                   placeholder="Por ejemplo: «Estación de regulación y medida de un gasoducto. Un PLC gobierna las válvulas de corte y un SCADA en Windows las supervisa desde la sala de control. El SCADA está en la red corporativa y el mantenimiento entra por VPN dos veces al mes. Una fuga afectaría a una zona habitada.»"
-                  className={`min-h-[220px] w-full resize-y rounded-md border border-line-strong bg-surface-2 px-3.5 py-3 text-[13.5px] leading-[1.6] text-ink outline-accent ${PANE}`}
+                  className={`min-h-55 w-full resize-y rounded-md border border-line-strong bg-surface-2 px-3.5 py-3 text-[13.5px] leading-[1.6] text-ink outline-accent max-mid:min-h-37.5 ${PANE}`}
                 />
                 <div className="flex flex-wrap items-center gap-3.5">
                   <PrimaryButton
@@ -725,13 +727,13 @@ export function StageAsset() {
               />
             ) : null}
             {!parsing && !draft ? (
-              <div className="rounded-md border border-dashed border-line-strong px-4 py-7 text-center text-[12.5px] leading-[1.5] text-ink-4">
+              <div className="rounded-md border border-dashed border-line-strong px-4 py-7 text-center text-[12.5px] leading-normal text-ink-4">
                 Aquí aparecerá, dato a dato, lo que el asistente haya sacado de tu texto, junto con
                 la frase concreta de la que sale cada uno.
               </div>
             ) : null}
             {!parsing && draft && source === 'manual' ? (
-              <div className="rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px] leading-[1.5] text-ink-3">
+              <div className="rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px] leading-normal text-ink-3">
                 Estás rellenando la ficha a mano, así que no hay nada que el asistente haya
                 interpretado. Complétala abajo: lo que falte se avisa al final.
               </div>

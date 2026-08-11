@@ -58,7 +58,7 @@ export function Working({
 
       <div className="mt-1 text-[11px] text-warn-ink">{subtitle}</div>
 
-      <div className="mt-3 text-[11.5px] leading-[1.5] text-ink-3">
+      <div className="mt-3 text-[11.5px] leading-normal text-ink-3">
         {lead}
         <ul className="m-0 mt-1 flex list-disc flex-col gap-0.5 pl-5">
           {items.map((item) => (
@@ -82,7 +82,7 @@ export function Working({
         ))}
       </div>
 
-      <p className="m-0 mt-3 text-[11.5px] leading-[1.5] text-ink-4">{footnote}</p>
+      <p className="m-0 mt-3 text-[11.5px] leading-normal text-ink-4">{footnote}</p>
     </div>
   )
 }

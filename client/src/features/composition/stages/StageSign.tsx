@@ -50,7 +50,7 @@ export function StageSign({ onOpenSign }: { onOpenSign: () => void }) {
             Todavía no se puede firmar. Falta esto por resolver — pulsa cualquier línea para ir
             directamente a ella:
           </p>
-          <div className="flex flex-col gap-[5px]">
+          <div className="flex flex-col gap-1.25">
             {progress.blockers.map((blocker, index) => (
               <div key={index} className="flex items-baseline gap-2 text-[12.5px]">
                 <span className="flex-none text-alert">✕</span>

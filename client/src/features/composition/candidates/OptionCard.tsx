@@ -88,9 +88,9 @@ function Shell({
           : `border ${dotted ? 'border-[#b5ad9d]' : 'border-[#d7d3ca]'} bg-surface`
       } ${faded ? 'opacity-70' : ''} ${disabled ? 'cursor-default' : ''}`}
     >
-      <div className="flex flex-wrap items-center gap-[7px]">
+      <div className="flex flex-wrap items-center gap-1.75">
         <span
-          className={`inline-block h-[15px] w-[15px] flex-none rounded-sm border-[1.5px] text-center text-[10px] leading-[13px] font-semibold ${
+          className={`inline-block h-3.75 w-3.75 flex-none rounded-sm border-[1.5px] text-center text-[10px] leading-3.25 font-semibold ${
             picked ? 'border-accent bg-accent text-white' : 'border-ink-5 bg-surface'
           }`}
         >
@@ -162,13 +162,13 @@ function Shell({
               : 'Explicación del sistema'
           }
         >
-          <div className="mt-1.5 rounded-[5px] border border-dashed border-line-dashed bg-surface-4 px-2.5 py-[7px]">
+          <div className="mt-1.5 rounded-[5px] border border-dashed border-line-dashed bg-surface-4 px-2.5 py-1.75">
             {explanation.status === 'generated' ? (
               <div className="text-[10.5px] font-semibold text-ink-4">
                 Solo para ayudarte a leer; no cambia el orden ni marca preferencias
               </div>
             ) : null}
-            <div className="mt-1 text-xs leading-[1.5] text-ink-3">{explanation.text}</div>
+            <div className="mt-1 text-xs leading-normal text-ink-3">{explanation.text}</div>
             {explanation.notice ? (
               <div className="mt-1 text-[10px] text-warn">{explanation.notice}</div>
             ) : null}

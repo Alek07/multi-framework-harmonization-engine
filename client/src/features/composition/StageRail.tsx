@@ -44,7 +44,7 @@ function SLCells({ vector, target }: { vector: SLVector | null; target: number }
         <span
           key={index}
           title={`${FR_MEANING[FR_FIELDS[index]]} — nivel ${value} de 4`}
-          className={`inline-block h-1.5 w-[13px] rounded-[2px] ${SL_FILL[value] ?? SL_FILL[0]}`}
+          className={`inline-block h-1.5 w-3.25 rounded-xs ${SL_FILL[value] ?? SL_FILL[0]}`}
         />
       ))}
     </span>
@@ -60,7 +60,7 @@ function AssetCard() {
   const via = source === 'manual' ? 'ficha rellenada a mano' : 'descripción revisada por ti'
 
   return (
-    <div className="mb-3 rounded-lg border border-line bg-surface px-[13px] py-3">
+    <div className="mb-3 rounded-lg border border-line bg-surface px-3.25 py-3">
       <Caps className="mb-1.5">Activo que estás componiendo</Caps>
       <div className="text-[12.5px] leading-[1.4] font-semibold">{name}</div>
       <div className="mt-2 flex flex-wrap gap-1">
@@ -98,6 +98,7 @@ function ZoneCards() {
       <div className="mb-1.5 px-0.5 text-[10.5px] leading-[1.45] text-ink-4">
         Cada zona se compone por separado: mismas normas, distinto resultado.
       </div>
+      <div className="contents max-mid:flex max-mid:gap-1.5 max-mid:overflow-x-auto max-mid:pb-1">
       {candidates.zones.map((zone) => {
         const id = zone.zone.zone_id
         const active = id === zoneId
@@ -125,7 +126,7 @@ function ZoneCards() {
               setZoneId(id)
               if (step !== 2 && step !== 3) goToStep(2)
             }}
-            className={`mb-1.5 flex w-full cursor-pointer flex-col items-start rounded-lg px-3 py-2.5 text-left ${
+            className={`mb-1.5 flex w-full cursor-pointer flex-col items-start rounded-lg px-3 py-2.5 text-left max-mid:mb-0 max-mid:w-auto max-mid:min-w-43 max-mid:flex-none ${
               active ? 'border-2 border-accent bg-accent-tint-2' : 'border border-line bg-surface'
             }`}
           >
@@ -145,6 +146,7 @@ function ZoneCards() {
           </button>
         )
       })}
+      </div>
       <div className="h-2.5" />
     </>
   )
@@ -166,12 +168,15 @@ export function StageRail() {
   return (
     <nav
       aria-label="Etapas"
-      className="sticky top-[60px] flex max-h-[calc(100vh-160px)] w-[214px] flex-none flex-col gap-0.5 self-start overflow-y-auto"
+      className="sticky top-15 flex max-h-[calc(100vh-160px)] w-53.5 flex-none flex-col gap-0.5 self-start overflow-y-auto max-wide:w-46 max-mid:static max-mid:max-h-none max-mid:w-full max-mid:gap-2 max-mid:overflow-visible"
       data-screen-label="StageRail"
     >
       {hasProfile ? <AssetCard /> : null}
       <ZoneCards />
       <Caps className="px-2.5 pt-1.5 pb-2">Pasos</Caps>
+      {/* Below the stack point the steps become a strip that scrolls sideways,
+          so the rail costs a row of height instead of half the screen. */}
+      <div className="contents max-mid:flex max-mid:gap-1.5 max-mid:overflow-x-auto max-mid:pb-1">
       {([1, 2, 3, 4, 5] as Step[]).map((n) => {
         const current = step === n
         const locked = stepLocks[n]
@@ -185,7 +190,7 @@ export function StageRail() {
               ? 'pendiente: quedan cosas por resolver'
               : 'sin completar'
         return (
-          <div key={n} className="flex flex-col">
+          <div key={n} className="flex flex-col max-mid:flex-none">
             <div className="flex items-center gap-0.5">
               <button
                 type="button"
@@ -195,7 +200,7 @@ export function StageRail() {
                 data-locked={locked ? 'true' : undefined}
                 title={`Paso ${n} — ${STEP_NAMES[n]} · ${state}`}
                 onClick={() => goToStep(n)}
-                className={`flex flex-1 items-center gap-2 rounded-md border-none px-2.5 py-[7px] text-[12.5px] ${
+                className={`flex flex-1 items-center gap-2 rounded-md border-none px-2.5 py-1.75 text-[12.5px] max-mid:min-h-10 max-mid:whitespace-nowrap ${
                   locked
                     ? 'cursor-default bg-transparent font-medium text-ink-5'
                     : `cursor-pointer hover:bg-[#eceae4] ${
@@ -227,13 +232,13 @@ export function StageRail() {
                 title={`Qué se hace en el paso ${n}`}
                 aria-label={`qué se hace en el paso ${n}`}
                 onClick={() => setOpenTip(openTip === n ? null : n)}
-                className="flex-none cursor-pointer border-none bg-transparent px-1.5 py-1 text-[11px] font-semibold text-ink-5 hover:text-accent"
+                className="flex-none cursor-pointer border-none bg-transparent px-1.5 py-1 text-[11px] font-semibold text-ink-5 hover:text-accent max-mid:hidden"
               >
                 ⓘ
               </button>
             </div>
             {openTip === n ? (
-              <div className="mx-2.5 my-0.5 mb-1.5 rounded-md border border-line bg-surface px-2.5 py-2 text-[11px] leading-[1.5] text-ink-3">
+              <div className="mx-2.5 my-0.5 mb-1.5 rounded-md border border-line bg-surface px-2.5 py-2 text-[11px] leading-normal text-ink-3 max-mid:hidden">
                 {STEP_TIPS[n]}
                 {locked ? (
                   <div className="mt-1.5 border-t border-line-2 pt-1.5 font-medium text-ink-4">
@@ -245,6 +250,7 @@ export function StageRail() {
           </div>
         )
       })}
+      </div>
     </nav>
   )
 }

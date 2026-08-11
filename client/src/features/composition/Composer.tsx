@@ -50,7 +50,7 @@ function StepNav({
 
   return (
     <div className="mt-1 flex flex-col gap-2">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2.5 max-narrow:[&_button]:px-3 max-narrow:[&_button]:py-2.5 max-narrow:[&_button]:text-xs">
         {step > 1 ? (
           <GhostButton onClick={() => goToStep((step - 1) as Step)}>
             ← {step - 1}. {STEP_LABELS[(step - 1) as Step]}
@@ -83,10 +83,10 @@ export function Composer() {
     <div className="min-h-screen">
       <ReproducibilityBar />
 
-      <div className="mx-auto flex max-w-[1240px] gap-7 px-6 pt-16 pb-32">
+      <div className="mx-auto flex max-w-310 gap-7 px-6 pt-16 pb-32 max-wide:gap-4.5 max-wide:px-4 max-wide:pt-14 max-wide:pb-37.5 max-mid:flex-col max-mid:gap-3.5 max-mid:px-3 max-mid:pt-12 max-mid:pb-44">
         <StageRail />
 
-        <main className="flex min-w-0 flex-1 flex-col gap-9">
+        <main className="flex min-w-0 flex-1 flex-col gap-9 max-mid:gap-4.5">
           {signed && baseline ? (
             <div className="rounded-md border border-ok-line bg-ok-tint px-4 py-3 text-[13px] leading-[1.55] text-ok-ink">
               <b>Línea base firmada.</b> A partir de aquí la composición es de solo lectura: el

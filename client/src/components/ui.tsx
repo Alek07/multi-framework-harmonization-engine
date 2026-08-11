@@ -23,15 +23,15 @@ export function Section({
   return (
     <section
       id={id}
-      className={`rounded-lg border border-line bg-surface px-7 py-6 ${dimmed ? 'opacity-60' : ''}`}
+      className={`rounded-lg border border-line bg-surface px-7 py-6 max-mid:px-3.5 max-mid:py-4 ${dimmed ? 'opacity-60' : ''}`}
     >
       <div className="mb-1.5 flex flex-wrap items-baseline gap-2.5">
         <span className="rounded-sm bg-line-2 px-1.5 py-0.5 text-[10.5px] font-semibold text-ink-2">
           Paso {step} de 5
         </span>
-        <h2 className="m-0 text-[17px] font-semibold">{title}</h2>
+        <h2 className="m-0 text-[17px] font-semibold max-narrow:text-[15px]">{title}</h2>
         {scope ? (
-          <span className="rounded-sm bg-[#eef0f2] px-[7px] py-0.5 text-[10.5px] font-medium text-ink-2">
+          <span className="rounded-sm bg-[#eef0f2] px-1.75 py-0.5 text-[10.5px] font-medium text-ink-2">
             {scope}
           </span>
         ) : null}
@@ -44,7 +44,7 @@ export function Section({
 
 /** A quiet explanatory line under a control — never an error, never a status. */
 export function Hint({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <p className={`m-0 text-[11.5px] leading-[1.5] text-ink-4 ${className}`}>{children}</p>
+  return <p className={`m-0 text-[11.5px] leading-normal text-ink-4 ${className}`}>{children}</p>
 }
 
 export function Caps({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -85,7 +85,7 @@ export function Tag({
 /** A progress bar the *server* filled in: the client never computes coverage. */
 export function Meter({ value, className }: { value: number; className: string }) {
   return (
-    <span className="inline-block h-[7px] w-[90px] overflow-hidden rounded-sm bg-track">
+    <span className="inline-block h-1.75 w-22.5 overflow-hidden rounded-sm bg-track">
       <span
         className={`block h-full ${className}`}
         style={{ width: `${Math.round(Math.max(0, Math.min(1, value)) * 100)}%` }}
@@ -120,7 +120,7 @@ export function Checkbox({
       data-testid={testId}
       disabled={disabled}
       onClick={onClick}
-      className={`h-4 w-4 flex-none rounded-sm border-[1.5px] p-0 text-[10px] leading-[13px] font-semibold text-white ${border} ${
+      className={`h-4 w-4 flex-none rounded-sm border-[1.5px] p-0 text-[10px] leading-3.25 font-semibold text-white ${border} ${
         checked ? fill : 'bg-surface'
       } ${disabled ? 'cursor-default opacity-60' : 'cursor-pointer'}`}
     >
@@ -255,14 +255,14 @@ export function Modal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-100 flex items-center justify-center bg-[rgba(24,34,48,.45)] p-6"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-[rgba(24,34,48,.45)] p-6 max-narrow:items-start max-narrow:p-3"
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
-        className="max-h-[80vh] w-full max-w-[660px] overflow-y-auto rounded-[10px] bg-surface px-7 py-6 shadow-[0_20px_60px_rgba(24,34,48,.3)]"
+        className="max-h-[80vh] w-full max-w-165 overflow-y-auto rounded-[10px] bg-surface px-7 py-6 shadow-[0_20px_60px_rgba(24,34,48,.3)] max-narrow:max-h-[92vh] max-narrow:px-4 max-narrow:py-4.5"
       >
         <div className="mb-3 flex items-baseline justify-between gap-4">
           <h3 className="m-0 text-base font-semibold">{title}</h3>

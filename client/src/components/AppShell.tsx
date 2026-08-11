@@ -14,7 +14,7 @@ import { useComposition } from '../features/composition/composition'
 function BackendDown() {
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center bg-page p-6">
-      <div className="max-w-[460px] text-center">
+      <div className="max-w-115 text-center">
         <div className="mb-3 text-[11px] font-semibold tracking-[0.1em] text-ink-4 uppercase">
           Servicio no disponible
         </div>

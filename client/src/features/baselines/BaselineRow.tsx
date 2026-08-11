@@ -21,7 +21,7 @@ function messageOf(error: unknown): string {
 function Chips({ baseline }: { baseline: BaselineSummary }) {
   const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
   return (
-    <div className="flex flex-wrap gap-[5px]">
+    <div className="flex flex-wrap gap-1.25">
       <Tag
         prose
         className={baseline.tier_0_complete ? 'bg-ok-tint text-ok-ink' : 'bg-warn-tint text-warn'}
@@ -60,7 +60,7 @@ function Table({
         <p className="m-0 text-[11.5px] text-ink-4">{empty}</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] border-collapse text-left">
+          <table className="w-full min-w-140 border-collapse text-left">
             <thead>
               <tr>
                 {head.map((cell) => (
@@ -85,7 +85,7 @@ function Table({
                   <td className="border-t border-line-3 py-1.5 pr-3 font-mono text-[11px]">
                     {row.controlId}
                   </td>
-                  <td className="border-t border-line-3 py-1.5 text-[11.5px] leading-[1.5] text-ink-3">
+                  <td className="border-t border-line-3 py-1.5 text-[11.5px] leading-normal text-ink-3">
                     {row.rationale}
                   </td>
                 </tr>
@@ -104,7 +104,7 @@ function Detail({ baseline, log }: { baseline: BaselineSummary; log: BaselineAud
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-x-6 gap-y-1 text-[11.5px] [grid-template-columns:repeat(auto-fit,minmax(230px,1fr))]">
+      <div className="grid gap-x-6 gap-y-1 text-[11.5px] grid-cols-[repeat(auto-fit,minmax(230px,1fr))]">
         <div>
           <Caps>Referencia</Caps>
           <span className="font-mono text-[11px]">{baseline.baseline_id}</span>
@@ -132,7 +132,7 @@ function Detail({ baseline, log }: { baseline: BaselineSummary; log: BaselineAud
 
       <div>
         <Caps className="mb-1">Por qué se firmó</Caps>
-        <p className="m-0 text-[12px] leading-[1.55] text-ink-3">{baseline.signature_rationale}</p>
+        <p className="m-0 text-xs leading-[1.55] text-ink-3">{baseline.signature_rationale}</p>
       </div>
 
       {mandates.length > 0 ? (
@@ -224,11 +224,11 @@ export function BaselineRow({ baseline }: { baseline: BaselineSummary }) {
         open ? 'ring-1 ring-accent' : ''
       }`}
     >
-      <div className="grid items-center gap-4 px-[18px] py-4 [grid-template-columns:1.9fr_1.1fr_.9fr_1.2fr_auto]">
+      <div className="grid items-center gap-4 px-4.5 py-4 grid-cols-[1.9fr_1.1fr_.9fr_1.2fr_auto] max-mid:grid-cols-1 max-mid:items-start max-mid:gap-2">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
             <span
-              className="font-mono text-[11.5px] leading-[1.5] font-semibold"
+              className="font-mono text-[11.5px] leading-normal font-semibold"
               title={baseline.baseline_id}
             >
               {baseline.baseline_id.slice(0, 8)}
@@ -259,7 +259,7 @@ export function BaselineRow({ baseline }: { baseline: BaselineSummary }) {
 
         <Chips baseline={baseline} />
 
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2 max-mid:justify-start">
           <GhostButton onClick={() => void toggle()}>{open ? 'Ocultar' : 'Detalle'}</GhostButton>
           <button
             type="button"
@@ -274,15 +274,15 @@ export function BaselineRow({ baseline }: { baseline: BaselineSummary }) {
       </div>
 
       {error ? (
-        <div className="border-t border-line-3 bg-alert-tint px-[18px] py-2.5 text-[12px] text-alert-ink">
+        <div className="border-t border-line-3 bg-alert-tint px-4.5 py-2.5 text-xs text-alert-ink">
           {error}
         </div>
       ) : null}
 
       {open ? (
-        <div className="border-t border-line-3 bg-surface-2 px-[18px] py-4">
+        <div className="border-t border-line-3 bg-surface-2 px-4.5 py-4">
           {loading ? (
-            <p className="m-0 text-[12px] text-ink-4">Leyendo el registro de decisiones…</p>
+            <p className="m-0 text-xs text-ink-4">Leyendo el registro de decisiones…</p>
           ) : log ? (
             <Detail baseline={baseline} log={log} />
           ) : null}

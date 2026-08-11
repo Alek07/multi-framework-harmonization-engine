@@ -50,7 +50,7 @@ const COMPUTING = [
 function Legend() {
   return (
     <div>
-      <div className="grid gap-x-6 gap-y-1.5 text-[11.5px] leading-[1.5] text-ink-3 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
+      <div className="grid gap-x-6 gap-y-1.5 text-[11.5px] leading-normal text-ink-3 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
         {(['total', 'partial', 'compensatory', 'contextual'] as const).map((type) => (
           <div key={type}>
             <span className="mr-1.5 text-accent">{MAPPING_TYPE[type].glyph}</span>
@@ -58,11 +58,11 @@ function Legend() {
           </div>
         ))}
         <div>
-          <span className="mr-1.5 inline-block h-2.5 w-4 rounded-[2px] border border-solid border-[#7d7466] align-middle" />
+          <span className="mr-1.5 inline-block h-2.5 w-4 rounded-xs border border-solid border-[#7d7466] align-middle" />
           <b>{PROVENANCE.official_crosswalk.label}</b> — {PROVENANCE.official_crosswalk.note}
         </div>
         <div>
-          <span className="mr-1.5 inline-block h-2.5 w-4 rounded-[2px] border border-dashed border-[#b5ad9d] align-middle" />
+          <span className="mr-1.5 inline-block h-2.5 w-4 rounded-xs border border-dashed border-[#b5ad9d] align-middle" />
           <b>{PROVENANCE.author_judgment.label}</b> — {PROVENANCE.author_judgment.note}
         </div>
         <div>
@@ -126,12 +126,12 @@ function GatingPanel() {
                 data-outcome={decision.outcome}
                 className="flex flex-wrap items-baseline gap-2.5 rounded-[5px] border border-line-2 bg-surface-2 px-3 py-2 text-[12.5px]"
               >
-                <span className="min-w-[150px] flex-none font-mono text-[11px] font-semibold">
+                <span className="min-w-37.5 flex-none font-mono text-[11px] font-semibold">
                   {decision.control_id}
                 </span>
                 <span
                   title={outcome.note}
-                  className={`flex-none cursor-help rounded-sm px-[7px] py-0.5 text-[10px] font-semibold ${outcome.className}`}
+                  className={`flex-none cursor-help rounded-sm px-1.75 py-0.5 text-[10px] font-semibold ${outcome.className}`}
                 >
                   {outcome.label}
                 </span>
@@ -378,7 +378,7 @@ export function StageCandidates() {
             >
               Volver a calcular las opciones
             </PrimaryButton>
-            <span className="max-w-[560px] text-[11.5px] leading-[1.5] text-ink-4">
+            <span className="max-w-140 text-[11.5px] leading-normal text-ink-4">
               Tus decisiones no se pierden al recalcular. Cada cálculo queda anotado en el registro
               del paso 5 ({candidates?.audit_events ?? 0} anotaciones en el último).
             </span>

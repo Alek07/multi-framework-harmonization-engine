@@ -164,7 +164,7 @@ export function StageDelta() {
         <>
           <p className="m-0 mb-3 text-[12.5px] leading-[1.55] text-ink-3">{delta.rationale}</p>
 
-          <div className="grid grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-3 gap-3.5 max-mid:grid-cols-1">
             <Column title="LO QUE EXIGEN LAS DOS" tone="neutral">
               {delta.capabilities
                 .filter((capability) => capability.common_control_ids.length > 0)
@@ -196,7 +196,7 @@ export function StageDelta() {
                 )),
               )}
               {delta.changed_capability_ids.length === 0 ? (
-                <div className="text-[12.5px] leading-[1.5] text-ink-3">
+                <div className="text-[12.5px] leading-normal text-ink-3">
                   En esta zona no cambia nada entre una normativa y otra. Es una conclusión válida y
                   útil: significa que lo compuesto sirve para ambas.
                 </div>
@@ -205,7 +205,7 @@ export function StageDelta() {
 
             <Column title="LO QUE QUEDA SIN CUBRIR" tone="alert">
               {delta.regional_gap_capability_ids.length === 0 ? (
-                <div className="text-[12.5px] leading-[1.5] text-ink-3">
+                <div className="text-[12.5px] leading-normal text-ink-3">
                   Cambiar de región no deja ningún requisito sin cubrir en esta zona.
                 </div>
               ) : null}
@@ -239,7 +239,7 @@ export function StageDelta() {
               .map((capability) => (
                 <div
                   key={capability.capability_id}
-                  className="grid grid-cols-[170px_1fr] items-baseline gap-3 border-t border-line-3 py-1.5 text-[12.5px]"
+                  className="grid grid-cols-[170px_1fr] items-baseline gap-3 border-t border-line-3 py-1.5 text-[12.5px] max-narrow:grid-cols-1 max-narrow:gap-0.5"
                 >
                   <span className="font-mono text-[11.5px] font-semibold">
                     {capability.capability_id}
@@ -279,7 +279,7 @@ export function StageDelta() {
                   </span>
                 </div>
               ))}
-            <div className="mt-2.5 text-[11.5px] leading-[1.5] text-ink-4">
+            <div className="mt-2.5 text-[11.5px] leading-normal text-ink-4">
               <b>Criterio de cada lectura:</b>{' '}
               {delta.lenses.map((lens, index) => (
                 <span key={index} className="mr-2">

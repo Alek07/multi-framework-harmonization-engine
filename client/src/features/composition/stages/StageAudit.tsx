@@ -165,7 +165,7 @@ export function StageAudit() {
             type="button"
             title={option.note}
             onClick={() => setFilter(option.value)}
-            className={`cursor-pointer rounded-[5px] border px-3 py-[5px] text-[11.5px] font-semibold ${
+            className={`cursor-pointer rounded-[5px] border px-3 py-1.25 text-[11.5px] font-semibold ${
               filter === option.value
                 ? 'border-accent bg-accent-tint text-accent'
                 : 'border-line bg-surface-2 text-ink-3'
@@ -176,7 +176,8 @@ export function StageAudit() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-md border border-line-2 text-xs leading-[1.5]">
+      <div className="overflow-hidden rounded-md border border-line-2 text-xs leading-normal max-mid:overflow-x-auto">
+        <div className="max-mid:min-w-175">
         <Header />
         {rows.length === 0 ? (
           <div className="px-3 py-3 text-[11px] text-ink-4">
@@ -189,7 +190,7 @@ export function StageAudit() {
             data-testid="audit-row"
             data-actor={row.actor}
             data-event={row.raw}
-            className={`grid border-t border-line-3 px-3 py-[7px] text-[11px] ${
+            className={`grid border-t border-line-3 px-3 py-1.75 text-[11px] ${
               signed
                 ? ''
                 : 'bg-[repeating-linear-gradient(45deg,#fdfcfa,#fdfcfa_8px,#faf8f3_8px,#faf8f3_16px)] text-ink-4 italic'
@@ -208,6 +209,7 @@ export function StageAudit() {
             <span className="text-ink-3">{row.why}</span>
           </div>
         ))}
+        </div>
       </div>
 
       <Pager

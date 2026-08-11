@@ -39,20 +39,20 @@ export function SignDialog({ open, onClose }: { open: boolean; onClose: () => vo
     operator.trim() !== '' && role.trim() !== '' && rationale.trim() !== '' && accepted && !signing
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-[rgba(24,34,48,.45)] p-6">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-[rgba(24,34,48,.45)] p-6 max-narrow:items-start max-narrow:p-3">
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Firmar baseline"
-        className="w-full max-w-[560px] rounded-[10px] bg-surface px-7 py-6 shadow-[0_20px_60px_rgba(24,34,48,.3)]"
+        className="w-full max-w-140 overflow-y-auto rounded-[10px] bg-surface px-7 py-6 shadow-[0_20px_60px_rgba(24,34,48,.3)] max-narrow:max-h-[92vh] max-narrow:px-4 max-narrow:py-4.5"
       >
         <h3 className="m-0 mb-1 text-base font-semibold">Firmar la línea base</h3>
-        <p className="m-0 mb-3.5 text-[12.5px] leading-[1.5] text-ink-3">
+        <p className="m-0 mb-3.5 text-[12.5px] leading-normal text-ink-3">
           Esto es lo que va a quedar registrado con tu nombre. No se puede editar desde aquí: si
           algo no cuadra, cierra este cuadro y corrígelo en el paso 2.
         </p>
 
-        <div className="mb-4 grid grid-cols-2 gap-2 rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px]">
+        <div className="mb-4 grid grid-cols-2 gap-2 rounded-md border border-line-2 bg-surface-2 px-3.5 py-3 text-[12.5px] max-mid:grid-cols-1">
           <Row label={CHOICE_KIND.option_selected} value={count('option_selected')} />
           <Row label={CHOICE_KIND.compensatory_declared} value={count('compensatory_declared')} />
           <Row label={CHOICE_KIND.option_rejected} value={count('option_rejected')} />
@@ -64,7 +64,7 @@ export function SignDialog({ open, onClose }: { open: boolean; onClose: () => vo
           />
         </div>
 
-        <div className="mb-3 grid grid-cols-2 gap-2.5">
+        <div className="mb-3 grid grid-cols-2 gap-2.5 max-mid:grid-cols-1">
           <input
             value={operator}
             onChange={(event) => setOperator(event.target.value)}
@@ -83,10 +83,10 @@ export function SignDialog({ open, onClose }: { open: boolean; onClose: () => vo
           value={rationale}
           onChange={(event) => setRationale(event.target.value)}
           placeholder="Explica por qué esta línea base es la adecuada para este activo y sus zonas. Es la justificación global de la firma…"
-          className="mb-3 min-h-[64px] w-full resize-y rounded-[5px] border border-line-strong px-2.5 py-2 text-[13px] outline-accent"
+          className="mb-3 min-h-16 w-full resize-y rounded-[5px] border border-line-strong px-2.5 py-2 text-[13px] outline-accent"
         />
 
-        <label className="mb-4 flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-[1.5] text-ink-2">
+        <label className="mb-4 flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-normal text-ink-2">
           <Checkbox
             checked={accepted}
             onClick={() => setAccepted(!accepted)}

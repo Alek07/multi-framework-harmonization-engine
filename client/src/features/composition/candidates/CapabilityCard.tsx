@@ -152,7 +152,7 @@ function ConflictPanel({
           )
         })}
       </div>
-      <div className="text-[11.5px] leading-[1.5]">
+      <div className="text-[11.5px] leading-normal">
         {resolved
           ? 'Decidido. Escribe abajo por qué: se registrará tanto el control que eliges como el que descartas.'
           : 'Cuando dos marcos piden cosas incompatibles, el sistema no elige por ti: te lo plantea. Marca cuál se aplica en esta zona.'}
@@ -237,7 +237,7 @@ export function CapabilityCard({
       data-outstanding={capability.priority.outstanding}
       data-gap={gap !== null}
       data-conflicts={conflicts.length}
-      className={`rounded-[7px] border border-[#e2ded5] bg-surface-3 px-[18px] py-4 ${
+      className={`rounded-[7px] border border-[#e2ded5] bg-surface-3 px-4.5 py-4 ${
         tier0 ? 'border-l-4 border-l-ink' : ''
       }`}
     >
@@ -265,7 +265,7 @@ export function CapabilityCard({
         </span>
         <span
           title={TIER[capability.priority.tier].note}
-          className={`cursor-help rounded-sm px-[7px] py-0.5 text-[10px] font-bold ${
+          className={`cursor-help rounded-sm px-1.75 py-0.5 text-[10px] font-bold ${
             tier0 ? 'bg-ink text-white' : 'border border-ink-5 text-ink-2'
           }`}
         >
@@ -307,7 +307,7 @@ export function CapabilityCard({
           </Tag>
         ) : null}
         <span
-          className="ml-auto flex items-center gap-2"
+          className="ml-auto flex items-center gap-2 max-narrow:ml-0 max-narrow:w-full"
           title="Cuánto del requisito queda cubierto por los controles disponibles en esta zona. Lo calcula el sistema, no la pantalla."
         >
           <Meter
@@ -323,7 +323,7 @@ export function CapabilityCard({
       </div>
 
       {!open ? (
-        <div className="text-[11.5px] leading-[1.5] text-ink-4">
+        <div className="text-[11.5px] leading-normal text-ink-4">
           {eligible.length > 0
             ? `${eligible.length} opción(es) equivalente(s)${
                 suggestions.length > 0 ? ` · ${suggestions.length} sugerencia(s)` : ''
@@ -334,7 +334,7 @@ export function CapabilityCard({
 
       {open ? (
         <>
-          <div className="mb-2 text-[11.5px] leading-[1.5] text-ink-3">{capability.rationale}</div>
+          <div className="mb-2 text-[11.5px] leading-normal text-ink-3">{capability.rationale}</div>
 
           {tier0 && capability.priority.mandates.length > 0 ? (
             <div className="mb-2 flex flex-wrap items-baseline gap-1">
@@ -385,7 +385,7 @@ export function CapabilityCard({
                   {coverageText(gap.residual)} sin cubrir. {gap.rationale}
                 </span>
               </div>
-              <div className="my-1.5 mb-2.5 text-xs leading-[1.5] text-alert-soft">
+              <div className="my-1.5 mb-2.5 text-xs leading-normal text-alert-soft">
                 Este aviso no se puede cerrar ni ocultar, y la falta de cobertura aparecerá en la línea
                 base firmada. Es deliberado: nada se descarta en silencio.
               </div>
@@ -409,7 +409,7 @@ export function CapabilityCard({
 
           {eligible.length > 0 ? (
             <>
-              <div className="mt-2 grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(255px,1fr))]">
+              <div className="mt-2 grid gap-2.5 grid-cols-[repeat(auto-fill,minmax(255px,1fr))]">
                 {(showFoldedOptions ? eligible : options.shown).map((option) => (
                   <CatalogOption
                     key={option.control.id}
@@ -433,7 +433,7 @@ export function CapabilityCard({
               ) : null}
             </>
           ) : (
-            <div className="mt-2 rounded-md border border-dashed border-line-dashed bg-surface-2 px-3.5 py-2.5 text-[12.5px] leading-[1.5] text-ink-3">
+            <div className="mt-2 rounded-md border border-dashed border-line-dashed bg-surface-2 px-3.5 py-2.5 text-[12.5px] leading-normal text-ink-3">
               Ninguno de los controles del catálogo es aplicable a este activo tal y como está descrito.
               El requisito <b>sigue siendo obligatorio</b>: lo que se ha descartado son los controles,
               no la obligación. Tendrás que declarar una medida compensatoria o aceptar por escrito que
@@ -456,7 +456,7 @@ export function CapabilityCard({
                 No son equivalencias del catálogo: son controles que se parecen a este requisito y se te
                 ofrecen por si encajan. Adoptar uno es una decisión tuya y queda registrada como tal.
               </Hint>
-              <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(255px,1fr))]">
+              <div className="grid gap-2.5 grid-cols-[repeat(auto-fill,minmax(255px,1fr))]">
                 {(showFoldedSuggestions ? suggestions : suggested.shown).map((hit) => (
                   <RetrievedOption
                     key={hit.control.id}
@@ -492,7 +492,7 @@ export function CapabilityCard({
                 siguen disponibles si prefieres alguna
               </button>
               {showSuperseded ? (
-                <div className="mt-2 grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(255px,1fr))]">
+                <div className="mt-2 grid gap-2.5 grid-cols-[repeat(auto-fill,minmax(255px,1fr))]">
                   {superseded.map((option) => (
                     <CatalogOption
                       key={option.control.id}
@@ -514,7 +514,7 @@ export function CapabilityCard({
               summary={`Sugerencias fuera del filtro de esta zona (${capability.retrieval.set_aside.length})`}
             >
               <div
-                className="mt-1.5 rounded-[5px] border border-line-2 bg-surface-2 px-2.5 py-2 text-[11px] leading-[1.5] text-ink-3"
+                className="mt-1.5 rounded-[5px] border border-line-2 bg-surface-2 px-2.5 py-2 text-[11px] leading-normal text-ink-3"
                 title="Se apartan por el filtro de jurisdicción, zona o tipo de equivalencia que se ha declarado para esta búsqueda"
               >
                 No se ofrecen aquí, pero se dejan a la vista porque apartar no es descartar:{' '}
@@ -568,7 +568,7 @@ export function CapabilityCard({
                 data-testid="reason"
                 onChange={(event) => setReason(zoneId, capabilityId, event.target.value)}
                 placeholder="Escribe aquí por qué. Se guardará tal cual, con tu nombre, en el registro de decisiones…"
-                className={`min-h-[44px] w-full resize-y rounded-[5px] border bg-surface px-2.5 py-2 text-[12.5px] outline-accent ${
+                className={`min-h-11 w-full resize-y rounded-[5px] border bg-surface px-2.5 py-2 text-[12.5px] outline-accent ${
                   reason.trim() === '' ? 'border-alert' : 'border-line'
                 }`}
               />
