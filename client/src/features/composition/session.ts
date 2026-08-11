@@ -14,6 +14,10 @@ import type { Correction, ProfileSource, Step } from './composition'
 const STORAGE_KEY = 'mfhe.session.v1'
 
 export interface SessionState {
+  // Bumped by `reset`, and the provider is keyed by it: clearing this store
+  // cannot reach the engine's answers, so a new composition is a new provider.
+  generation: number
+
   startedAt: string | null
   updatedAt: string | null
 
@@ -57,6 +61,7 @@ export interface SessionActions {
 }
 
 const EMPTY: SessionState = {
+  generation: 0,
   startedAt: null,
   updatedAt: null,
   step: 1,
@@ -153,13 +158,14 @@ export const useSession = create<SessionState & SessionActions>()(
 
       markSigned: (signedBaselineId) => set((state) => ({ ...touched(state), signedBaselineId })),
 
-      reset: () => set({ ...EMPTY }),
+      reset: () => set((state) => ({ ...EMPTY, generation: state.generation + 1 })),
     }),
     {
       name: STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
       version: 1,
-      partialize: (state): SessionState => ({
+      // Everything but `generation`: it numbers the compositions of one page.
+      partialize: (state): Omit<SessionState, 'generation'> => ({
         startedAt: state.startedAt,
         updatedAt: state.updatedAt,
         step: state.step,

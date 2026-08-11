@@ -3,19 +3,21 @@
  * the engine is not there.
  *
  * The provider sits above the outlet, so walking back to the list does not
- * unmount the composition the operator is in the middle of.
+ * unmount the composition the operator is in the middle of. Discarding one does:
+ * it is keyed by `generation`, which `reset` bumps.
  */
 
 import { Outlet } from '@tanstack/react-router'
 
 import { CompositionProvider } from '../features/composition/CompositionProvider'
 import { useComposition } from '../features/composition/composition'
+import { useSession } from '../features/composition/session'
 
 function BackendDown() {
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center bg-page p-6">
       <div className="max-w-115 text-center">
-        <div className="mb-3 text-[11px] font-semibold tracking-[0.1em] text-ink-4 uppercase">
+        <div className="mb-3 text-[11px] font-semibold tracking-widest text-ink-4 uppercase">
           Servicio no disponible
         </div>
         <h2 className="m-0 mb-2.5 text-xl font-semibold">No se puede conectar con el sistema</h2>
@@ -42,8 +44,9 @@ function Gate() {
 }
 
 export function AppShell() {
+  const generation = useSession((state) => state.generation)
   return (
-    <CompositionProvider>
+    <CompositionProvider key={generation}>
       <Gate />
     </CompositionProvider>
   )
