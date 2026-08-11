@@ -620,16 +620,7 @@ export interface ComposedBaseline {
 
 // --- GET /baselines (server/app/baseline/listing.py) -------------------------
 
-/**
- * One signed baseline as the list of them shows it.
- *
- * Every field is read back from that baseline's own signature entry in the
- * ledger — there is no `baselines` table on the server, and this is not a
- * `ComposedBaseline`: reconstructing the full composition would mean re-running
- * the core over a profile that may no longer exist under those versions. What a
- * list needs is who signed what, when, and how much was decided by hand; for the
- * rest there is `audit_log_path`.
- */
+/** One signed baseline as the list shows it: its signature entry, read back. */
 export interface BaselineSummary {
   baseline_id: string
   run_id: string

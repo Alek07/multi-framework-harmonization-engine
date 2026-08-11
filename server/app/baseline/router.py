@@ -5,11 +5,8 @@ signs; the other is where anyone can check what was signed and why. UCM-15 decla
 both contracts; UCM-16 fills the composition in without changing what a client
 sends.
 
-The third answers the question neither of them can: *what has been signed here?*
-Both of the others take a baseline id, which assumes the caller already has one —
-true for the client that just signed, false for anyone who opens the application
-afterwards. It is a read over the ledger and adds no state of its own
-(`baseline/listing.py`).
+The third answers what neither of them can — *what has been signed here?* — for a
+caller that has no baseline id. A read over the ledger (`baseline/listing.py`).
 
 One note on the trail. It is served by baseline id, and it deliberately returns
 *more* than the events stamped with that baseline: the engine's decisions are
@@ -39,9 +36,7 @@ from app.core.schemas import Message
 
 router = APIRouter(prefix="/baseline", tags=["baseline"])
 
-# The list is about baselines in the plural, so it does not live under the prefix
-# of a single one. A second router rather than a bare path on the first, so the
-# mounting stays as explicit as the surface it is declared in (`api/router.py`).
+# Plural, so not under the prefix of a single baseline.
 collection_router = APIRouter(tags=["baseline"])
 
 
@@ -54,11 +49,7 @@ collection_router = APIRouter(tags=["baseline"])
 async def list_baselines(audit: AuditDep) -> BaselineList:
     """Every signed baseline the ledger holds, newest first.
 
-    Nothing is stored to answer this: a signed baseline *is* its `baseline_signed`
-    entry, and the summary is that entry read back plus a few tallies counted over
-    the entries stamped with the same baseline. An empty ledger is an empty list
-    and a 200 — "nothing has been signed here" is an answer, not a missing
-    resource.
+    An empty ledger is an empty list and a 200: nothing signed is an answer.
     """
     return listing_of(await audit.signed_baselines(), await audit.composition_counts())
 

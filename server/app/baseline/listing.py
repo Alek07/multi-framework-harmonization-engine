@@ -1,23 +1,7 @@
-"""The list of signed baselines, projected from the ledger and from nothing else.
+"""UCM-21 - `GET /baselines`: signed baselines projected from the ledger, and nothing else.
 
-`GET /baselines` is the sixth endpoint, and it is the one place in the system that
-answers a question none of the other five can: *what has been signed here?* The
-composition endpoint hands a baseline back to whoever signed it and the trail
-endpoint serves one by id — both of which assume the caller already knows the id.
-A client that was closed and reopened does not, and reconstructing the list from
-whatever the browser happened to keep would make the record depend on the machine
-that was in front of it.
-
-What it deliberately does **not** do is introduce a second place where a baseline
-lives. There is no `baselines` table. A signed baseline already exists in the
-ledger as its `baseline_signed` entry — actor, instant, profile, versions and the
-payload the composition wrote — and this module reads that entry back. Invariant 5
-is untouched: still one mutable state, still append-only, still no copy that can
-disagree with the trail.
-
-The projection is a pure function of the events for the same reason the trail
-writers are: the same ledger always produces the same list, so the list can be
-asserted on directly (`tests/api/test_baselines.py`).
+A signed baseline *is* its `baseline_signed` entry, so there is no table and no
+second place one can live. Pure, like the trail writers.
 """
 
 from __future__ import annotations
@@ -52,10 +36,8 @@ def _count(payload: dict[str, Any], key: str) -> int:
 def summary_of(signed: AuditEvent, counts: Counter[AuditEventType]) -> BaselineSummary:
     """One `baseline_signed` entry, read as the baseline it closed.
 
-    The payload is read defensively — `.get` with a default rather than a subscript
-    — because the ledger is append-only in the strongest sense: entries written by
-    an earlier version of the trail writer cannot be migrated to carry a field a
-    later one added. A summary of an old baseline should be poorer, never a 500.
+    The payload is read with `.get`: an entry written before a field existed cannot
+    be migrated, so an old baseline gives a poorer summary rather than a 500.
     """
     payload = signed.payload or {}
     baseline_id = signed.baseline_id
@@ -67,14 +49,9 @@ def summary_of(signed: AuditEvent, counts: Counter[AuditEventType]) -> BaselineS
         run_id=signed.run_id,
         profile_id=signed.profile_id,
         profile_name=str(payload.get("profile_name") or signed.profile_id),
-        # The signer is the actor of their own entry. There is no separate name
-        # field to disagree with it.
+        # The signer is the actor of their own entry.
         signed_by=signed.actor_ref or "",
-        # Read back as aware UTC, the same way `AuditEventRead` does it. SQLite
-        # drops the offset, and a naive timestamp on the wire is one the browser
-        # reads as local time — which would date a signature wrong by up to a day
-        # and make the list disagree with the compose response about the same
-        # baseline.
+        # SQLite drops the offset; naive on the wire is read as local time.
         signed_at=as_utc(signed.recorded_at),
         versions=dict(signed.versions or {}),
         zone_ids=_strings(payload, "zones"),
@@ -82,9 +59,7 @@ def summary_of(signed: AuditEvent, counts: Counter[AuditEventType]) -> BaselineS
         closed_mandates=_mandates(payload),
         human_choices=_count(payload, "human_choices"),
         ratified_mandates=_count(payload, "ratified_mandates"),
-        # Counted over the entries rather than taken from the payload: these two are
-        # what the operator did, and the entries that record each of them are the
-        # evidence for it. A tally written by the same hand it describes proves less.
+        # Counted over the entries, not taken from a tally the same composition wrote.
         gaps_accepted=counts.get(AuditEventType.GAP_ACCEPTED, 0),
         conflicts_resolved=counts.get(AuditEventType.OPTION_REJECTED, 0),
         audit_events=sum(counts.values()),

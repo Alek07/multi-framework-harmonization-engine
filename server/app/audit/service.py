@@ -135,10 +135,7 @@ class AuditService:
     async def signed_baselines(self) -> list[AuditEvent]:
         """The signatures the ledger holds, newest first — what `GET /baselines` lists.
 
-        Deliberately raw events rather than baseline summaries: this service knows
-        the ledger and nothing about what a baseline means, and the projection into
-        a summary is a pure function that lives with the baseline's own contract
-        (`baseline/listing.py`).
+        Raw events: the projection into a summary lives in `baseline/listing.py`.
         """
         return await self.repository.signed_baselines()
 

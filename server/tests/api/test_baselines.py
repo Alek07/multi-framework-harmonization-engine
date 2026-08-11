@@ -1,21 +1,7 @@
 """UCM-21 - `GET /baselines`: what has been signed here, read from the ledger.
 
-The sixth endpoint exists because the other five all take the composition as their
-subject and none of them can answer that question — the two that mention a
-baseline take its id, which only the client that signed it has. These tests are
-written about the property that makes the addition defensible rather than merely
-convenient:
-
-* **It stores nothing.** The list comes back from an empty ledger empty, fills as
-  compositions are signed, and every field of every entry can be found again in
-  that baseline's own trail. There is no second place where a baseline lives, so
-  there is nothing that can drift from the trail.
-* **It counts what the operator did, from the entries that record it.** Gaps
-  accepted and conflicts settled are tallied over the human's own entries, not
-  taken from a number the same composition wrote about itself.
-* **Newest first**, in the ledger's order rather than by timestamp: two baselines
-  signed inside the same second still have an order, and it is the order they were
-  written in.
+Asserted on the property that makes the sixth endpoint defensible: it stores
+nothing, so the list can never disagree with the trail it is read from.
 """
 
 from __future__ import annotations
@@ -101,12 +87,7 @@ def test_the_summary_points_at_a_trail_that_can_be_read(
 def test_the_signature_is_dated_in_utc_on_the_wire(
     client: TestClient, engine_run: dict[str, Any]
 ) -> None:
-    """SQLite drops the offset; a naive timestamp is one the browser reads as local time.
-
-    Left unnormalised this is invisible in the API and wrong in the interface: the
-    list would date a signature up to a day away from what `POST /baseline/compose`
-    said about the very same baseline.
-    """
+    """Naive on the wire is read as local time: the list would misdate the signature."""
     baseline = sign(client, engine_run)
     (summary,) = listed(client)["baselines"]
 

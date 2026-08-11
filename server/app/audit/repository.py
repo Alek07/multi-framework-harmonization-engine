@@ -87,12 +87,7 @@ class AuditRepository:
     async def signed_baselines(self) -> list[AuditEvent]:
         """Every signature in the ledger, newest first.
 
-        There is no `baselines` table and there is not going to be one: a signed
-        baseline *is* its `baseline_signed` entry, which already carries who signed,
-        when, over which profile and under which versions. Reading the list from
-        the ledger keeps invariant 5 exactly as it was — one mutable state, append
-        only — where a second table would have introduced a copy that can disagree
-        with it.
+        There is no `baselines` table: a signed baseline *is* its entry here.
         """
         result = await self.db.execute(
             select(AuditEvent)
@@ -102,12 +97,9 @@ class AuditRepository:
         return list(result.scalars().all())
 
     async def composition_counts(self) -> dict[UUID, Counter[AuditEventType]]:
-        """How many entries of each type every baseline carries, counted in SQL.
+        """How many entries of each type every baseline carries.
 
-        One grouped query for the whole list rather than one walk per baseline: the
-        summary needs a handful of tallies — gaps accepted, conflicts settled, how
-        many entries the composition appended — and reading every trail back to
-        count them would make the list cost grow with the length of the ledger.
+        One grouped query, not one trail walk per baseline.
         """
         result = await self.db.execute(
             select(AuditEvent.baseline_id, AuditEvent.event_type, func.count())

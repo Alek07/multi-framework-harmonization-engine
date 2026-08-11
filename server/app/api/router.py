@@ -8,14 +8,11 @@ mounted (`tests/api/test_surface.py`). Adding an endpoint without editing this
 list breaks the suite; editing the list is a visible, reviewable act.
 
 It has been edited once, and this is the justification in writing the invariant
-asks for. The five endpoints of §7.4 all take the composition as their subject:
-they parse an asset, offer options over it, sign it, read its trail, compare its
-regions. None of them can answer *what has been signed here*, because the two that
-mention a baseline both take its id — which the client that signed it has and any
-later client does not. Without `GET /baselines` the record of what an operator
-composed would live wherever the browser kept it, which is the opposite of an
-auditable ledger. It is a read: it adds no state, no table and no writer
-(`baseline/listing.py`).
+asks for. The five endpoints of §7.4 all take one composition as their subject, and
+the two that mention a baseline take its id — which the client that signed it has
+and any later client does not. Without `GET /baselines` the record of what was
+composed would live wherever the browser kept it. It is a read: no state, no table,
+no writer (`baseline/listing.py`).
 
 `/health` is deliberately not in the list. It is a liveness probe for the compose
 healthcheck (UCM-20), not a function of the engine: it tells a started container
