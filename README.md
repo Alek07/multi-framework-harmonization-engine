@@ -32,8 +32,20 @@ entre 15 y 30 minutos; los siguientes tardan menos de un minuto. Nada de eso se 
 imágenes: vive en volúmenes y se reutiliza.
 
 El lanzador elige la ruta según el hardware, espera a los cuatro contenedores y comprueba dónde ha
-quedado el modelo. Opciones: `--cpu` fuerza la ruta portable, `--gpu` la fuerza al revés, `--down`
-para el sistema, `--logs` sigue los registros.
+quedado el modelo. Opciones: `--cpu` fuerza la ruta portable, `--gpu` la fuerza al revés, `--build`
+reconstruye las imágenes, `--down` para el sistema, `--logs` sigue los registros. Se pueden
+combinar (`--cpu --build`).
+
+**Si has tocado el código, hace falta `--build`.** Las imágenes llevan etiqueta fija, así que sin
+esa opción Docker reutiliza la que ya tiene y el contenedor sigue sirviendo la versión anterior:
+
+```bash
+./scripts/start.sh --build      # .\scripts\start.ps1 -Build en Windows
+```
+
+Para iterar sobre la interfaz es mucho más rápido dejar el sistema arrancado y levantar Vite aparte
+(`cd client && bun run dev`, <http://localhost:5173>): recarga en caliente y habla con el mismo
+backend del puerto 8000. La imagen solo hay que reconstruirla para comprobar el empaquetado.
 
 ## Usar la aplicación
 

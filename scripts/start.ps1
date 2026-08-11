@@ -6,6 +6,7 @@
 param(
     [switch]$Cpu,
     [switch]$Gpu,
+    [switch]$Build,
     [switch]$Down,
     [switch]$Logs,
     [switch]$Help
@@ -31,10 +32,14 @@ if ($Help) {
     Say "                 que estén listos y comprueba dónde quedó el modelo."
     Say "  -Cpu           Fuerza la ruta portable (CPU). Es la ruta reproducible."
     Say "  -Gpu           Fuerza la ruta GPU. Falla si Docker no puede ceder una tarjeta."
+    Say "  -Build         Reconstruye las imágenes de frontend y backend antes de"
+    Say "                 arrancar. Sin esto, Docker reutiliza la imagen ya construida"
+    Say "                 y los cambios en el código no llegan al contenedor."
     Say "  -Down          Para el sistema. Los volúmenes se conservan."
     Say "  -Logs          Sigue los registros de los cuatro servicios."
     Say "  -Help          Esta ayuda."
     Say ""
+    Say "Se pueden combinar: .\scripts\start.ps1 -Cpu -Build"
     Say "Más información: README.md"
     Say ""
     exit 0
@@ -151,11 +156,17 @@ if ($model -like '*7b*' -and $haveGb -gt 0 -and $haveGb -le 6) {
 }
 
 Say ""
-Say "  Arrancando cuatro contenedores..."
+if ($Build) { Say "  Reconstruyendo las imágenes y arrancando cuatro contenedores..." }
+else        { Say "  Arrancando cuatro contenedores..." }
 
 # `--progress quiet`, not a redirect: in PS 5.1 redirecting a native command's
 # stderr wraps each line in an ErrorRecord, which aborts the script.
-& docker compose -p $Project @files --progress quiet up -d
+$upArgs = @('up', '-d')
+$progress = @('--progress', 'quiet')
+# A build is worth watching: a quiet progress bar would hide a compile error.
+if ($Build) { $upArgs += '--build'; $progress = @() }
+
+& docker compose -p $Project @files @progress @upArgs
 if ($LASTEXITCODE -ne 0) {
     Say ""
     Say "  El arranque ha fallado." 'Red'

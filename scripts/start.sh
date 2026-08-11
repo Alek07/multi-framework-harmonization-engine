@@ -22,24 +22,33 @@ Uso: ./scripts/start.sh [opción]
                  que estén listos y comprueba dónde quedó el modelo.
   --cpu          Fuerza la ruta portable (CPU). Es la ruta reproducible.
   --gpu          Fuerza la ruta GPU. Falla si Docker no puede ceder una tarjeta.
+  --build        Reconstruye las imágenes de frontend y backend antes de
+                 arrancar. Sin esto, Docker reutiliza la imagen ya construida y
+                 los cambios en el código no llegan al contenedor.
   --down         Para el sistema. Los volúmenes se conservan.
   --logs         Sigue los registros de los cuatro servicios.
   -h, --help     Esta ayuda.
+
+Se pueden combinar: ./scripts/start.sh --cpu --build
 
 Más información: README.md
 EOF
 }
 
 MODE=auto
-case "${1:-}" in
-  --cpu)  MODE=cpu ;;
-  --gpu)  MODE=gpu ;;
-  --down) exec docker compose -p "$PROJECT" down ;;
-  --logs) exec docker compose -p "$PROJECT" logs -f ;;
-  -h|--help) usage; exit 0 ;;
-  '') ;;
-  *) say "Opción desconocida: %s\n" "$1"; usage; exit 1 ;;
-esac
+BUILD=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --cpu)   MODE=cpu ;;
+    --gpu)   MODE=gpu ;;
+    --build) BUILD="--build" ;;
+    --down)  exec docker compose -p "$PROJECT" down ;;
+    --logs)  exec docker compose -p "$PROJECT" logs -f ;;
+    -h|--help) usage; exit 0 ;;
+    *) say "Opción desconocida: %s\n" "$1"; usage; exit 1 ;;
+  esac
+  shift
+done
 
 if ! docker info >/dev/null 2>&1; then
   say "${RED}Docker no responde.${R}"
@@ -142,11 +151,20 @@ case "$model" in
 esac
 
 say ""
-say "  Arrancando cuatro contenedores..."
+if [ -n "$BUILD" ]; then
+  say "  Reconstruyendo las imágenes y arrancando cuatro contenedores..."
+else
+  say "  Arrancando cuatro contenedores..."
+fi
+
+# A build is the one thing worth watching: `--progress quiet` would hide a
+# compile error behind a spinner for minutes.
+PROGRESS="--progress quiet"
+[ -n "$BUILD" ] && PROGRESS=""
 
 # `--progress quiet`, not a redirect: a redirect would also hide why a start failed.
-# shellcheck disable=SC2086 -- FILES is a deliberate word-split list of -f flags.
-if ! docker compose -p "$PROJECT" $FILES --progress quiet up -d; then
+# shellcheck disable=SC2086 -- FILES, PROGRESS and BUILD are deliberate flag lists.
+if ! docker compose -p "$PROJECT" $FILES $PROGRESS up -d $BUILD; then
   say ""
   say "  ${RED}El arranque ha fallado.${R}"
   exit 1

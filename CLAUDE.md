@@ -159,6 +159,8 @@ adding JSON + repopulating Qdrant, configuration not redesign).
 # whole system (from the repo root) — detects the GPU, waits, verifies where the model landed
 ./scripts/start.sh      # .\scripts\start.ps1 on Windows
 ./scripts/start.sh --cpu    # force the portable path (the reproducible one)
+./scripts/start.sh --build  # rebuild the images — required after any code change,
+                            # the tags are fixed so `up` alone reuses the old image
 ./scripts/start.sh --down   # stop; volumes are kept
 
 # server (from server/)
