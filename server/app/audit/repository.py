@@ -8,6 +8,7 @@ but not a wrong order, a backdated event or an unchained one.
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from uuid import UUID
@@ -17,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.audit.chain import GENESIS_HASH, event_digest
 from app.audit.models import AuditEvent
-from app.audit.schemas import AuditEventCreate
+from app.audit.schemas import AuditEventCreate, AuditEventType
 
 
 class AuditRepository:
@@ -82,6 +83,41 @@ class AuditRepository:
             select(AuditEvent).where(AuditEvent.run_id.in_(runs)).order_by(AuditEvent.sequence)
         )
         return list(result.scalars().all())
+
+    async def signed_baselines(self) -> list[AuditEvent]:
+        """Every signature in the ledger, newest first.
+
+        There is no `baselines` table and there is not going to be one: a signed
+        baseline *is* its `baseline_signed` entry, which already carries who signed,
+        when, over which profile and under which versions. Reading the list from
+        the ledger keeps invariant 5 exactly as it was — one mutable state, append
+        only — where a second table would have introduced a copy that can disagree
+        with it.
+        """
+        result = await self.db.execute(
+            select(AuditEvent)
+            .where(AuditEvent.event_type == AuditEventType.BASELINE_SIGNED)
+            .order_by(AuditEvent.sequence.desc())
+        )
+        return list(result.scalars().all())
+
+    async def composition_counts(self) -> dict[UUID, Counter[AuditEventType]]:
+        """How many entries of each type every baseline carries, counted in SQL.
+
+        One grouped query for the whole list rather than one walk per baseline: the
+        summary needs a handful of tallies — gaps accepted, conflicts settled, how
+        many entries the composition appended — and reading every trail back to
+        count them would make the list cost grow with the length of the ledger.
+        """
+        result = await self.db.execute(
+            select(AuditEvent.baseline_id, AuditEvent.event_type, func.count())
+            .where(AuditEvent.baseline_id.is_not(None))
+            .group_by(AuditEvent.baseline_id, AuditEvent.event_type)
+        )
+        counts: dict[UUID, Counter[AuditEventType]] = {}
+        for baseline_id, event_type, total in result.all():
+            counts.setdefault(baseline_id, Counter())[event_type] = int(total)
+        return counts
 
     async def all(self) -> list[AuditEvent]:
         """The whole ledger, in order. Used to verify the chain end to end."""

@@ -11,13 +11,16 @@ Two authors write here and the service keeps them apart on purpose:
   written justification — that is the whole point of a sovereign composition:
   not that the operator can choose, but that the choice is on the record.
 
-Reading is by run (`log_for_run`) or by baseline (`log_for_baseline`, what
-`GET /baseline/{id}/audit-log` will serve). Verification (`verify_ledger`) re-walks
-the hash chain: the log does not only claim to be append-only, it can show it.
+Reading is by run (`log_for_run`), by baseline (`log_for_baseline`, what
+`GET /baseline/{id}/audit-log` serves) or across the whole ledger
+(`signed_baselines`, what `GET /baselines` serves). Verification (`verify_ledger`)
+re-walks the hash chain: the log does not only claim to be append-only, it can
+show it.
 """
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -128,6 +131,20 @@ class AuditService:
     async def log_for_baseline(self, baseline_id: UUID) -> list[AuditEvent]:
         """The full trail behind a baseline: the engine's run *and* the human's choices."""
         return await self.repository.trail_for_baseline(baseline_id)
+
+    async def signed_baselines(self) -> list[AuditEvent]:
+        """The signatures the ledger holds, newest first — what `GET /baselines` lists.
+
+        Deliberately raw events rather than baseline summaries: this service knows
+        the ledger and nothing about what a baseline means, and the projection into
+        a summary is a pure function that lives with the baseline's own contract
+        (`baseline/listing.py`).
+        """
+        return await self.repository.signed_baselines()
+
+    async def composition_counts(self) -> dict[UUID, Counter[AuditEventType]]:
+        """Per baseline, how many entries of each type its composition appended."""
+        return await self.repository.composition_counts()
 
     async def verify_ledger(self) -> ChainVerification:
         """Re-walk the whole chain: no edited field, no missing event."""

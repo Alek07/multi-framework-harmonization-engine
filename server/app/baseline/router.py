@@ -1,8 +1,15 @@
-"""UCM-15/UCM-16 - `POST /baseline/compose` and `GET /baseline/{id}/audit-log`.
+"""UCM-15/UCM-16 - `POST /baseline/compose`, `GET /baseline/{id}/audit-log`, `GET /baselines`.
 
-Two halves of the same promise. The first is where the human composes and signs;
-the second is where anyone can check what was signed and why. UCM-15 declared both
-contracts; UCM-16 fills the composition in without changing what a client sends.
+The first two are halves of the same promise. One is where the human composes and
+signs; the other is where anyone can check what was signed and why. UCM-15 declared
+both contracts; UCM-16 fills the composition in without changing what a client
+sends.
+
+The third answers the question neither of them can: *what has been signed here?*
+Both of the others take a baseline id, which assumes the caller already has one —
+true for the client that just signed, false for anyone who opens the application
+afterwards. It is a read over the ledger and adds no state of its own
+(`baseline/listing.py`).
 
 One note on the trail. It is served by baseline id, and it deliberately returns
 *more* than the events stamped with that baseline: the engine's decisions are
@@ -20,11 +27,40 @@ from fastapi import APIRouter, status
 
 from app.api.deps import AuditDep, CompositionDep, requested_profile
 from app.audit.schemas import AuditActor, AuditEventRead
-from app.baseline.schemas import BaselineAuditLog, ComposedBaseline, ComposeRequest
+from app.baseline.listing import listing_of
+from app.baseline.schemas import (
+    BaselineAuditLog,
+    BaselineList,
+    ComposedBaseline,
+    ComposeRequest,
+)
 from app.core.exceptions import NotFoundError
 from app.core.schemas import Message
 
 router = APIRouter(prefix="/baseline", tags=["baseline"])
+
+# The list is about baselines in the plural, so it does not live under the prefix
+# of a single one. A second router rather than a bare path on the first, so the
+# mounting stays as explicit as the surface it is declared in (`api/router.py`).
+collection_router = APIRouter(tags=["baseline"])
+
+
+@collection_router.get(
+    "/baselines",
+    response_model=BaselineList,
+    status_code=status.HTTP_200_OK,
+    summary="Líneas base firmadas en esta bitácora",
+)
+async def list_baselines(audit: AuditDep) -> BaselineList:
+    """Every signed baseline the ledger holds, newest first.
+
+    Nothing is stored to answer this: a signed baseline *is* its `baseline_signed`
+    entry, and the summary is that entry read back plus a few tallies counted over
+    the entries stamped with the same baseline. An empty ledger is an empty list
+    and a 200 — "nothing has been signed here" is an answer, not a missing
+    resource.
+    """
+    return listing_of(await audit.signed_baselines(), await audit.composition_counts())
 
 
 @router.post(

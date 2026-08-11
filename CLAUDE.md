@@ -18,8 +18,11 @@ Linear project: [TFM](https://linear.app/checkpoint-std/project/tfm-5febd8144146
 3. **Reproducibility is total**: LLM at **temp 0 + fixed seed**, pinned model
    (`qwen2.5:7b-instruct-q4_K_M`, real fallback `qwen2.5:3b` for 8 GB machines), versioned
    catalog/mappings, `docker compose up` must produce the same result on a foreign 8–16 GB machine.
-4. **Closed API surface — exactly 5 endpoints** (see M3). Any additional endpoint is scope creep
-   unless justified in writing.
+4. **Closed API surface — exactly the endpoints declared in `SURFACE`**
+   (`server/app/api/router.py`, see M3). Any additional endpoint is scope creep unless justified
+   in writing, in that module's docstring, and added to `SURFACE` — which
+   `tests/api/test_surface.py` checks against the routes FastAPI actually mounted, so adding one
+   silently breaks the suite. Currently **6**: the five of §7.4 plus `GET /baselines` (UCM-21).
 5. **The audit log is append-only** (`AuditEvent`, SQLite) and is the *only* mutable state.
    Every decision — engine or human — records actor (`engine|human`), what, why, when.
 6. **Cut rule**: if time runs short, cut UI, never engine logic. Declared plan B: demo via
@@ -88,7 +91,7 @@ the 2 hand-written profiles (no AI) and be validated before starting M2.
 - LLM candidate explanations (`UCM-14`) are P1 and strictly presentational — they never alter
   ranking or selection.
 
-## API surface (M3 — closed, 5 endpoints)
+## API surface (M3 — closed, 6 endpoints)
 
 | Endpoint | Function |
 | -- | -- |
@@ -97,6 +100,13 @@ the 2 hand-written profiles (no AI) and be validated before starting M2.
 | `POST /baseline/compose` | Human choices → signed baseline (verify **Tier 0 complete** before signing; log every choice + reason) |
 | `GET /baseline/{id}/audit-log` | Full traceability |
 | `POST /delta` | Regional delta for one zone of the asset (`regions: [US, EU]`, `profile` inline or `profile_id`; one zone only; N regions = declared future work) |
+| `GET /baselines` | Signed baselines, newest first — projected from the ledger, **no new table** (UCM-21) |
+
+The sixth is the one addition to §7.4, justified in `app/api/router.py`: the five above all take
+the composition as their subject and the two that mention a baseline take its id, so none of them
+can answer *what has been signed here* to a client that was closed and reopened. It is a read —
+a signed baseline **is** its `baseline_signed` entry (`app/baseline/listing.py`), so invariant 5
+is untouched and there is no copy that can drift from the trail.
 
 Sovereign composition (`UCM-16`) is the **central contribution**: equivalent options side by side
 (framework, jurisdiction, strength/SL, tier); the human chooses per zone and signs. Differentiator

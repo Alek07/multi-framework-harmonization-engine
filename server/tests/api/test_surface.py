@@ -1,9 +1,10 @@
-"""UCM-15 - Invariant 4, measured: the API is five endpoints, and no more.
+"""UCM-15 - Invariant 4, measured: the API is what `SURFACE` declares, and no more.
 
 "Any additional endpoint is scope creep unless justified in writing" is the kind
 of rule that erodes one convenient route at a time. These tests are what make it
 cost something: adding an endpoint without editing `SURFACE` fails the suite, and
-editing `SURFACE` is a visible act in the diff.
+editing `SURFACE` is a visible act in the diff. It has been edited once, for
+`GET /baselines`, and the justification is in `app/api/router.py`.
 
 The comparison is made against the **OpenAPI document**, not the router objects,
 for two reasons. It is what a client — and the Swagger demo that is the declared
@@ -30,20 +31,24 @@ def mounted(client: TestClient) -> set[tuple[str, str]]:
     }
 
 
-def test_the_api_is_exactly_the_five_declared_endpoints(client: TestClient) -> None:
+def test_the_api_is_exactly_the_declared_endpoints(client: TestClient) -> None:
     declared = {(method, f"{PREFIX}{path}") for method, path in SURFACE}
     assert mounted(client) - {HEALTH} == declared
 
 
-def test_the_five_endpoints_are_the_ones_the_prd_names(client: TestClient) -> None:
+def test_the_endpoints_are_the_ones_the_prd_names_plus_the_declared_sixth(
+    client: TestClient,
+) -> None:
+    """The five of §7.4, and the one addition, spelled out so a seventh cannot slip in."""
     assert SURFACE == (
         ("POST", "/asset/parse"),
         ("POST", "/candidates"),
         ("POST", "/baseline/compose"),
         ("GET", "/baseline/{baseline_id}/audit-log"),
         ("POST", "/delta"),
+        ("GET", "/baselines"),
     )
-    assert len(SURFACE) == 5
+    assert len(SURFACE) == 6
 
 
 def test_every_engine_endpoint_can_name_the_asset_the_same_way(client: TestClient) -> None:

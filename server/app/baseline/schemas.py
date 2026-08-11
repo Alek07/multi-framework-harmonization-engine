@@ -1,4 +1,4 @@
-"""UCM-15/UCM-16 - Contract of `POST /baseline/compose` and the baseline's trail.
+"""UCM-15/UCM-16 - Contract of `POST /baseline/compose`, the baseline's trail and the list of them.
 
 The request shape was fixed in UCM-15, before the logic existed, so the endpoint
 could be built against a contract rather than the other way round. UCM-16 fills
@@ -240,6 +240,65 @@ class ComposedBaseline(BaseModel):
             if zone.zone_id == zone_id:
                 return zone
         raise KeyError(f"zone not composed: {zone_id}")
+
+
+class BaselineSummary(BaseModel):
+    """One signed baseline, as the list of them shows it.
+
+    Every field is read from the `baseline_signed` entry the composition appended —
+    nothing here is recomputed and nothing is stored twice. That is what makes the
+    list trustworthy rather than merely convenient: it cannot drift from the trail,
+    because it *is* the trail, read at one remove.
+
+    It is deliberately a summary and not a `ComposedBaseline`. Reconstructing the
+    full composition would mean re-running the core over a profile that may no
+    longer exist under those versions; what a list needs is who signed what, when,
+    and how much was decided by hand — and for the rest there is the trail, which
+    `audit_log_path` points at.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    baseline_id: UUID
+    run_id: UUID
+    profile_id: str
+    profile_name: str
+    signed_by: str
+    signed_at: datetime
+    versions: dict[str, str] = Field(default_factory=dict)
+    zone_ids: list[str] = Field(default_factory=list)
+    tier_0_complete: bool
+    # Per zone, the mandates the engine could not close on its own and the human
+    # therefore had to close by hand before signing. Empty is the ordinary case.
+    closed_mandates: dict[str, list[str]] = Field(default_factory=dict)
+    # What the operator did, in the four kinds the ledger files. `human_choices`
+    # and `ratified_mandates` come from the signature's own payload; the other two
+    # are counted over the entries stamped with this baseline.
+    human_choices: int = 0
+    ratified_mandates: int = 0
+    gaps_accepted: int = 0
+    conflicts_resolved: int = 0
+    audit_events: int = 0
+    audit_log_path: str
+    # The operator's own justification, as recorded. Not a rendering of it: what
+    # a reviewer has to be able to read is the sentence that was signed.
+    signature_rationale: str
+
+
+class BaselineList(BaseModel):
+    """Response of `GET /baselines`: every signature the ledger holds, newest first.
+
+    Newest first because the question a list answers is "what has been signed", and
+    the answer is read from the top. The order is the ledger's own (`sequence`
+    descending) rather than a timestamp comparison — two baselines signed in the
+    same second still have an order, and it is the order they were written in.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    baselines: list[BaselineSummary] = Field(default_factory=list)
+    total: int
+    rationale: str
 
 
 class BaselineAuditLog(BaseModel):

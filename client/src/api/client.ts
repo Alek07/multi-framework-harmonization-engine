@@ -1,11 +1,13 @@
 /**
- * The five endpoints, and nothing else.
+ * The declared endpoints, and nothing else.
  *
- * Invariant 4 says the API surface is closed. This module is the client-side
- * half of that promise: one axios instance, exactly the five calls of §7.4 plus
- * the liveness probe the Plan B screen reads, and every one of them returns the
- * server's own shape untouched. No call here merges, filters or reorders a
- * response — what the operator sees is what the engine sent.
+ * Invariant 4 says the API surface is closed and enumerated. This module is the
+ * client-side half of that promise: one axios instance, exactly the five calls of
+ * §7.4 plus the list of signed baselines (UCM-21) and the liveness probe the Plan
+ * B screen reads, and every one of them returns the server's own shape untouched.
+ * No call here merges, filters or reorders a response — what the operator sees is
+ * what the engine sent. The authoritative list is `SURFACE`
+ * (`server/app/api/router.py`), where the sixth is justified in writing.
  */
 
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios'
@@ -14,6 +16,7 @@ import type {
   AssetParseRequest,
   AssetProfile,
   BaselineAuditLog,
+  BaselineList,
   CandidatesRequest,
   CandidatesResponse,
   ComposeRequest,
@@ -179,6 +182,19 @@ export function fetchCandidates(body: CandidatesRequest): Promise<CandidatesResp
 /** 3/5 — the human's choices, verified against Tier 0, signed and recorded. */
 export function composeBaseline(body: ComposeRequest): Promise<ComposedBaseline> {
   return post<ComposedBaseline>('/baseline/compose', body)
+}
+
+/**
+ * 6/6 — every baseline signed in this ledger, newest first (UCM-21).
+ *
+ * The only call that is not about *one* composition, and the reason it exists:
+ * the other five all take the asset or the baseline as their subject, so a client
+ * that was closed and reopened has no way to ask what was signed before. Reading
+ * that from whatever the browser kept would make the record depend on the machine
+ * in front of it.
+ */
+export function fetchBaselines(): Promise<BaselineList> {
+  return get<BaselineList>('/baselines')
 }
 
 /** 4/5 — the full trail behind one baseline, plus the re-walk of its hash chain. */

@@ -618,6 +618,46 @@ export interface ComposedBaseline {
   audit_log_path: string
 }
 
+// --- GET /baselines (server/app/baseline/listing.py) -------------------------
+
+/**
+ * One signed baseline as the list of them shows it.
+ *
+ * Every field is read back from that baseline's own signature entry in the
+ * ledger — there is no `baselines` table on the server, and this is not a
+ * `ComposedBaseline`: reconstructing the full composition would mean re-running
+ * the core over a profile that may no longer exist under those versions. What a
+ * list needs is who signed what, when, and how much was decided by hand; for the
+ * rest there is `audit_log_path`.
+ */
+export interface BaselineSummary {
+  baseline_id: string
+  run_id: string
+  profile_id: string
+  profile_name: string
+  signed_by: string
+  signed_at: string
+  versions: Record<string, string>
+  zone_ids: string[]
+  tier_0_complete: boolean
+  /** Per zone, the mandates the engine could not close and the human closed by hand. */
+  closed_mandates: Record<string, string[]>
+  human_choices: number
+  ratified_mandates: number
+  gaps_accepted: number
+  conflicts_resolved: number
+  audit_events: number
+  audit_log_path: string
+  /** The operator's own justification, as recorded — not a rendering of it. */
+  signature_rationale: string
+}
+
+export interface BaselineList {
+  baselines: BaselineSummary[]
+  total: number
+  rationale: string
+}
+
 // --- GET /baseline/{id}/audit-log (server/app/audit/schemas.py) --------------
 
 export type AuditActor = 'engine' | 'human'
