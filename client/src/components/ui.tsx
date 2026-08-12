@@ -13,7 +13,7 @@ export function Section({
 }: {
   id: string
   step: number
-  title: string
+  title: ReactNode
   /** One sentence: what the operator does on this screen and why. */
   hint?: string
   scope?: string
