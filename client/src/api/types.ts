@@ -649,6 +649,152 @@ export interface BaselineList {
   rationale: string
 }
 
+// --- GET /baseline/{id}/statement (server/app/baseline/statement.py) ---------
+
+/**
+ * What became of one mechanism. The three gating outcomes keep their own
+ * identifiers: an exclusion in the declaration *is* the gating decision.
+ */
+export type MechanismDisposition =
+  | 'selected'
+  | 'ratified'
+  | 'compensatory'
+  | 'offered'
+  | 'rejected'
+  | 'not_applicable'
+  | 'objective_without_mechanism'
+  | 'wrong_scope'
+
+/** How a required capability is satisfied. There is no `excluded`: gating removes
+ * mechanisms, never requirements. */
+export type CapabilityOutcome =
+  | 'implemented'
+  | 'compensated'
+  | 'deferred'
+  | 'accepted_gap'
+  | 'open_gap'
+  | 'roadmap'
+
+export interface StatementMandate {
+  source: string
+  control_id: string | null
+  official_id: string | null
+  framework: Framework | null
+  jurisdiction: Jurisdiction | null
+  foundational_requirement: FoundationalRequirement | null
+  required_at_sl: number | null
+  zone_sl_target: number | null
+  rationale: string
+}
+
+export interface StatementGap {
+  kind: GapKind
+  coverage: number | null
+  residual: number | null
+  rationale: string
+}
+
+export interface StatementMechanism {
+  control_id: string
+  official_id: string | null
+  framework: Framework | null
+  jurisdiction: Jurisdiction | null
+  /** Already the Spanish phrase: the server composed it from the stored scale. */
+  strength: string | null
+  mapping_type: MappingType | null
+  coverage_weight: number | null
+  provenance: ProvenanceSource | null
+  disposition: MechanismDisposition
+  included: boolean
+  /** Chosen although the catalog does not map it here: an adopted suggestion. */
+  adopted: boolean
+  /** The gating outcome the operator decided over, if they did. */
+  despite_gating: string | null
+  rule_id: string | null
+  evidence: string[]
+  compensation: string | null
+  deferred_to: string | null
+  rationale: string
+  audit_sequences: number[]
+}
+
+export interface StatementRow {
+  zone_id: string
+  capability_id: string
+  capability_name: string
+  required: true
+  tier: PriorityTier
+  phase: number | null
+  priority: OrdinalLevel | null
+  layer: ImplementationLayer | null
+  status: CapabilityStatus | null
+  outcome: CapabilityOutcome
+  in_signed_baseline: boolean
+  outstanding: boolean
+  coverage: number | null
+  mandates: StatementMandate[]
+  jurisdictions: Jurisdiction[]
+  frameworks: Framework[]
+  mechanisms: StatementMechanism[]
+  gap: StatementGap | null
+  gap_accepted: boolean
+  decided_by_human: boolean
+  /** Kept apart from the engine's on purpose: only one of them is the operator's. */
+  human_rationale: string | null
+  engine_rationale: string
+  audit_sequences: number[]
+}
+
+export interface StatementCounts {
+  capabilities: number
+  tier_0: number
+  tier_1: number
+  signed: number
+  implemented: number
+  compensated: number
+  deferred: number
+  accepted_gaps: number
+  open_gaps: number
+  roadmap: number
+  included_mechanisms: number
+  offered_not_taken: number
+  rejected_mechanisms: number
+  justified_exclusions: number
+  compensatory_requirements: number
+  organizational_deferrals: number
+}
+
+export interface StatementZone {
+  zone_id: string
+  domain: ZoneDomain | null
+  target_sl: number | null
+  safety_relevant: boolean | null
+  role: string | null
+  tier_0_complete: boolean
+  rows: StatementRow[]
+  counts: StatementCounts
+  rationale: string
+}
+
+export interface BaselineStatement {
+  baseline_id: string
+  run_id: string
+  profile_id: string
+  profile_name: string
+  signed_by: string
+  signed_at: string
+  signature_rationale: string
+  versions: Record<string, string>
+  tier_0_complete: boolean
+  zones: StatementZone[]
+  counts: StatementCounts
+  chain: ChainVerification
+  audit_log_path: string
+  rationale: string
+  /** What the document is not. Declared inside the artefact itself. */
+  limitations: string[]
+}
+
 // --- GET /baseline/{id}/audit-log (server/app/audit/schemas.py) --------------
 
 export type AuditActor = 'engine' | 'human'

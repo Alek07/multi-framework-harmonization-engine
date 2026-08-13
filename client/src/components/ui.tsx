@@ -251,11 +251,13 @@ export function Notice({
 }
 
 /**
- * Reference material the operator opens when they want it.
+ * Reference material the operator opens when they want it, or a choice of what
+ * to take away with them.
  *
- * Only for text that explains the screen — never for a decision, a warning or
- * anything the engine declared: those stay on the page, where they cannot be
- * closed. A dialog the operator never opens must not change what they know.
+ * Never for a decision, a warning or anything the engine declared: those stay on
+ * the page, where they cannot be closed. A dialog the operator never opens must
+ * not change what they know — which is why picking a download format belongs
+ * here and reading a gap does not.
  */
 export function Modal({
   open,
