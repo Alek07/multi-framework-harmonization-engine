@@ -7,12 +7,32 @@ state and easy to erode one convenient route at a time, so it is written here as
 mounted (`tests/api/test_surface.py`). Adding an endpoint without editing this
 list breaks the suite; editing the list is a visible, reviewable act.
 
-It has been edited once, and this is the justification in writing the invariant
-asks for. The five endpoints of §7.4 all take one composition as their subject, and
-the two that mention a baseline take its id — which the client that signed it has
-and any later client does not. Without `GET /baselines` the record of what was
-composed would live wherever the browser kept it. It is a read: no state, no table,
-no writer (`baseline/listing.py`).
+It has been edited twice, and this is the justification in writing the invariant
+asks for.
+
+**The sixth, `GET /baselines` (UCM-21).** The five endpoints of §7.4 all take one
+composition as their subject, and the two that mention a baseline take its id —
+which the client that signed it has and any later client does not. Without it the
+record of what was composed would live wherever the browser kept it. It is a read:
+no state, no table, no writer (`baseline/listing.py`).
+
+**The seventh, `GET /baseline/{id}/statement` (UCM-46).** The other six answer
+*what happened* (the trail), *what was signed* (the list) and *what to compose
+from* (the engine's three). None of them answers the question a reviewer actually
+arrives with — *what applies to this asset, what does not, and on whose word?* —
+which is a declaration of applicability: one row per required capability, with its
+inclusions and its justified exclusions, its tier, its jurisdiction, its gap and
+its signature. That document is the artefact the disciplines this engine already
+implements are *recognised* by (SoA of ISO/IEC 27001, tailoring of SP 800-53B,
+the CRS of IEC 62443-3-2), and it is what the memoir cites.
+
+Three things make it an addition rather than scope creep. It is the same kind of
+read as the sixth — a projection of the ledger, no table, no writer, nothing that
+can drift from the trail (`baseline/statement.py`). Building it in the client
+instead would have put a second, untested implementation of the record in the
+browser and kept the artefact out of Swagger, which is the declared plan B for the
+demo. And it carries the OSCAL export on the same route (`?format=oscal`) rather
+than on a route of its own, because it is one document in two spellings.
 
 `/health` is deliberately not in the list. It is a liveness probe for the compose
 healthcheck (UCM-20), not a function of the engine: it tells a started container
@@ -32,13 +52,15 @@ from app.parse.router import router as parse_router
 
 # (method, path) of every declared endpoint, without the API prefix. The order is
 # the pipeline's: parse the asset, see the options, compose and sign, read the
-# trail, compare regions — then the list, which is about all of them at once and
-# so comes last.
+# trail, emit the document, compare regions — then the list, which is about all of
+# them at once and so comes last.
 SURFACE: tuple[tuple[str, str], ...] = (
     ("POST", "/asset/parse"),
     ("POST", "/candidates"),
     ("POST", "/baseline/compose"),
     ("GET", "/baseline/{baseline_id}/audit-log"),
+    # UCM-46. The seventh, justified in this module's docstring.
+    ("GET", "/baseline/{baseline_id}/statement"),
     # Was `GET /delta` in UCM-15/UCM-17, and the change is deliberate rather than
     # convenient: taking the profile only by id made the delta the one endpoint
     # that could not be asked about the asset the operator had just composed. It

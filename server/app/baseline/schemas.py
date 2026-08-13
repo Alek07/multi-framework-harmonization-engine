@@ -1,4 +1,4 @@
-"""UCM-15/UCM-16 - Contract of `POST /baseline/compose`, the baseline's trail and the list of them.
+"""UCM-15/16/21/46 - Contracts of the baseline: composing it, its trail, the list, the declaration.
 
 The request shape was fixed in UCM-15, before the logic existed, so the endpoint
 could be built against a contract rather than the other way round. UCM-16 fills
@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
@@ -284,6 +284,244 @@ class BaselineList(BaseModel):
     baselines: list[BaselineSummary] = Field(default_factory=list)
     total: int
     rationale: str
+
+
+class MechanismDisposition(str, Enum):
+    """What became of one mechanism for one capability in one zone.
+
+    Three of these are gating's own outcomes (UCM-9) and keep its identifiers on
+    purpose: an exclusion in this document *is* the gating decision that produced
+    it, and renaming it here would create a second vocabulary for one fact.
+    """
+
+    # In the baseline, on the human's word.
+    SELECTED = "selected"
+    RATIFIED = "ratified"
+    COMPENSATORY = "compensatory"
+    # On the table and not taken. Kept because a declaration that lists only what
+    # was chosen cannot show that there was anything to choose between.
+    OFFERED = "offered"
+    REJECTED = "rejected"
+    # Ruled out by the zone's gating, with rule and premise.
+    NOT_APPLICABLE = "not_applicable"
+    OBJECTIVE_WITHOUT_MECHANISM = "objective_without_mechanism"
+    WRONG_SCOPE = "wrong_scope"
+
+
+# The three that put a mechanism *in* the signed baseline. Everything else is
+# either an offer nobody took or an exclusion with a written reason.
+INCLUDED_DISPOSITIONS = frozenset(
+    {
+        MechanismDisposition.SELECTED,
+        MechanismDisposition.RATIFIED,
+        MechanismDisposition.COMPENSATORY,
+    }
+)
+
+
+class CapabilityOutcome(str, Enum):
+    """How one required capability ends up satisfied — or explicitly not.
+
+    There is no `excluded` member and that is the point: gating removes
+    mechanisms, never required capabilities (UCM-9), so no value of this enum can
+    say that a capability does not apply. What varies is *how* it is met, and
+    every way of not meeting it carries someone's written reason.
+    """
+
+    IMPLEMENTED = "implemented"
+    COMPENSATED = "compensated"
+    DEFERRED = "deferred"
+    ACCEPTED_GAP = "accepted_gap"
+    OPEN_GAP = "open_gap"
+    # Discretionary, in the roadmap, outside this signature: Tier 1 the operator
+    # did not decide about is not part of what they signed (`service._zone`).
+    ROADMAP = "roadmap"
+
+
+class StatementFormat(str, Enum):
+    """Which document `GET /baseline/{id}/statement` is asked for."""
+
+    SOA = "soa"
+    OSCAL = "oscal"
+
+
+class StatementMandate(BaseModel):
+    """Why a capability is mandatory, as the ledger recorded it.
+
+    Deliberately permissive — every field but `source` optional, unknown keys
+    ignored — for the same reason `listing.py` reads payloads with `.get`: an
+    entry written before a field existed cannot be migrated, and an old baseline
+    should give a poorer document rather than a 500.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    source: str
+    control_id: str | None = None
+    official_id: str | None = None
+    framework: str | None = None
+    jurisdiction: str | None = None
+    foundational_requirement: str | None = None
+    required_at_sl: int | None = None
+    zone_sl_target: int | None = None
+    rationale: str = ""
+
+
+class StatementGap(BaseModel):
+    """The gap a capability carries into the baseline: how much, and why."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    kind: str
+    coverage: float | None = None
+    residual: float | None = None
+    rationale: str = ""
+
+
+class StatementMechanism(BaseModel):
+    """One mechanism under one capability, and what was decided about it.
+
+    This is the row an ISO/IEC 27001 SoA would call a control. Here it is the
+    *sub*-unit — the unit is the capability — because a mechanism is the only
+    thing that can be excluded.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    control_id: str
+    official_id: str | None = None
+    framework: str | None = None
+    jurisdiction: str | None = None
+    # The Spanish phrase for the control's declared demand (`ControlStrength.label`).
+    strength: str | None = None
+    mapping_type: str | None = None
+    coverage_weight: float | None = None
+    provenance: str | None = None
+    disposition: MechanismDisposition
+    included: bool
+    # Chosen although the catalog does not map it to this capability: the operator
+    # adopted a retrieval suggestion. Recorded as adoption and never as mapping.
+    adopted: bool = False
+    # The gating outcome the operator decided over. Sovereignty includes
+    # contradicting the engine; it does not include doing it silently.
+    despite_gating: str | None = None
+    rule_id: str | None = None
+    evidence: list[str] = Field(default_factory=list)
+    compensation: str | None = None
+    deferred_to: str | None = None
+    rationale: str = ""
+    audit_sequences: list[int] = Field(default_factory=list)
+
+
+class StatementRow(BaseModel):
+    """One required capability in one zone: the row a reviewer reads."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    zone_id: str
+    capability_id: str
+    capability_name: str
+    # Never `False`, exactly as in `CapabilityGating`: this document reports the
+    # composition, and composing chooses mechanisms rather than repealing
+    # requirements.
+    required: Literal[True] = True
+    tier: PriorityTier
+    phase: int | None = None
+    priority: str | None = None
+    layer: str | None = None
+    status: CapabilityStatus | None = None
+    outcome: CapabilityOutcome
+    # Part of what was signed: all of Tier 0, plus the Tier 1 the operator
+    # decided about. The rest is reported as roadmap and marked as not signed.
+    in_signed_baseline: bool
+    outstanding: bool = False
+    coverage: float | None = None
+    mandates: list[StatementMandate] = Field(default_factory=list)
+    jurisdictions: list[str] = Field(default_factory=list)
+    frameworks: list[str] = Field(default_factory=list)
+    mechanisms: list[StatementMechanism] = Field(default_factory=list)
+    gap: StatementGap | None = None
+    gap_accepted: bool = False
+    decided_by_human: bool = False
+    # The two justifications are kept apart on purpose. Merging them would let the
+    # engine's prose pass for the operator's, and it is the operator's that makes
+    # an inclusion or an exclusion admissible.
+    human_rationale: str | None = None
+    engine_rationale: str = ""
+    audit_sequences: list[int] = Field(default_factory=list)
+
+
+class StatementCounts(BaseModel):
+    """The tallies a reviewer checks the document against."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    capabilities: int = 0
+    tier_0: int = 0
+    tier_1: int = 0
+    signed: int = 0
+    implemented: int = 0
+    compensated: int = 0
+    deferred: int = 0
+    accepted_gaps: int = 0
+    open_gaps: int = 0
+    roadmap: int = 0
+    included_mechanisms: int = 0
+    offered_not_taken: int = 0
+    rejected_mechanisms: int = 0
+    # The three gating outcomes, which are three different deliverables: a
+    # justified exclusion is one, an owed compensatory control is another, and a
+    # requirement that changed layer is a third.
+    justified_exclusions: int = 0
+    compensatory_requirements: int = 0
+    organizational_deferrals: int = 0
+
+
+class StatementZone(BaseModel):
+    """The declaration for one zone. Same catalog, different zone, different document."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    zone_id: str
+    domain: str | None = None
+    target_sl: int | None = None
+    safety_relevant: bool | None = None
+    role: str | None = None
+    tier_0_complete: bool
+    rows: list[StatementRow] = Field(default_factory=list)
+    counts: StatementCounts
+    rationale: str
+
+
+class BaselineStatement(BaseModel):
+    """Response of `GET /baseline/{id}/statement`: the baseline as a declaration.
+
+    Projected from the ledger and from nothing else, so the document cannot say
+    anything the trail does not — and so it reports the catalog and rules that
+    governed the signature rather than whichever ones are installed today.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    baseline_id: UUID
+    run_id: UUID
+    profile_id: str
+    profile_name: str
+    signed_by: str
+    signed_at: datetime
+    signature_rationale: str
+    versions: dict[str, str] = Field(default_factory=dict)
+    tier_0_complete: bool
+    zones: list[StatementZone] = Field(default_factory=list)
+    counts: StatementCounts
+    # The document carries its own integrity proof: a declaration read off a
+    # ledger nobody can verify is a declaration of trust in the ledger.
+    chain: ChainVerification
+    audit_log_path: str
+    rationale: str
+    # What this document is *not*. Declared in the artefact itself so it cannot
+    # be cited as something it does not claim to be.
+    limitations: list[str] = Field(default_factory=list)
 
 
 class BaselineAuditLog(BaseModel):

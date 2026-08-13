@@ -22,7 +22,8 @@ Linear project: [TFM](https://linear.app/checkpoint-std/project/tfm-5febd8144146
    (`server/app/api/router.py`, see M3). Any additional endpoint is scope creep unless justified
    in writing, in that module's docstring, and added to `SURFACE` — which
    `tests/api/test_surface.py` checks against the routes FastAPI actually mounted, so adding one
-   silently breaks the suite. Currently **6**: the five of §7.4 plus `GET /baselines` (UCM-21).
+   silently breaks the suite. Currently **7**: the five of §7.4 plus `GET /baselines` (UCM-21)
+   and `GET /baseline/{id}/statement` (UCM-46).
 5. **The audit log is append-only** (`AuditEvent`, SQLite) and is the *only* mutable state.
    Every decision — engine or human — records actor (`engine|human`), what, why, when.
 6. **Cut rule**: if time runs short, cut UI, never engine logic. Declared plan B: demo via
@@ -97,7 +98,7 @@ the 2 hand-written profiles (no AI) and be validated before starting M2.
 - LLM candidate explanations (`UCM-14`) are P1 and strictly presentational — they never alter
   ranking or selection.
 
-## API surface (M3 — closed, 6 endpoints)
+## API surface (M3 — closed, 7 endpoints)
 
 | Endpoint | Function |
 | -- | -- |
@@ -107,12 +108,20 @@ the 2 hand-written profiles (no AI) and be validated before starting M2.
 | `GET /baseline/{id}/audit-log` | Full traceability |
 | `POST /delta` | Regional delta for one zone of the asset (`regions: [US, EU]`, `profile` inline or `profile_id`; one zone only; N regions = declared future work) |
 | `GET /baselines` | Signed baselines, newest first — projected from the ledger, **no new table** (UCM-21) |
+| `GET /baseline/{id}/statement` | The signed baseline as a declaration of applicability (`?format=soa\|oscal`) — one row per required capability, projected from the ledger (UCM-46) |
 
-The sixth is the one addition to §7.4, justified in `app/api/router.py`: the five above all take
-the composition as their subject and the two that mention a baseline take its id, so none of them
-can answer *what has been signed here* to a client that was closed and reopened. It is a read —
-a signed baseline **is** its `baseline_signed` entry (`app/baseline/listing.py`), so invariant 5
-is untouched and there is no copy that can drift from the trail.
+Both additions to §7.4 are justified in `app/api/router.py`. The sixth: the five above all take the
+composition as their subject and the two that mention a baseline take its id, so none of them can
+answer *what has been signed here* to a client that was closed and reopened. The seventh: none of
+the others answers *what applies to this asset, what does not, and on whose word* — which is a
+document (SoA / SSP), not a query, and is what the memoir cites as a recognised format. Both are
+reads projected from the ledger (`app/baseline/listing.py`, `app/baseline/statement.py`), so
+invariant 5 is untouched and there is no copy that can drift from the trail.
+
+The statement is the one artefact the engine emits for a third party, so it also carries what it
+is **not**: `limitations` travels inside the document, and the OSCAL branch declares itself a
+partial export. Crosswalk in `docs/oscal-crosswalk.md`, alignment note in
+`docs/nota-de-alineacion.md`.
 
 Sovereign composition (`UCM-16`) is the **central contribution**: equivalent options side by side
 (framework, jurisdiction, strength/SL, tier); the human chooses per zone and signs. Differentiator
