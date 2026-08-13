@@ -58,7 +58,7 @@ Una sola vista, cinco pasos. Se puede recorrer entera sin IA salvo el primero.
 | **2 · Elegir** | Opciones equivalentes lado a lado por capacidad — marco, jurisdicción, fuerza, tier — y qué ha quitado el gating y por qué. Se elige por zona. Es la contribución central. |
 | **3 · Comparar** | Una zona leída bajo US y bajo +EU. Lecturas acumulativas, nunca un catálogo paralelo. |
 | **4 · Firmar** | Se verifica que el bloque obligatorio está completo y se firma. Nada obligatorio llega a la baseline sin un nombre detrás: elegido, compensado, hueco aceptado por escrito o ratificado. |
-| **5 · Registro** | Bitácora *append-only*, cadena verificada contra su SHA-256 y el evento anterior. |
+| **5 · Registro** | Bitácora *append-only*, cadena verificada contra su SHA-256 y el evento anterior. Cada línea base firmada se puede descargar como **declaración de aplicabilidad** (SoA, JSON), como **plan SSP parcial de OSCAL** o imprimir con su bitácora entera. |
 
 Componer, firmar, leer la bitácora y el delta regional **no necesitan IA**: funcionan con Ollama y
 Qdrant apagados. Lo único que espera al modelo es leer una descripción, y eso también puede hacerse
@@ -69,8 +69,9 @@ ejecutó de verdad: **[docs/demo-playbook.md](docs/demo-playbook.md)**.
 
 ## API
 
-Superficie **cerrada**: cinco endpoints. La lista se declara como dato en
-`server/app/api/router.py` para que una prueba lo compruebe (`tests/api/test_surface.py`).
+Superficie **cerrada**: siete endpoints. La lista se declara como dato en
+`server/app/api/router.py` para que una prueba lo compruebe (`tests/api/test_surface.py`), y
+añadir uno obliga a justificarlo por escrito en ese mismo módulo.
 
 | Endpoint | Función |
 | -- | -- |
@@ -78,7 +79,12 @@ Superficie **cerrada**: cinco endpoints. La lista se declara como dato en
 | `POST /candidates` | Perfil → opciones equivalentes por capacidad y zona |
 | `POST /baseline/compose` | Elecciones del humano → línea base firmada |
 | `GET /baseline/{id}/audit-log` | Trazabilidad completa, con verificación de la cadena |
+| `GET /baseline/{id}/statement` | Declaración de aplicabilidad de la línea base (`?format=soa\|oscal`) |
 | `POST /delta` | Delta regional para una zona del perfil |
+| `GET /baselines` | Líneas base firmadas en esta bitácora, de la más reciente a la más antigua |
+
+Los dos últimos no calculan nada: se **proyectan** de la bitácora, así que no hay ninguna copia que
+pueda contradecir la traza.
 
 `GET /api/v1/health` no forma parte de la superficie: es la sonda del `healthcheck` de compose.
 
@@ -91,6 +97,7 @@ Superficie **cerrada**: cinco endpoints. La lista se declara como dato en
 | `server/app/parse/`, `retrieval/` | Las dos pasadas de IA: borrador de perfil y recuperación de candidatos |
 | `server/app/candidates/`, `baseline/`, `delta/` | Opciones por capacidad, composición y firma, delta regional |
 | `client/` | React + Vite + TypeScript: UI de una vista |
+| `docs/` | Playbook de la demo, crosswalk con OSCAL y nota de alineación con marcos reconocidos |
 
 ## Configuración
 

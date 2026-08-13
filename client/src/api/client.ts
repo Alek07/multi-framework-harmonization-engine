@@ -12,6 +12,7 @@ import type {
   AssetProfile,
   BaselineAuditLog,
   BaselineList,
+  BaselineStatement,
   CandidatesRequest,
   CandidatesResponse,
   ComposeRequest,
@@ -179,9 +180,26 @@ export function composeBaseline(body: ComposeRequest): Promise<ComposedBaseline>
   return post<ComposedBaseline>('/baseline/compose', body)
 }
 
-/** 6/6 — every baseline signed in this ledger, newest first (UCM-21). */
+/** 6/7 — every baseline signed in this ledger, newest first (UCM-21). */
 export function fetchBaselines(): Promise<BaselineList> {
   return get<BaselineList>('/baselines')
+}
+
+/** 7/7 — the signed baseline as a declaration of applicability (UCM-46). */
+export function fetchStatement(baselineId: string): Promise<BaselineStatement> {
+  return get<BaselineStatement>(`/baseline/${baselineId}/statement`)
+}
+
+/**
+ * The same declaration in NIST's vocabulary: a partial OSCAL system-security-plan.
+ *
+ * Typed as `unknown` and not modelled here on purpose. It is a foreign schema
+ * that this client only ever hands to the operator as a file — mirroring it in
+ * TypeScript would create a second definition of OSCAL that could drift from the
+ * server's without anything failing.
+ */
+export function fetchOscalStatement(baselineId: string): Promise<unknown> {
+  return get<unknown>(`/baseline/${baselineId}/statement`, { params: { format: 'oscal' } })
 }
 
 /** 4/5 — the full trail behind one baseline, plus the re-walk of its hash chain. */

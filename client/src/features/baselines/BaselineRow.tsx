@@ -1,14 +1,25 @@
 /**
- * One signed baseline in the list, and what its trail says when opened.
+ * One signed baseline in the list, what its trail says, and the documents it emits.
  *
  * The summary comes with the list; the per-capability detail is the baseline's
- * own trail, fetched when the operator asks for it and reused by the print.
+ * own trail, fetched when the operator asks for it. The three documents — the
+ * declaration of applicability, the partial OSCAL plan and the printed version of
+ * both — are the server's own responses, downloaded verbatim (UCM-46). Each is
+ * fetched once and reused.
  */
 
 import { useState } from 'react'
 
-import { ApiError, OfflineError, fetchAuditLog } from '../../api/client'
-import type { BaselineAuditLog, BaselineSummary } from '../../api/types'
+import {
+  ApiError,
+  OfflineError,
+  fetchAuditLog,
+  fetchOscalStatement,
+  fetchStatement,
+} from '../../api/client'
+import type { BaselineAuditLog, BaselineStatement, BaselineSummary } from '../../api/types'
+import { downloadJson, fileName } from './download'
+import { DownloadDialog } from './DownloadDialog'
 import { printBaseline } from './printable'
 import { decisionsOf, type DecisionRow } from './trail'
 import { Caps, GhostButton, Tag } from '../../components/ui'
@@ -182,18 +193,18 @@ function Detail({ baseline, log }: { baseline: BaselineSummary; log: BaselineAud
 export function BaselineRow({ baseline }: { baseline: BaselineSummary }) {
   const [open, setOpen] = useState(false)
   const [log, setLog] = useState<BaselineAuditLog | null>(null)
+  const [statement, setStatement] = useState<BaselineStatement | null>(null)
+  const [downloads, setDownloads] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  /** The trail is fetched once and then reused by both the detail and the print. */
-  async function trail(): Promise<BaselineAuditLog | null> {
-    if (log) return log
+  /** One place where a fetch either yields its document or leaves the row saying why. */
+  async function load<T>(fetch: () => Promise<T>, cached: T | null): Promise<T | null> {
+    if (cached) return cached
     setLoading(true)
     setError(null)
     try {
-      const fetched = await fetchAuditLog(baseline.baseline_id)
-      setLog(fetched)
-      return fetched
+      return await fetch()
     } catch (caught) {
       setError(messageOf(caught))
       return null
@@ -202,20 +213,64 @@ export function BaselineRow({ baseline }: { baseline: BaselineSummary }) {
     }
   }
 
+  /** The trail is fetched once and then reused by both the detail and the print. */
+  async function trail(): Promise<BaselineAuditLog | null> {
+    const fetched = await load(() => fetchAuditLog(baseline.baseline_id), log)
+    if (fetched) setLog(fetched)
+    return fetched
+  }
+
+  /** The declaration of applicability, which is what the printed document is. */
+  async function declaration(): Promise<BaselineStatement | null> {
+    const fetched = await load(() => fetchStatement(baseline.baseline_id), statement)
+    if (fetched) setStatement(fetched)
+    return fetched
+  }
+
   async function toggle() {
     if (open) return setOpen(false)
     setOpen(true)
     await trail()
   }
 
+  /**
+   * The three exits of the download dialog.
+   *
+   * Each closes it only when the document actually reached the operator: a
+   * dialog that shuts on a failed fetch would look like a download that
+   * happened. The reason stays on screen instead, inside the dialog.
+   */
   async function print() {
-    const fetched = await trail()
-    if (!fetched) return
-    if (!printBaseline(baseline, fetched)) {
+    const document = await declaration()
+    const recorded = await trail()
+    if (!document || !recorded) return
+    if (!printBaseline(document, recorded)) {
       setError(
         'El navegador ha bloqueado la ventana del documento. Permite las ventanas emergentes de esta página y vuelve a intentarlo.',
       )
+      return
     }
+    setDownloads(false)
+  }
+
+  async function downloadSoa() {
+    const document = await declaration()
+    if (!document) return
+    downloadJson(fileName('soa', baseline.baseline_id), document)
+    setDownloads(false)
+  }
+
+  async function downloadOscal() {
+    const document = await load(() => fetchOscalStatement(baseline.baseline_id), null)
+    if (!document) return
+    downloadJson(fileName('oscal-ssp', baseline.baseline_id), document)
+    setDownloads(false)
+  }
+
+  function openDownloads() {
+    // A refusal from a previous attempt is not about this one.
+    setError(null)
+    setDownloads(true)
   }
 
   return (
@@ -263,21 +318,32 @@ export function BaselineRow({ baseline }: { baseline: BaselineSummary }) {
           <GhostButton onClick={() => void toggle()}>{open ? 'Ocultar' : 'Detalle'}</GhostButton>
           <button
             type="button"
-            onClick={() => void print()}
-            disabled={loading}
-            title="Documento imprimible de la línea base, con su bitácora completa"
-            className="cursor-pointer rounded-md border-none bg-accent px-3.5 py-2 text-xs font-semibold whitespace-nowrap text-white hover:bg-accent-ink disabled:cursor-default disabled:bg-ink-5"
+            onClick={openDownloads}
+            title="La declaración de aplicabilidad de esta línea base, para leer, para archivar o en formato OSCAL"
+            className="cursor-pointer rounded-md border-none bg-accent px-3.5 py-2 text-xs font-semibold whitespace-nowrap text-white hover:bg-accent-ink"
           >
-            Descargar PDF
+            Descargar
           </button>
         </div>
       </div>
 
-      {error ? (
+      {/* While the dialog is open it shows the refusal itself; two copies of one
+          sentence would read as two problems. */}
+      {error && !downloads ? (
         <div className="border-t border-line-3 bg-alert-tint px-4.5 py-2.5 text-xs text-alert-ink">
           {error}
         </div>
       ) : null}
+
+      <DownloadDialog
+        open={downloads}
+        onClose={() => setDownloads(false)}
+        loading={loading}
+        error={error}
+        onPrint={() => void print()}
+        onSoa={() => void downloadSoa()}
+        onOscal={() => void downloadOscal()}
+      />
 
       {open ? (
         <div className="border-t border-line-3 bg-surface-2 px-4.5 py-4">

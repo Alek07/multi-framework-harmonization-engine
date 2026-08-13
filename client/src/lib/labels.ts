@@ -17,6 +17,7 @@ import type {
   AuditActor,
   AuditEventType,
   CandidateStatus,
+  CapabilityOutcome,
   CapabilityStatus,
   CaseType,
   ConflictType,
@@ -27,6 +28,7 @@ import type {
   GatingOutcome,
   Jurisdiction,
   MappingType,
+  MechanismDisposition,
   NatureField,
   OrdinalLevel,
   PriorityTier,
@@ -159,6 +161,73 @@ export const GATING_OUTCOME: Record<GatingOutcome, Chip & { note: string }> = {
     label: 'sin mecanismo técnico posible',
     className: 'bg-alert-tint text-alert-ink',
     note: 'El objetivo sigue siendo obligatorio, pero este activo no admite el mecanismo: hay que compensarlo.',
+  },
+}
+
+/**
+ * What became of each mechanism in the declaration of applicability (UCM-46).
+ *
+ * The three gating outcomes keep the wording of `GATING_OUTCOME` above: they are
+ * the same decision seen in the document, and giving them a second wording would
+ * suggest they were two different things.
+ */
+export const DISPOSITION: Record<MechanismDisposition, { label: string; note: string }> = {
+  selected: {
+    label: 'elegido',
+    note: 'La persona que firma lo eligió entre las opciones equivalentes, con su razón escrita.',
+  },
+  ratified: {
+    label: 'ratificado al firmar',
+    note: 'El sistema ya lo tenía retenido y la firma lo asume. No hubo elección entre equivalentes.',
+  },
+  compensatory: {
+    label: 'compensatorio',
+    note: 'Se declara como medida alternativa porque el activo no admite el mecanismo directo.',
+  },
+  offered: {
+    label: 'ofrecido, no tomado',
+    note: 'Estaba sobre la mesa como opción equivalente y no se eligió. Queda para que se vea que había entre qué elegir.',
+  },
+  rejected: {
+    label: 'descartado',
+    note: 'La persona que firma lo descartó al resolver un conflicto, y dejó dicho por qué.',
+  },
+  not_applicable: GATING_OUTCOME.not_applicable,
+  wrong_scope: GATING_OUTCOME.wrong_scope,
+  objective_without_mechanism: GATING_OUTCOME.objective_without_mechanism,
+}
+
+/** How each required capability ends up satisfied — or explicitly not. */
+export const OUTCOME: Record<CapabilityOutcome, Chip & { note: string }> = {
+  implemented: {
+    label: 'cubierta',
+    className: 'bg-ok-tint text-ok-ink',
+    note: 'Hay al menos un control incorporado a la línea base para este requisito.',
+  },
+  compensated: {
+    label: 'compensada',
+    className: 'bg-[#fdeee2] text-[#a35415]',
+    note: 'El objetivo sigue exigido y se cubre con una medida alternativa declarada por escrito.',
+  },
+  deferred: {
+    label: 'en la organización',
+    className: 'bg-defer-tint text-defer',
+    note: 'El requisito no se implanta en el activo: se cumple en políticas y procesos, y sigue exigido.',
+  },
+  accepted_gap: {
+    label: 'hueco asumido',
+    className: 'bg-alert-tint text-alert-ink',
+    note: 'Se firma sin mecanismo en el activo, con la aceptación escrita de quien firma. El requisito no desaparece.',
+  },
+  open_gap: {
+    label: 'hueco abierto',
+    className: 'bg-alert-tint text-alert-ink',
+    note: 'Sin cobertura y sin decisión: no debería aparecer en lo obligatorio de una línea base firmada.',
+  },
+  roadmap: {
+    label: 'en el plan por fases',
+    className: 'bg-[#eef0f2] text-ink-2',
+    note: 'Requisito discrecional que no se decidió: está en el plan por fases y queda fuera de lo firmado.',
   },
 }
 

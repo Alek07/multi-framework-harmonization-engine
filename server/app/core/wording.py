@@ -77,6 +77,20 @@ _WORDS: dict[str, str] = {
     "gap_accepted": "aceptación de un hueco",
     "catalog_mapping": "mapeo del catálogo",
     "adopted_suggestion": "sugerencia adoptada",
+    # --- the declaration of applicability (MechanismDisposition, CapabilityOutcome) ---
+    # `not_applicable`, `wrong_scope` and `objective_without_mechanism` are the
+    # gating words above: an exclusion in the declaration *is* a gating outcome,
+    # and saying it twice with two wordings would suggest they were two things.
+    "selected": "elegido por el operador",
+    "ratified": "ratificado al firmar",
+    "offered": "ofrecido, no elegido",
+    "rejected": "descartado por el operador",
+    "implemented": "cubierta por un mecanismo incorporado",
+    "compensated": "cubierta por un control compensatorio",
+    "deferred": "diferida a la capa organizativa",
+    "accepted_gap": "hueco aceptado por escrito",
+    "open_gap": "hueco abierto",
+    "roadmap": "discrecional, en la hoja de ruta",
     # --- jurisdictions, where the raw value is not a word ---
     "INTL-MARITIME": "internacional marítima",
     "INTL": "internacional",
