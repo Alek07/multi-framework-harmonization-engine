@@ -94,6 +94,18 @@ _WORDS: dict[str, str] = {
     # --- jurisdictions, where the raw value is not a word ---
     "INTL-MARITIME": "internacional marítima",
     "INTL": "internacional",
+    # --- sectors (Sector), for the sectoral-applicability exclusion (UCM-47) ---
+    "energy": "energía",
+    "water": "agua",
+    "maritime": "marítimo",
+    "transport": "transporte",
+    "health": "salud",
+    "digital_infrastructure": "infraestructura digital",
+    "banking_finance": "banca y finanzas",
+    "public_administration": "administración pública",
+    "manufacturing": "fabricación",
+    "chemical": "químico",
+    "food": "alimentación",
     # --- the facts an explanation may lean on (EvidenceKey) ---
     # `catalog_mapping`, `mapping_type` and `jurisdiction` are already above:
     # `SelectionOrigin` and `FilterAxis` name the same things, and one word per

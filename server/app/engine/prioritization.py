@@ -53,6 +53,7 @@ from app.catalog.schemas import (
     StrengthKind,
 )
 from app.core.wording import say
+from app.engine.applicability import control_applies
 from app.engine.prioritization_rules import PrioritizationRules
 from app.engine.schemas import (
     CapabilityGap,
@@ -271,6 +272,15 @@ def _mandates(
     found: list[Mandate] = []
     for mapping in sorted(catalog.mappings_for(capability_id), key=lambda m: m.control_id):
         control = controls[mapping.control_id]
+
+        # A norm outside the asset's sector creates no obligation (UCM-47). This
+        # is read straight from the catalog, not from the gating result, so
+        # without the guard a maritime legal control would still make an onshore
+        # pipeline Tier 0 — the exact false obligation the ticket removes. Gating
+        # already recorded the sectoral exclusion with its rule and reason.
+        if not control_applies(control, zone.sectors):
+            continue
+
         mandate = rules.mandate_for(control.id)
 
         # A contextual overlay is never a mechanism, so it cannot carry an SL mandate.

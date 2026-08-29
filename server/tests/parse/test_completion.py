@@ -79,6 +79,14 @@ def test_unstated_target_sl_is_a_gap_not_a_default() -> None:
     assert "zones[Z-ENG-STATION].target_sl" in gaps
 
 
+def test_unstated_sectors_are_a_gap_the_operator_closes() -> None:
+    """UCM-47: sectors are asked, never guessed — a norm offered to the wrong
+    asset is a false obligation, so the reviewed profile has to declare at least
+    one. Per-zone sectors stay optional: they only override."""
+    assert "sectors" in missing_required(draft())
+    assert "sectors" not in missing_required(draft(sectors=["energy"]))
+
+
 def test_gaps_are_named_by_zone_id_so_the_operator_can_find_them() -> None:
     gaps = missing_required(
         draft(
@@ -133,6 +141,7 @@ def test_promotion_refuses_an_incomplete_draft() -> None:
 
 def test_promotion_builds_the_profile_once_the_operator_completed_it() -> None:
     reviewed = draft(
+        sectors=["energy"],
         zones=[{"id": "Z-ENG-STATION", "purdue": "L3", "target_sl": 3, "nature": NATURE}],
         criticality={
             "physical_consequence": "overpressure_rupture_leak",
@@ -144,6 +153,7 @@ def test_promotion_builds_the_profile_once_the_operator_completed_it() -> None:
     profile = to_profile(reviewed, "PROFILE-C")
 
     assert profile.id == "PROFILE-C"
+    assert [s.value for s in profile.sectors] == ["energy"]
     assert profile.zones[0].target_sl == 3
     assert profile.zones[0].nature.office_it_surface is True
 

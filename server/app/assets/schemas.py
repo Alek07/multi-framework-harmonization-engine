@@ -11,6 +11,8 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.catalog.schemas import Sector
+
 
 class CaseType(str, Enum):
     PURE_OT = "PURE_OT"
@@ -73,6 +75,7 @@ class Zone(BaseModel):
     sl_vector: SLVector | None = None
     safety_out_of_scope: bool = False
     reference: str | None = None
+    sectors: list[Sector] = Field(default_factory=list)
 
 
 class Conduit(BaseModel):
@@ -108,6 +111,7 @@ class AssetProfile(BaseModel):
     id: str
     name: str
     case: CaseType
+    sectors: list[Sector] = Field(default_factory=list)
     zones: list[Zone]
     conduits: list[Conduit]
     criticality: Criticality

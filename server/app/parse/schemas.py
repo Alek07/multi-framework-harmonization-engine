@@ -31,6 +31,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.assets.schemas import CaseType, ConsequenceScale
+from app.catalog.schemas import Sector
 
 # Ollama compiles this schema into a GBNF grammar; it never enters the prompt
 # (measured: `prompt_tokens` is identical with the full schema and with a 62-char
@@ -164,6 +165,13 @@ class ZoneDraft(BaseModel):
     role: str | None = Field(
         default=None, description="Role of the zone, e.g. 'crown_jewel' for a safety system."
     )
+    sectors: list[Sector] = Field(
+        default_factory=list,
+        description=(
+            "Sectors this zone operates in, only when the text distinguishes them from the "
+            "asset's — a maritime berth zone on an energy asset is ['maritime']. Empty otherwise."
+        ),
+    )
     position: str | None = Field(
         default=None, description="Position relative to the IDMZ: 'north_of_idmz'/'south_of_idmz'."
     )
@@ -236,6 +244,14 @@ class AssetProfileDraft(BaseModel):
         default=None,
         description=(
             "PURE_OT if the asset lives only in OT; HYBRID_IT_OT if it straddles IT and OT."
+        ),
+    )
+    sectors: list[Sector] = Field(
+        default_factory=list,
+        description=(
+            "Critical-infrastructure sectors the asset operates in. Empty unless the text names "
+            "them; a gas pipeline is ['energy'], a port ['maritime', 'energy']. Never guessed — "
+            "the operator completes it."
         ),
     )
     zones: list[ZoneDraft] = Field(

@@ -31,6 +31,38 @@ class Jurisdiction(str, Enum):
     INTL_MARITIME = "INTL-MARITIME"
 
 
+class Sector(str, Enum):
+    """The sector an asset belongs to, and the sectors a norm governs (UCM-47).
+
+    A neutral, own taxonomy — not NIS2's Annexes nor the US 16 verbatim, because
+    those two do **not** align one to one, and a neutral enum each framework maps
+    onto is what turns that misalignment from an anecdote into something
+    demonstrable (a datum for the memoir): a gas pipeline is *Energy* under NIS2
+    but sits under *Transportation Systems* (TSA) in the US. It has to be a closed
+    set both the asset and the catalog draw from, so the engine can intersect the
+    two.
+
+    Both sides carry a **list**. A control names the sectors it governs
+    (`applies_to_sectors`); an asset names the sectors it operates in
+    (`AssetProfile.sectors`), and a zone may narrow that (`Zone.sectors`) — a port
+    is transport and, through its fuel terminal, energy. A norm applies to a zone
+    when their sectors intersect; an empty control list is transversal (see
+    `FrameworkControl`).
+    """
+
+    ENERGY = "energy"
+    WATER = "water"
+    MARITIME = "maritime"
+    TRANSPORT = "transport"
+    HEALTH = "health"
+    DIGITAL_INFRASTRUCTURE = "digital_infrastructure"
+    BANKING_FINANCE = "banking_finance"
+    PUBLIC_ADMINISTRATION = "public_administration"
+    MANUFACTURING = "manufacturing"
+    CHEMICAL = "chemical"
+    FOOD = "food"
+
+
 class MappingType(str, Enum):
     TOTAL = "total"
     PARTIAL = "partial"
@@ -171,6 +203,24 @@ class FrameworkControl(BaseModel):
     jurisdiction: Jurisdiction
     strength: ControlStrength
     control_type: ControlType = Field(alias="type")
+    # The sectors this control governs — its declared scope of applicability
+    # (UCM-47). Plural from the name so the cardinality reads in the schema: NIS2
+    # governs the eighteen sectors of its Annexes, IMO governs shipping alone.
+    #
+    # **Empty is not the same as enumerated.** An empty list means *transversal*:
+    # the control applies to any asset, which is the case for the voluntary
+    # technical frameworks (CIS, CSF, IEC 62443) that are cross-sector by design.
+    # A non-empty list is a positive claim that the norm governs *only* those
+    # sectors, and an asset outside them becomes a justified exclusion — never a
+    # silent drop, and never abbreviated to "transversal", which would destroy the
+    # exclusion the baseline is meant to deliver. Absent in every catalog before
+    # v0.4.0, so it defaults to empty and those catalogs keep loading unchanged.
+    applies_to_sectors: list[Sector] = Field(default_factory=list)
+
+    @property
+    def transversal(self) -> bool:
+        """No declared scope: the control applies to every sector."""
+        return not self.applies_to_sectors
 
 
 class Provenance(BaseModel):

@@ -52,7 +52,13 @@ def test_not_applicable_excludes_the_mechanism_without_opening_a_gap(
 
 
 def test_justified_exclusions_are_a_deliverable_of_the_zone(gating_a: ProfileGating) -> None:
-    """Frozen on purpose: the excluded list is what the operator signs, not a side effect."""
+    """Frozen on purpose: the excluded list is what the operator signs, not a side effect.
+
+    Two kinds of `no aplica` sit here together: the technical ones a rule fires on
+    the embedded controller, and the sectoral ones (UCM-47) — the seven IMO
+    controls govern ships, not an onshore gas pipeline, so they are excluded by
+    scope. Both are deliverables, not gaps.
+    """
     exclusions = gating_a.zone(ZONE_OT).justified_exclusions
     assert {d.control_id for d in exclusions} == {
         CIS_ANTIMALWARE,
@@ -70,6 +76,14 @@ def test_justified_exclusions_are_a_deliverable_of_the_zone(gating_a: ProfileGat
         "CTL-IEC-SR112",
         "CTL-IEC-SR27",
         "CTL-IEC-SR53",
+        # Sectoral exclusions: the maritime norm does not govern this pipeline.
+        "CTL-IMO-42898",
+        "CTL-IMO-FAL3GOV",
+        "CTL-IMO-FAL3ID",
+        "CTL-IMO-FAL3PR",
+        "CTL-IMO-FAL3DE",
+        "CTL-IMO-FAL3RS",
+        "CTL-IMO-FAL3RC",
     }
     assert all(d.rationale.strip() and d.evidence for d in exclusions)
 
@@ -144,13 +158,29 @@ def test_wrong_scope_defers_the_capability_to_the_organizational_layer(
     assert report.status is CapabilityStatus.DEFERRED_TO_ORGANIZATIONAL_LAYER
     assert report.required is True
     assert report.deferred_to  # the layer that goes on answering for it is named
-    assert all(d.outcome is GatingOutcome.WRONG_SCOPE for d in report.excluded)
-    assert all(d.deferred_to for d in report.excluded)
+    # The organizational overlay is deferred with a named layer; the maritime
+    # obligation is not deferred at all — it does not govern this sector (UCM-47).
+    deferred = [d for d in report.excluded if d.outcome is GatingOutcome.WRONG_SCOPE]
+    assert deferred
+    assert all(d.deferred_to for d in deferred)
+    imo = next(d for d in report.excluded if d.control_id == "CTL-IMO-42898")
+    assert imo.outcome is GatingOutcome.NOT_APPLICABLE
 
 
 def test_a_legal_obligation_is_never_a_mechanism(gating_a: ProfileGating) -> None:
+    """A legal obligation obliges the operator; it is never a zone mechanism.
+
+    NIS2 governs this asset (it is transversal), so it is deferred to the
+    organizational layer. IMO governs ships, not an onshore pipeline: it is not
+    deferred but excluded by sector (UCM-47) — offering it would assert a maritime
+    obligation the pipeline does not have.
+    """
     deferrals = {d.control_id for d in gating_a.zone(ZONE_OT).organizational_deferrals}
-    assert {"CTL-NIS2-A20", "CTL-NIS2-A21", "CTL-NIS2-A23", "CTL-IMO-42898"} <= deferrals
+    assert {"CTL-NIS2-A20", "CTL-NIS2-A21", "CTL-NIS2-A23"} <= deferrals
+    assert "CTL-IMO-42898" not in deferrals
+
+    not_applicable = {d.control_id for d in gating_a.zone(ZONE_OT).justified_exclusions}
+    assert "CTL-IMO-42898" in not_applicable
 
 
 def test_a_partial_deferral_leaves_the_capability_in_the_asset(
@@ -159,8 +189,8 @@ def test_a_partial_deferral_leaves_the_capability_in_the_asset(
     incident = gating_a.zone(ZONE_OT).capability(IR)
     # Designating responders, keeping the process and escalating are organizational;
     # executing the plan on the asset, triaging and categorising are not.
-    assert all(d.outcome is GatingOutcome.WRONG_SCOPE for d in incident.excluded)
-    assert {d.control_id for d in incident.excluded} == {
+    deferred = [d for d in incident.excluded if d.outcome is GatingOutcome.WRONG_SCOPE]
+    assert {d.control_id for d in deferred} == {
         "CTL-CIS-1701",
         "CTL-CIS-1704",
         "CTL-CSF-GVSC08",
@@ -168,6 +198,9 @@ def test_a_partial_deferral_leaves_the_capability_in_the_asset(
         "CTL-CSF-RSMA04",
         "CTL-NIS2-A21B",
     }
+    # The maritime functional element (FAL3 Respond) is out of sector, not deferred.
+    maritime = next(d for d in incident.excluded if d.control_id == "CTL-IMO-FAL3RS")
+    assert maritime.outcome is GatingOutcome.NOT_APPLICABLE
     assert incident.status is CapabilityStatus.COVERED_BY_MECHANISM
     assert incident.retained_control_ids == [
         "CTL-CSF-RSMA01",
@@ -244,7 +277,13 @@ def test_the_technical_gating_is_what_separates_the_two_profiles(
     gating_a: ProfileGating, gating_b: ProfileGating
 ) -> None:
     hybrid = gating_b.zone(ZONE_ENG)
-    assert hybrid.justified_exclusions == []
+    # The general-purpose host triggers no *technical* `no aplica`. The sectoral
+    # exclusions (UCM-47) are common to both profiles — both are energy — so they
+    # do not separate the two; the technical gating is what does.
+    technical_na = [
+        d for d in hybrid.justified_exclusions if d.rule_id != "APPLIC-SECTOR"
+    ]
+    assert technical_na == []
     assert hybrid.compensatory_requirements == []
     # Both profiles defer the same organizational layer: scope does not depend on the zone.
     assert {d.control_id for d in hybrid.organizational_deferrals} == {
@@ -310,6 +349,6 @@ def test_both_zones_of_the_ot_profile_are_gated(gating_a: ProfileGating) -> None
 
 
 def test_gating_reports_the_versions_it_ran_with(gating_a: ProfileGating) -> None:
-    assert gating_a.catalog_version == "0.3.0"
+    assert gating_a.catalog_version == "0.4.0"
     assert gating_a.rules_version == "0.1.0"
     assert gating_a.gating_version == "0.2.0"

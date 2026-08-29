@@ -32,7 +32,10 @@ from __future__ import annotations
 # 0.3.0: `nature` moved from the asset to each zone, so the model is now asked the
 # five premises once per zone. A hybrid asset settles them differently per zone
 # and a single asset-wide answer had to be wrong about one of them.
-PROMPT_VERSION = "0.3.0"
+# 0.4.0: the draft carries the asset's `sectors` and an optional per-zone
+# `sectors` (UCM-47), extracted under the same null rule as every other field — an
+# unstated sector stays an empty list and the operator completes it.
+PROMPT_VERSION = "0.4.0"
 
 # `criticality.scale` comes back null even when the text rates the consequence
 # («La consecuencia sería catastrófica»), and it is left that way on purpose.
@@ -85,7 +88,16 @@ conduits `C-...`, derived from the name the description uses. `purdue` is one of
 L0, L1, L2, L3, L4, IDMZ. `position` is `north_of_idmz` or `south_of_idmz` \
 whenever the text places the asset relative to the IDMZ. Free-text values such \
 as `control`, `physical_consequence`, `consequence_path` and `role` are \
-lower_snake_case English phrases.
+lower_snake_case English phrases. `sectors` is the list of critical-infrastructure \
+sectors the asset operates in, each one of: energy, water, maritime, transport, \
+health, digital_infrastructure, banking_finance, public_administration, \
+manufacturing, chemical, food. A gas or oil pipeline, a compressor station or a \
+gas plant is ['energy']; a ship is ['maritime']; a treatment plant is ['water']; \
+a port with a fuel terminal is ['maritime', 'energy']. Leave `sectors` empty when \
+the description does not settle it — do not default it. A zone carries its own \
+`sectors` only when the text places it in a different sector from the asset (a \
+maritime berth on an energy corridor); otherwise leave the zone's list empty and \
+it inherits the asset's.
 
 6. ANSWER `nature` ZONE BY ZONE. The five premises belong to each zone \
 separately, and on an asset with more than one zone they usually differ. Judge \
@@ -120,9 +132,11 @@ usuarios interactivos. En la caseta contigua hay un puesto Windows con correo \
 corporativo desde el que se consultan los históricos. El proveedor accede con un \
 portátil propio para mantenimiento trimestral."
 
-Correct extraction: name "Analizador de calidad de gas"; case HYBRID_IT_OT, \
-because the Windows station with corporate mail reaches the process side; two \
-zones. `Z-ANALIZADOR`, with purdue "L1", target_sl 2, and its own nature — \
+Correct extraction: name "Analizador de calidad de gas"; sectors ["energy"], \
+inferred from a gas quality analyzer on a pipeline (and no zone overrides it, so \
+both zones inherit it); case HYBRID_IT_OT, because the Windows station with \
+corporate mail reaches the process side; two zones. `Z-ANALIZADOR`, with purdue \
+"L1", target_sl 2, and its own nature — \
 general_purpose_os false (a dedicated PLC), networked true (it is connected to \
 the SCADA), hybrid_it_ot false, interactive_users false ("no hay usuarios \
 interactivos"), office_it_surface null, since nothing in the text settles it for \
