@@ -17,10 +17,14 @@ from app.core.config import settings
 from app.engine.schemas import (
     CapabilityResolution,
     GapKind,
+    GatingOutcome,
+    ProfileGating,
     ProfileResolution,
 )
 from app.retrieval.schemas import (
     CapabilityRetrieval,
+    FilterAxis,
+    GatingAnnotation,
     PayloadFilter,
     RetrievalRelation,
     RetrievedControl,
@@ -144,11 +148,51 @@ def test_a_lens_narrows_the_view_and_never_the_baseline(
             )
 
 
-def test_without_a_lens_nothing_is_set_aside(
+def test_the_engine_applies_the_zones_sectoral_applicability(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    """The engine does not filter on its own initiative, so there is nothing to report."""
+    """UCM-52: sectoral applicability (UCM-47) is the engine's own lens.
+
+    PROFILE-A operates in energy, so an out-of-sector norm — IMO governs shipping —
+    is not suggested as if it applied. That is a determination, not a silent
+    restriction: it comes back set aside on the sector axis, with its reason, and
+    is not among the suggestions the engine still shows.
+    """
     retrieval = service.retrieve_profile(resolution_a)
+
+    # The main query carries the sector filter — not the wire-level `None` of an
+    # unfiltered pass — and the applicability it applies is reported, never silent.
+    assert any(query_filter is not None for _, _, query_filter in service.index.queries)  # type: ignore[attr-defined]
+
+    sector_aside = [c for c in retrieval.set_aside if FilterAxis.SECTOR in c.excluded_by]
+    assert sector_aside, "an energy asset must set the maritime (IMO) norms aside"
+    for candidate in sector_aside:
+        assert candidate.rationale.strip()
+
+    shown = {
+        hit.control_id
+        for zone in retrieval.zones
+        for capability in zone.capabilities
+        for hit in capability.widening
+    }
+    assert not (shown & {c.control_id for c in sector_aside}), (
+        "a norm set aside by sector must not also be offered as a live suggestion"
+    )
+
+
+def test_a_zone_without_declared_sectors_is_not_filtered(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """Unknown sectors exclude nothing (UCM-47): no premise, no filter, no set_aside."""
+    sectorless = resolution_a.model_copy(
+        update={
+            "zones": [
+                zone.model_copy(update={"zone": zone.zone.model_copy(update={"sectors": []})})
+                for zone in resolution_a.zones
+            ]
+        }
+    )
+    retrieval = service.retrieve_profile(sectorless)
 
     assert retrieval.set_aside == []
     assert retrieval.provenance.payload_filter.is_active is False
@@ -166,6 +210,96 @@ def test_the_query_reserves_room_for_the_extra_candidates(
     asked = {limit for _, limit, _ in service.index.queries}  # type: ignore[attr-defined]
 
     assert asked == {settings.RAG_TOP_K + count for count in by_capability.values()}
+
+
+# --- gating visible in the suggestions (UCM-52) -------------------------------
+
+
+def test_no_suggestion_contradicts_a_gating_exclusion_in_silence(
+    service: RetrievalService, resolution_a: ProfileResolution, gating_a: ProfileGating
+) -> None:
+    """Acceptance: a suggestion for a mechanism gating ruled out of the zone says so.
+
+    Before UCM-52 the engine could exclude a mechanism in a zone and suggest the
+    same control two lines below. Now every such suggestion is annotated with the
+    exclusion — shown marked, not hidden — and never contradicts the engine.
+    """
+    retrieval = service.retrieve_profile(resolution_a, gating=gating_a)
+
+    for zone in retrieval.zones:
+        gated = {d.control_id: d for d in gating_a.zone(zone.zone.zone_id).decisions}
+        for capability in zone.capabilities:
+            for hit in capability.widening:
+                if hit.control_id in gated:
+                    assert hit.gated_out is not None, (
+                        f"{hit.control_id} is gated out of {zone.zone.zone_id} but suggested "
+                        "without saying so"
+                    )
+                    assert hit.gated_out.zone_id == zone.zone.zone_id
+                    assert hit.gated_out.rule_id == gated[hit.control_id].rule_id
+                    assert "gating" in hit.rationale.lower()
+                else:
+                    assert hit.gated_out is None
+
+
+def test_the_same_capability_reads_differently_in_zones_of_different_nature(
+    service: RetrievalService,
+    resolution_a: ProfileResolution,
+    gating_a: ProfileGating,
+    resolution_b: ProfileResolution,
+    gating_b: ProfileGating,
+) -> None:
+    """Acceptance: nature changes the suggestions' justification, deterministically.
+
+    A mechanism that needs a general-purpose OS is gated out of PROFILE-A's OT
+    corridor (which has none) and applicable in PROFILE-B's engineering station
+    (which does). The same suggestion therefore carries a gating exclusion in one
+    zone's nature and not the other's — distinct sets, each with its reason.
+    """
+    ret_a = service.retrieve_profile(resolution_a, gating=gating_a)
+    ret_b = service.retrieve_profile(resolution_b, gating=gating_b)
+
+    def gated_widenings(retrieval: object) -> dict[tuple[str, str], bool]:
+        return {
+            (capability.capability_id, hit.control_id): hit.gated_out is not None
+            for zone in retrieval.zones  # type: ignore[attr-defined]
+            for capability in zone.capabilities
+            for hit in capability.widening
+        }
+
+    a, b = gated_widenings(ret_a), gated_widenings(ret_b)
+    differing = [key for key in a.keys() & b.keys() if a[key] != b[key]]
+
+    assert differing, (
+        "at least one suggestion must be gated out under one zone's nature and applicable "
+        "under the other's — the asset-aware difference the ticket asks for"
+    )
+
+
+def test_a_gated_suggestion_is_annotated_not_hidden(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """The mechanism the ticket names: a suggestion gating excludes stays offered, marked."""
+    zone = resolution_a.zones[0]
+    capability = zone.capabilities[0]
+
+    plain = service.retrieve_capability(capability)
+    assert plain.widening, "the fake ranker should surface a widening to annotate"
+    target = plain.widening[0].control_id
+
+    annotation = GatingAnnotation(
+        zone_id=zone.zone.zone_id,
+        outcome=GatingOutcome.NOT_APPLICABLE,
+        rule_id="TEST-RULE",
+        rationale="regla de prueba",
+        evidence=["premisa observada"],
+    )
+    marked = service.retrieve_capability(capability, gated={target: annotation})
+
+    hit = next(h for h in marked.widening if h.control_id == target)
+    assert hit.gated_out == annotation
+    assert target in marked.offered_control_ids  # annotated, never removed from the list
+    assert "gating" in hit.rationale.lower()
 
 
 # --- gaps ---------------------------------------------------------------------

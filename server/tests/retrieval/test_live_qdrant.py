@@ -21,11 +21,11 @@ from __future__ import annotations
 import pytest
 
 from app.assets.schemas import AssetProfile
-from app.catalog.schemas import Catalog, Jurisdiction
+from app.catalog.schemas import Catalog, Framework, Jurisdiction
 from app.engine.schemas import ProfileResolution
 from app.retrieval.embeddings import capability_text
 from app.retrieval.index import CatalogIndex
-from app.retrieval.schemas import PayloadFilter
+from app.retrieval.schemas import FilterAxis, PayloadFilter
 from app.retrieval.service import RetrievalService
 
 pytestmark = pytest.mark.rag
@@ -48,7 +48,7 @@ def test_the_collection_holds_the_whole_catalog(index: CatalogIndex, catalog: Ca
     stored = index.client.count(index.collection, exact=True).count
 
     assert stored == len(catalog.controls)
-    assert index.collection.startswith("catalog_v0_3_0_")
+    assert index.collection.startswith("catalog_v0_4_0_")
 
 
 def test_populating_twice_changes_nothing(index: CatalogIndex, catalog: Catalog) -> None:
@@ -125,6 +125,30 @@ def test_a_jurisdiction_lens_narrows_the_view_and_reports_what_it_hid(
         for capability in zone.capabilities:
             assert all(hit.jurisdiction is Jurisdiction.EU for hit in capability.retrieved)
             assert all(c.jurisdiction is not Jurisdiction.EU for c in capability.set_aside)
+
+
+def test_the_sectoral_applicability_sets_out_of_scope_norms_aside(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """UCM-52 end to end: an energy asset sets the maritime (IMO) norms aside.
+
+    Against the real index and the real nested `should`/`is_empty` filter: the
+    out-of-sector norms come back on the sector axis, the transversal controls are
+    never excluded, and nothing set aside is still offered as a live suggestion.
+    """
+    retrieval = service.retrieve_profile(resolution_a)
+
+    sector_aside = [c for c in retrieval.set_aside if FilterAxis.SECTOR in c.excluded_by]
+    assert sector_aside, "IMO's maritime controls are out of the energy sector"
+    assert all(c.framework is Framework.IMO for c in sector_aside)
+
+    shown = {
+        hit.control_id
+        for zone in retrieval.zones
+        for capability in zone.capabilities
+        for hit in capability.widening
+    }
+    assert not (shown & {c.control_id for c in sector_aside})
 
 
 def test_the_lens_does_not_touch_the_profile_it_reads(

@@ -34,7 +34,7 @@ from collections import defaultdict
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from qdrant_client import QdrantClient
 from qdrant_client import models as qdrant
 
@@ -51,9 +51,23 @@ from app.retrieval.embeddings import (
 
 logger = logging.getLogger(__name__)
 
-# The payload keys a filter may act on (UCM-13's three axes). Declared here rather
-# than inline so the index itself says what it is filterable by.
-FILTERABLE_KEYS = ("jurisdiction", "framework", "mapping_types", "control_type")
+# The payload keys a filter may act on (UCM-13's three axes plus UCM-52's sector).
+# Declared here rather than inline so the index itself says what it is filterable by.
+FILTERABLE_KEYS = (
+    "jurisdiction",
+    "framework",
+    "mapping_types",
+    "control_type",
+    "applies_to_sectors",
+)
+
+# Bumped whenever the payload *projection* changes shape (a new field, a different
+# aggregation) without the catalog itself changing. The collection name is a
+# fingerprint of the catalog, the text template and the model — but not of this
+# projection, so a projection change would otherwise be served by a collection
+# built before it, silently missing the new field. Folding this into the digest
+# forces a clean rebuild. v2: `applies_to_sectors` added for UCM-52.
+PAYLOAD_SCHEMA_VERSION = "v2"
 
 
 class IndexUnavailableError(AppException):
@@ -79,6 +93,10 @@ class ControlPayload(BaseModel):
     jurisdiction: str
     control_type: str
     strength: str
+    # The sectors this control governs (UCM-47), projected so the sector lens
+    # (UCM-52) can filter on it. Empty means transversal — applies to every sector
+    # — and the filter treats it as such, never excluding it.
+    applies_to_sectors: list[str] = Field(default_factory=list)
     capability_ids: list[str]
     mapping_types: list[str]
     provenance_sources: list[str]
@@ -109,6 +127,7 @@ def catalog_digest(catalog: Catalog) -> str:
         (
             catalog.model_dump_json(),
             TEXT_TEMPLATE_VERSION,
+            PAYLOAD_SCHEMA_VERSION,
             settings.EMBEDDING_MODEL,
             str(settings.EMBEDDING_DIM),
         )
@@ -147,6 +166,7 @@ def build_payloads(catalog: Catalog) -> dict[str, ControlPayload]:
             jurisdiction=control.jurisdiction.value,
             control_type=control.control_type.value,
             strength=control.strength.label,
+            applies_to_sectors=[s.value for s in control.applies_to_sectors],
             capability_ids=capabilities[control.id],
             # Deduplicated and sorted: a filter asks "does this control take part
             # in a total mapping anywhere", not "how many times".

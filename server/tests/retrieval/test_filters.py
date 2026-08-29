@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import pytest
+from qdrant_client import models as qdrant
 
 from app.assets.schemas import AssetProfile
-from app.catalog.schemas import Framework, Jurisdiction, MappingType
+from app.catalog.schemas import Framework, Jurisdiction, MappingType, Sector
 from app.engine.rules import RuleSet
 from app.engine.schemas import ZoneDomain
 from app.engine.zones import zone_context
@@ -83,6 +84,27 @@ def test_a_control_matches_a_mapping_type_it_serves_anywhere() -> None:
 
     assert excluded_axes(lens, payload(mapping_types=["partial", "total"])) == []
     assert excluded_axes(lens, payload(mapping_types=["partial"])) == [FilterAxis.MAPPING_TYPE]
+
+
+def test_the_sector_lens_never_excludes_a_transversal_control() -> None:
+    """UCM-52: empty scope is transversal (UCM-47); only an enumerated, disjoint scope excludes."""
+    lens = PayloadFilter(sectors=[Sector.ENERGY])
+
+    assert excluded_axes(lens, payload(applies_to_sectors=[])) == []  # transversal
+    assert excluded_axes(lens, payload(applies_to_sectors=["energy"])) == []
+    assert excluded_axes(lens, payload(applies_to_sectors=["maritime", "energy"])) == []
+    assert excluded_axes(lens, payload(applies_to_sectors=["maritime"])) == [FilterAxis.SECTOR]
+
+
+def test_the_sector_lens_is_a_nested_or_on_the_wire() -> None:
+    """Transversal *or* in scope must both survive, so the sector condition is a `should`."""
+    query_filter = to_qdrant(PayloadFilter(sectors=[Sector.ENERGY]))
+
+    assert query_filter is not None
+    subfilters = [c for c in query_filter.must if isinstance(c, qdrant.Filter)]
+    assert len(subfilters) == 1, "the sector axis is one nested sub-filter"
+    branches = {type(branch).__name__ for branch in subfilters[0].should or []}
+    assert branches == {"IsEmptyCondition", "FieldCondition"}
 
 
 def test_the_zone_lens_reads_the_declared_precedence_and_invents_nothing(

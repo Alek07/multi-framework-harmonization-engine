@@ -174,6 +174,53 @@ def test_a_declared_lens_reports_everything_it_set_aside(
     assert all(candidate["rationale"] for candidate in set_aside)
 
 
+# --- UCM-52: asset-aware suggestions ------------------------------------------
+
+
+def test_out_of_sector_norms_are_set_aside_without_any_lens(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """The engine applies the zone's sectoral applicability on its own initiative.
+
+    PROFILE-A operates in energy, so the maritime (IMO) norms are set aside on the
+    sector axis — not silently dropped, and not offered as if they applied — with
+    no operator lens in the request at all.
+    """
+    body = ask(client)
+
+    assert body["retrieval"]["set_aside"] > 0
+    set_aside = [
+        candidate
+        for capability in every_capability(body)
+        for candidate in capability["retrieval"]["set_aside"]
+    ]
+    assert any("sector" in candidate["excluded_by"] for candidate in set_aside)
+    assert all(candidate["rationale"] for candidate in set_aside)
+
+
+def test_a_suggestion_never_contradicts_a_gating_exclusion(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """Acceptance: a suggestion for a mechanism gating ruled out of the zone says so."""
+    body = ask(client)
+
+    for zone in body["zones"]:
+        gated = {
+            decision["control_id"]
+            for capability in zone["capabilities"]
+            for decision in capability["gating"]["excluded"]
+        }
+        for capability in zone["capabilities"]:
+            for hit in capability["retrieval"]["retrieved"]:
+                if hit["relation"] != "widens":
+                    continue
+                if hit["control"]["id"] in gated:
+                    assert hit["gated_out"] is not None
+                    assert hit["gated_out"]["zone_id"] == zone["zone"]["zone_id"]
+                else:
+                    assert hit["gated_out"] is None
+
+
 # --- degradation is declared, never silent ------------------------------------
 
 

@@ -18,9 +18,12 @@ API layer could quietly break an invariant of the project.
   `record_core_run` and `record_retrieval` are awaited here, not left to the
   caller, and the `run_id` they were filed under is returned. A decision the
   operator can read but the ledger cannot is exactly what invariant 5 forbids.
-* **The engine applies no lens of its own.** `request.lens` is the operator's
-  question; absent it, retrieval runs over the whole index. Narrowing what the
-  human is allowed to see, uninvited, is the failure UCM-13 exists to prevent.
+* **The engine applies no *exploratory* lens of its own.** `request.lens` is the
+  operator's question; absent it, the operator's axes are unfiltered. The one lens
+  the engine does build is the zone's sectoral applicability (UCM-52) — a
+  determination, like gating, whose leftovers come back set aside, never hidden.
+  Narrowing what the human sees *in silence* is the failure UCM-13 exists to
+  prevent, and reporting every exclusion is exactly how this avoids it.
 * **CPU work goes to a worker thread.** The core, the encoder and the Qdrant
   client are synchronous and CPU-bound (69 controls to embed per query round).
   `asyncio.to_thread` keeps the event loop free instead of pretending this is I/O.
@@ -133,7 +136,7 @@ class CandidatesService:
             await audit.record_core_run(profile, resolution, gating, prioritization, run_id)
         )
 
-        retrieval, report = await self._retrieve(resolution, request)
+        retrieval, report = await self._retrieve(resolution, gating, request)
         if retrieval is not None:
             recorded += len(await audit.record_retrieval(retrieval, run_id))
 
@@ -163,9 +166,14 @@ class CandidatesService:
         return resolution, gating, prioritization
 
     async def _retrieve(
-        self, resolution: ProfileResolution, request: CandidatesRequest
+        self, resolution: ProfileResolution, gating: ProfileGating, request: CandidatesRequest
     ) -> tuple[ProfileRetrieval | None, RetrievalReport]:
         """Widen the core's candidates, or declare why nothing was added.
+
+        `gating` is handed to retrieval (UCM-52) so a suggestion for a mechanism the
+        engine ruled out of the zone is annotated with that exclusion instead of
+        offered as if it applied — the incoherence the ticket fixes. The
+        deterministic candidates carry the exclusion too, in `CapabilityGating`.
 
         `IndexUnavailableError` is caught rather than propagated on purpose. The
         deterministic candidates are already computed at this point, and refusing
@@ -180,7 +188,7 @@ class CandidatesService:
 
         try:
             retrieval = await asyncio.to_thread(
-                self.retrieval.retrieve_profile, resolution, request.lens
+                self.retrieval.retrieve_profile, resolution, request.lens, gating=gating
             )
         except IndexUnavailableError as exc:
             return None, RetrievalReport(
