@@ -78,18 +78,9 @@ def zone_context(zone: Zone, profile: AssetProfile) -> ZoneContext:
         domain=domain,
         target_sl=zone.target_sl,
         safety_relevant=safety,
-        # Carried verbatim, normalised: the role the profile declares is a premise
-        # of the zone, not a conclusion, and gating conditions on it directly.
         role=(zone.role or "").strip().lower() or None,
         derivation=f"{domain_why}; {safety_why}",
-        # Carried verbatim: the premises are the zone's own, and a hybrid asset
-        # holds zones that disagree about every one of them (UCM-9).
         nature=zone.nature,
-        # Carried verbatim: the SL-target per FR is what makes a capability
-        # mandatory in this zone and not in the next one (UCM-10).
         sl_vector=zone.sl_vector,
-        # Effective sectors (UCM-47): the zone's own when it declares them, the
-        # asset's otherwise. Resolved here so applicability reads one premise and
-        # a maritime berth zone can differ from the corridor it sits on.
         sectors=zone.sectors or profile.sectors,
     )

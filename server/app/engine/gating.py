@@ -142,10 +142,7 @@ def _decision(
     """
     matched = rules.rules_for(option.control_id, zone)
 
-    # Sectoral applicability (UCM-47) is prior to every rule: a norm that does
-    # not govern the asset's sector is *not applicable*, and whether the asset
-    # could host its mechanism or which layer would answer it is then moot. Any
-    # rule that also fired is kept as context, not lost.
+    # Sectoral applicability (UCM-47) is prior to every rule; a matched rule is kept as context.
     outside_scope = applicability_decision(
         option.control, capability_id, zone, [r.id for r in matched]
     )
