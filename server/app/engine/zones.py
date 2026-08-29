@@ -88,4 +88,8 @@ def zone_context(zone: Zone, profile: AssetProfile) -> ZoneContext:
         # Carried verbatim: the SL-target per FR is what makes a capability
         # mandatory in this zone and not in the next one (UCM-10).
         sl_vector=zone.sl_vector,
+        # Effective sectors (UCM-47): the zone's own when it declares them, the
+        # asset's otherwise. Resolved here so applicability reads one premise and
+        # a maritime berth zone can differ from the corridor it sits on.
+        sectors=zone.sectors or profile.sectors,
     )

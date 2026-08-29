@@ -92,6 +92,12 @@ def missing_required(draft: AssetProfileDraft) -> list[str]:
         missing.append("name")
     if draft.case is None:
         missing.append("case")
+    # Asked of the operator, never guessed (UCM-47): the core runs without it —
+    # an empty list simply excludes nothing by sector — but a sectoral norm
+    # offered to the wrong asset is a false obligation, so the reviewed profile
+    # declares at least one. Per-zone sectors stay optional: they only override.
+    if not draft.sectors:
+        missing.append("sectors")
 
     if not draft.zones:
         missing.append("zones")
@@ -131,6 +137,7 @@ def to_profile(draft: AssetProfileDraft, profile_id: str | None = None) -> Asset
             "id": profile_id_for(draft, profile_id),
             "name": draft.name,
             "case": draft.case,
+            "sectors": draft.sectors,
             "zones": [zone.model_dump(exclude_none=True) for zone in draft.zones],
             "conduits": [conduit.model_dump(exclude_none=True) for conduit in draft.conduits],
             "criticality": draft.criticality.model_dump(exclude_none=True),

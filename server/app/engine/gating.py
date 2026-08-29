@@ -30,6 +30,7 @@ different zones, which is the whole point of composing one.
 from __future__ import annotations
 
 from app.catalog.schemas import MappingType
+from app.engine.applicability import applicability_decision
 from app.engine.gating_rules import GatingRule, GatingRules
 from app.engine.schemas import (
     CandidateOption,
@@ -140,6 +141,17 @@ def _decision(
     prevail here" are different answers and the human deserves both.
     """
     matched = rules.rules_for(option.control_id, zone)
+
+    # Sectoral applicability (UCM-47) is prior to every rule: a norm that does
+    # not govern the asset's sector is *not applicable*, and whether the asset
+    # could host its mechanism or which layer would answer it is then moot. Any
+    # rule that also fired is kept as context, not lost.
+    outside_scope = applicability_decision(
+        option.control, capability_id, zone, [r.id for r in matched]
+    )
+    if outside_scope is not None:
+        return outside_scope
+
     if not matched:
         return None
 

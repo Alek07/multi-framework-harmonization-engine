@@ -2,6 +2,7 @@
   "id": "PROFILE-A",
   "name": "Pipeline corridor SCADA/PLC",
   "case": "PURE_OT",
+  "sectors": ["energy"],
   "zones": [
     {
       "id": "Z-OT-CORRIDOR",

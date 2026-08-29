@@ -11,6 +11,8 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.catalog.schemas import Sector
+
 
 class CaseType(str, Enum):
     PURE_OT = "PURE_OT"
@@ -73,6 +75,13 @@ class Zone(BaseModel):
     sl_vector: SLVector | None = None
     safety_out_of_scope: bool = False
     reference: str | None = None
+    # The sectors this zone operates in (UCM-47), overriding the asset's when they
+    # differ — the same reason `nature` lives on the zone. A gas corridor with a
+    # maritime berth zone is one asset in two sectors at once, and an asset-wide
+    # reading would have to be wrong about one of them: it would either offer IMO
+    # to the whole corridor or withhold it from the berth. Empty = inherit the
+    # asset's sectors, which is the common case.
+    sectors: list[Sector] = Field(default_factory=list)
 
 
 class Conduit(BaseModel):
@@ -108,6 +117,14 @@ class AssetProfile(BaseModel):
     id: str
     name: str
     case: CaseType
+    # The sectors the asset operates in (UCM-47), the premise sectoral
+    # applicability reads. A list: a port is transport and energy at once, and a
+    # zone may narrow it (`Zone.sectors`). Empty by default — an asset that
+    # declares no sector cannot have a norm asserted out of scope, so an empty
+    # list excludes nothing and every candidate is offered, the safe reading a
+    # wrong exclusion would betray (invariant 2). The parse fills it in, empty
+    # when the text does not say, and the operator completes it.
+    sectors: list[Sector] = Field(default_factory=list)
     zones: list[Zone]
     conduits: list[Conduit]
     criticality: Criticality

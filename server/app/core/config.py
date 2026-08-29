@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # v0.2.0 this file is a manifest: it carries the capabilities and names one
     # source per framework, which the loader merges before validating (the split
     # is authoring ergonomics and changes nothing the engine sees).
-    CATALOG_PATH: str = "data/catalog/catalog.v0.3.0.json"
+    CATALOG_PATH: str = "data/catalog/catalog.v0.4.0.json"
 
     # Versioned engine rules (UCM-8): precedence per zone + declared contradictions.
     RULES_PATH: str = "data/rules/precedence.v0.1.0.json"

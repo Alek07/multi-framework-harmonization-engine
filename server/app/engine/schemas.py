@@ -26,6 +26,7 @@ from app.catalog.schemas import (
     Jurisdiction,
     Mapping,
     MappingType,
+    Sector,
 )
 
 
@@ -109,6 +110,12 @@ class ZoneContext(BaseModel):
     # rarely wants the same level everywhere (a corridor may demand SL3 on
     # integrity and SL2 on confidentiality) and Tier 0 is read from it.
     sl_vector: SLVector | None = None
+    # The zone's *effective* sectors (UCM-47): its own when it declares them, the
+    # asset's otherwise — resolved once in `zone_context` so sectoral
+    # applicability reads a single premise, the way every other gating premise
+    # travels inside the zone reading. Empty when neither the zone nor the asset
+    # declares a sector, and then nothing is excluded on a sector nobody stated.
+    sectors: list[Sector] = Field(default_factory=list)
 
     def sl_target_for(self, requirement: FoundationalRequirement) -> int:
         """The zone's SL-target for one FR — the scalar target when no vector is declared."""

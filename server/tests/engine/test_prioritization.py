@@ -118,8 +118,10 @@ def test_a_legal_obligation_is_mandatory_whatever_the_sl_target_says(
     report = priorities_a.zone(ZONE_OT).capability(REPORT)
     assert report.tier is PriorityTier.TIER_0
     legal = [m for m in report.mandates if m.source is MandateSource.LEGAL_OBLIGATION]
-    # The jurisdiction travels with the mandate — it is the matter of the regional delta.
-    assert {m.jurisdiction for m in legal} == {Jurisdiction.EU, Jurisdiction.INTL_MARITIME}
+    # The jurisdiction travels with the mandate — it is the matter of the regional
+    # delta. Only the European obligation applies to this onshore pipeline: the
+    # maritime one does not govern its sector (UCM-47), so it creates no mandate.
+    assert {m.jurisdiction for m in legal} == {Jurisdiction.EU}
     # Gating deferred it to the organizational layer; the obligation did not disappear.
     assert report.layer is ImplementationLayer.ORGANIZATIONAL
 
@@ -383,7 +385,7 @@ def test_the_same_catalog_produces_a_different_roadmap_per_zone(
 def test_prioritization_reports_the_versions_it_ran_with(
     priorities_a: ProfilePrioritization,
 ) -> None:
-    assert priorities_a.catalog_version == "0.3.0"
+    assert priorities_a.catalog_version == "0.4.0"
     assert priorities_a.rules_version == "0.1.0"
     assert priorities_a.gating_version == "0.2.0"
     assert priorities_a.prioritization_version == "0.2.0"

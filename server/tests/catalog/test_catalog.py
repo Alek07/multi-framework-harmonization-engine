@@ -1,4 +1,4 @@
-"""UCM-7/UCM-43 - The v0.3.0 catalog loads, validates and meets its invariants."""
+"""UCM-7/UCM-43 - The v0.4.0 catalog loads, validates and meets its invariants."""
 
 from collections import Counter
 
@@ -11,6 +11,7 @@ from app.catalog.schemas import (
     Jurisdiction,
     MappingType,
     ProvenanceSource,
+    Sector,
 )
 
 CATALOG = load_catalog()
@@ -28,11 +29,13 @@ JURISDICTION_OF = {
 
 
 def test_version() -> None:
-    assert CATALOG.catalog_version == "0.3.0"
+    assert CATALOG.catalog_version == "0.4.0"
 
 
 def test_counts() -> None:
-    # Frozen for v0.3.0 (regression). Update on every version bump.
+    # Frozen for v0.4.0 (regression). Update on every version bump. v0.4.0 adds
+    # only the declared sectoral scope of the IMO controls (UCM-47), so the
+    # counts are identical to v0.3.0 — a strict superset in content.
     assert len(CATALOG.capabilities) == 37
     assert len(CATALOG.controls) == 226
     assert len(CATALOG.mappings) == 266
@@ -53,7 +56,7 @@ def test_counts_per_framework() -> None:
     }
 
 
-@pytest.mark.parametrize("version", ["0.1.0", "0.2.0"])
+@pytest.mark.parametrize("version", ["0.1.0", "0.2.0", "0.3.0"])
 def test_earlier_ids_all_survive(version: str) -> None:
     """Every version is a strict superset: the rule files still name these controls.
 
@@ -122,6 +125,29 @@ def test_only_a_binding_instrument_is_typed_legal() -> None:
     assert legal == {"Art. 20", "Art. 21", "Art. 23", "MSC.428(98)"} | {
         f"Art. 21(2)({letter})" for letter in "abcdefghij"
     }
+
+
+def test_only_the_legal_layer_declares_a_sector_scope() -> None:
+    """UCM-47: scope is declared for the legal minority, transversal for the rest.
+
+    The IMO controls govern ships (the ISM Code) and NIS2 governs the sectors of
+    its Annexes; the technical frameworks are cross-sector by design and declare
+    nothing. Empty scope is what keeps a catalog bump from silently narrowing what
+    applies to an asset, and an enumerated list — however long — is never that.
+    """
+    scoped = {c.id for c in CATALOG.controls if not c.transversal}
+    legal_layer = {c.id for c in CATALOG.controls if c.framework in (Framework.IMO, Framework.NIS2)}
+
+    assert scoped == legal_layer
+    for control in CATALOG.controls:
+        if control.framework is Framework.IMO:
+            # IMO governs shipping alone.
+            assert control.applies_to_sectors == [Sector.MARITIME], control.id
+        if control.framework is Framework.NIS2:
+            # NIS2 is multisector: an enumerated list, not transversal.
+            assert not control.transversal, control.id
+            assert len(control.applies_to_sectors) > 1, control.id
+            assert Sector.ENERGY in control.applies_to_sectors, control.id
 
 
 def test_regional_delta_is_seeded() -> None:
