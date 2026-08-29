@@ -40,7 +40,10 @@ from app.engine.schemas import (
     CapabilityGap,
     CapabilityResolution,
     GapKind,
+    ProfileGating,
     ProfileResolution,
+    ZoneContext,
+    ZoneGating,
     ZoneResolution,
 )
 from app.retrieval.embeddings import TEXT_TEMPLATE_VERSION, capability_text
@@ -48,6 +51,7 @@ from app.retrieval.filters import excluded_axes, to_qdrant
 from app.retrieval.index import CatalogIndex, IndexHit
 from app.retrieval.schemas import (
     CapabilityRetrieval,
+    GatingAnnotation,
     PayloadFilter,
     ProfileRetrieval,
     RetrievalProvenance,
@@ -67,9 +71,19 @@ class RetrievalService:
     # --- entry points ---------------------------------------------------------
 
     def retrieve_profile(
-        self, resolution: ProfileResolution, payload_filter: PayloadFilter | None = None
+        self,
+        resolution: ProfileResolution,
+        payload_filter: PayloadFilter | None = None,
+        *,
+        gating: ProfileGating | None = None,
     ) -> ProfileRetrieval:
-        """Widen the candidates of every capability in every zone of the profile."""
+        """Widen the candidates of every capability in every zone of the profile.
+
+        `gating` is the deterministic core's step 3 (UCM-9). When present, a
+        suggestion for a mechanism gating ruled out of the zone is *annotated* with
+        that exclusion rather than offered as if it applied — the incoherence
+        UCM-52 fixes. Absent, retrieval widens exactly as before.
+        """
         self._check_same_catalog(resolution)
         lens = payload_filter if payload_filter is not None else PayloadFilter()
 
@@ -78,26 +92,51 @@ class RetrievalService:
             profile_name=resolution.profile_name,
             catalog_version=self.index.catalog.catalog_version,
             provenance=self.provenance(lens),
-            zones=[self.retrieve_zone(zone, lens) for zone in resolution.zones],
+            zones=[
+                self.retrieve_zone(
+                    zone,
+                    lens,
+                    gating=gating.zone(zone.zone.zone_id) if gating is not None else None,
+                )
+                for zone in resolution.zones
+            ],
         )
 
     def retrieve_zone(
-        self, zone: ZoneResolution, payload_filter: PayloadFilter | None = None
+        self,
+        zone: ZoneResolution,
+        payload_filter: PayloadFilter | None = None,
+        *,
+        gating: ZoneGating | None = None,
     ) -> ZoneRetrieval:
-        """Widen every capability of one zone, in the resolution's own order."""
-        lens = payload_filter if payload_filter is not None else PayloadFilter()
+        """Widen every capability of one zone, in the resolution's own order.
+
+        The lens the caller hands in is augmented here with the zone's own sectoral
+        applicability (UCM-47): what the norm's declared scope leaves out of this
+        zone comes back set aside on the sector axis, the same as any other lens.
+        """
+        lens = self._applicability_lens(
+            zone.zone, payload_filter if payload_filter is not None else PayloadFilter()
+        )
+        gated = self._zone_gated_controls(gating)
         return ZoneRetrieval(
             zone=zone.zone,
             capabilities=[
-                self.retrieve_capability(capability, lens) for capability in zone.capabilities
+                self.retrieve_capability(capability, lens, gated=gated)
+                for capability in zone.capabilities
             ],
         )
 
     def retrieve_capability(
-        self, capability: CapabilityResolution, payload_filter: PayloadFilter | None = None
+        self,
+        capability: CapabilityResolution,
+        payload_filter: PayloadFilter | None = None,
+        *,
+        gated: dict[str, GatingAnnotation] | None = None,
     ) -> CapabilityRetrieval:
         """The pass itself, for one capability in one zone."""
         lens = payload_filter if payload_filter is not None else PayloadFilter()
+        gated = gated if gated is not None else {}
 
         # Every option the core offered, including the ones a contradiction left
         # `superseded`: they are still visible to the operator, so re-offering one
@@ -111,7 +150,9 @@ class RetrievalService:
         query_filter = to_qdrant(lens)
 
         hits = self.index.search(query, limit, query_filter)
-        retrieved = [self._as_candidate(hit, capability, catalog_control_ids) for hit in hits]
+        retrieved = [
+            self._as_candidate(hit, capability, catalog_control_ids, gated) for hit in hits
+        ]
 
         set_aside = (
             self._set_aside(query, limit, lens, capability, catalog_control_ids)
@@ -160,6 +201,7 @@ class RetrievalService:
         hit: IndexHit,
         capability: CapabilityResolution,
         catalog_control_ids: list[str],
+        gated: dict[str, GatingAnnotation],
     ) -> RetrievedControl:
         already_mapped = hit.control_id in catalog_control_ids
         relation = (
@@ -167,6 +209,10 @@ class RetrievalService:
         )
         payload = hit.payload
         name = capability.capability.name
+
+        # A suggestion (never a confirmation, whose gating is already on the record
+        # in `CapabilityGating`) for a mechanism gating ruled out of this zone.
+        gated_out = None if already_mapped else gated.get(hit.control_id)
 
         if already_mapped:
             rationale = (
@@ -182,6 +228,12 @@ class RetrievalService:
                 f"{hit.score:.3f} sobre el texto del control. No es un mapeo: no altera "
                 "cobertura, gating ni priorización, y solo el humano puede adoptarlo."
             )
+        if gated_out is not None:
+            rationale += (
+                f" Atención: el gating ya excluyó este mecanismo en {gated_out.zone_id} "
+                f"(regla {gated_out.rule_id}). Se muestra marcado, no oculto: adoptarlo exige "
+                "la justificación compensatoria que el gating pide, y es decisión del humano."
+            )
 
         return RetrievedControl(
             control=self.index.control(hit.control_id),
@@ -189,8 +241,51 @@ class RetrievalService:
             relation=relation,
             mapped_capability_ids=payload.capability_ids,
             mapping_types=payload.mapping_types,  # type: ignore[arg-type]
+            gated_out=gated_out,
             rationale=rationale,
         )
+
+    def _applicability_lens(self, zone: ZoneContext, operator_lens: PayloadFilter) -> PayloadFilter:
+        """The operator's lens augmented with the zone's sectoral applicability.
+
+        The engine builds this axis on its own initiative, and that is not a silent
+        restriction: what the zone's sectors leave out returns set aside on the
+        sector axis (UCM-52). With no sectors declared the engine asserts nothing —
+        an exclusion on a premise nobody stated is the failure UCM-47 forbids — so
+        the operator's lens is handed back untouched.
+        """
+        if not zone.sectors:
+            return operator_lens
+        note = (
+            f"Ámbito sectorial de la zona {zone.zone_id} ({say_all(zone.sectors)}): una norma "
+            "cuyo ámbito declarado no lo incluye no se sugiere como si aplicara; se aparta, "
+            "marcada y trazable. Las normas transversales no se apartan."
+        )
+        rationale = f"{operator_lens.rationale} {note}".strip() if operator_lens.rationale else note
+        return operator_lens.model_copy(update={"sectors": zone.sectors, "rationale": rationale})
+
+    def _zone_gated_controls(self, gating: ZoneGating | None) -> dict[str, GatingAnnotation]:
+        """Which controls gating ruled out of the zone, by control id.
+
+        Gating (a rule or sectoral applicability) decides a control's fate per
+        control and per zone, independently of the capability the decision was
+        recorded against — so one annotation per control describes it wherever the
+        retrieval later suggests it. The first decision wins; the rest say the same.
+        """
+        if gating is None:
+            return {}
+        annotations: dict[str, GatingAnnotation] = {}
+        for decision in gating.decisions:
+            if decision.control_id in annotations:
+                continue
+            annotations[decision.control_id] = GatingAnnotation(
+                zone_id=decision.zone_id,
+                outcome=decision.outcome,
+                rule_id=decision.rule_id,
+                rationale=decision.rationale,
+                evidence=decision.evidence,
+            )
+        return annotations
 
     def _set_aside(
         self,

@@ -44,9 +44,10 @@ from app.catalog.schemas import (
     FrameworkControl,
     Jurisdiction,
     MappingType,
+    Sector,
 )
 from app.core.wording import say, say_all
-from app.engine.schemas import CapabilityGap, ZoneContext, ZoneDomain
+from app.engine.schemas import CapabilityGap, GatingOutcome, ZoneContext, ZoneDomain
 
 
 class RetrievalRelation(str, Enum):
@@ -61,21 +62,28 @@ class RetrievalRelation(str, Enum):
 
 
 class FilterAxis(str, Enum):
-    """The three axes a payload filter may act on (the ticket's own list)."""
+    """The axes a payload filter may act on. The first three are UCM-13's own list;
+    `SECTOR` is UCM-52's — sectoral applicability (UCM-47) expressed as a lens."""
 
     JURISDICTION = "jurisdiction"
     ZONE = "zone"
     MAPPING_TYPE = "mapping_type"
+    SECTOR = "sector"
 
 
 class PayloadFilter(BaseModel):
-    """A declared lens over the index. Opt-in, and never applied by default.
+    """A declared lens over the index. Whatever it leaves out is reported back.
 
-    The engine's own pipeline retrieves **unfiltered**: narrowing the retrieval on
-    its own initiative is the failure mode this ticket exists to prevent. The
-    filter is here for the human's use cases — the regional delta of
-    `GET /delta?regions=US,EU`, and zone-scoped exploration — and whatever it
-    leaves out is reported back (`CapabilityRetrieval.set_aside`).
+    Two kinds of lens share this shape. Most axes are the human's use cases — the
+    regional delta of `GET /delta?regions=US,EU`, and zone-scoped exploration —
+    and the engine never applies those on its own initiative. The `sectors` axis
+    is different (UCM-52): it is the zone's declared sectoral applicability
+    (UCM-47), and the engine *does* build it, because "a norm that does not govern
+    this sector is not a candidate here" is a determination, not a silent
+    restriction — it is the same operation gating performs on the technical
+    dimension. It is safe because the invariant is the same for every axis:
+    everything set aside comes back in `CapabilityRetrieval.set_aside`, marked
+    with the axis that excluded it.
 
     The zone axis is not invented here: `frameworks` is derived from the versioned
     precedence rules of the zone's domain (`for_zone`), so a zone lens is a
@@ -87,6 +95,10 @@ class PayloadFilter(BaseModel):
     jurisdictions: list[Jurisdiction] | None = None
     frameworks: list[Framework] | None = None
     mapping_types: list[MappingType] | None = None
+    # The zone's effective sectors (UCM-47), used as the engine's applicability
+    # lens: a control whose declared scope is disjoint from these is set aside on
+    # the sector axis. Empty scope (transversal) is never excluded — see `filters`.
+    sectors: list[Sector] | None = None
     # Recorded for the audit trail when `frameworks` came from a zone's domain:
     # it is the difference between "the operator asked for IEC+CSF" and "this is
     # the OT reading of the precedence rules".
@@ -95,7 +107,7 @@ class PayloadFilter(BaseModel):
 
     @property
     def is_active(self) -> bool:
-        return any((self.jurisdictions, self.frameworks, self.mapping_types))
+        return any((self.jurisdictions, self.frameworks, self.mapping_types, self.sectors))
 
     @property
     def axes(self) -> list[FilterAxis]:
@@ -106,6 +118,8 @@ class PayloadFilter(BaseModel):
             active.append(FilterAxis.ZONE)
         if self.mapping_types:
             active.append(FilterAxis.MAPPING_TYPE)
+        if self.sectors:
+            active.append(FilterAxis.SECTOR)
         return active
 
     def describe(self) -> str:
@@ -126,6 +140,11 @@ class PayloadFilter(BaseModel):
             parts.append(f"solo los marcos {say_all(self.frameworks)}{zone}")
         if self.mapping_types:
             parts.append(f"solo mapeos de tipo {say_all(self.mapping_types)}")
+        if self.sectors:
+            parts.append(
+                f"solo normas del ámbito sectorial de la zona ({say_all(self.sectors)}); "
+                "las transversales no se apartan"
+            )
         return "; ".join(parts)
 
 
@@ -143,6 +162,26 @@ class SetAsideCandidate(BaseModel):
     # Which axes of the lens excluded it — usually one, sometimes several.
     excluded_by: list[FilterAxis]
     rationale: str
+
+
+class GatingAnnotation(BaseModel):
+    """Why the engine's gating rules out this control *in this zone* (UCM-52).
+
+    Attached to a suggestion the retrieval still shows, so the suggestion cannot
+    contradict a gating exclusion in silence. Zone-scoped, not capability-scoped:
+    gating (rule or sectoral applicability) decides a control's fate per control
+    and per zone, so the same annotation holds wherever the control is suggested.
+    A suggestion carrying this is not hidden — it is offered *marked*, and only the
+    human may adopt it (with the compensatory justification gating asks for).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    zone_id: str
+    outcome: GatingOutcome
+    rule_id: str
+    rationale: str
+    evidence: list[str] = Field(default_factory=list)
 
 
 class RetrievedControl(BaseModel):
@@ -164,6 +203,10 @@ class RetrievedControl(BaseModel):
     # is, say, the CIS action already mapped to a neighbouring capability.
     mapped_capability_ids: list[str] = Field(default_factory=list)
     mapping_types: list[MappingType] = Field(default_factory=list)
+    # Set when gating rules this control out of the zone (UCM-52). The suggestion
+    # stays visible — annotating, not hiding — but says so, so it cannot silently
+    # contradict the engine's own exclusion.
+    gated_out: GatingAnnotation | None = None
     rationale: str
 
     @property

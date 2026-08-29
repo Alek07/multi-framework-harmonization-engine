@@ -65,6 +65,7 @@ _WORDS: dict[str, str] = {
     "jurisdiction": "jurisdicción",
     "zone": "zona",
     "mapping_type": "tipo de mapeo",
+    "sector": "ámbito sectorial",
     "widens": "amplía la cobertura ofrecida",
     "confirms_mapping": "confirma un mapeo del catálogo",
     "eligible": "elegible",

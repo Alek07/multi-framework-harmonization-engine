@@ -19,6 +19,7 @@ import re
 from typing import Any
 
 import pytest
+from qdrant_client import models as qdrant
 
 from app.catalog.schemas import Catalog
 from app.retrieval.embeddings import control_text
@@ -39,20 +40,36 @@ def overlap(query: str, passage: str) -> float:
     return len(left & right) / len(left)
 
 
+def _field_matches(condition: qdrant.FieldCondition, payload: ControlPayload) -> bool:
+    """One `FieldCondition` (a `MatchAny`) against the payload."""
+    wanted = set(condition.match.any)
+    value = getattr(payload, condition.key)
+    held = set(value) if isinstance(value, list) else {value}
+    return bool(held & wanted)
+
+
+def _branch(condition: Any, payload: ControlPayload) -> bool:
+    """One branch of a nested `should`: a `MatchAny`, or an emptiness check."""
+    if isinstance(condition, qdrant.IsEmptyCondition):
+        return not getattr(payload, condition.is_empty.key)
+    return _field_matches(condition, payload)
+
+
 def matches(query_filter: Any, payload: ControlPayload) -> bool:
     """Apply a Qdrant filter in Python, by reading the conditions it declares.
 
     Interpreting the real `qdrant.Filter` — rather than the `PayloadFilter` it was
     built from — means these tests also check that `to_qdrant` emits the structure
-    it claims to.
+    it claims to. The sector axis (UCM-52) is a nested `should` (transversal *or*
+    in scope), so a `must` entry is either a `FieldCondition` or a sub-filter.
     """
     if query_filter is None:
         return True
     for condition in query_filter.must or []:
-        wanted = set(condition.match.any)
-        value = getattr(payload, condition.key)
-        held = set(value) if isinstance(value, list) else {value}
-        if not held & wanted:
+        if isinstance(condition, qdrant.Filter):
+            if not any(_branch(branch, payload) for branch in condition.should or []):
+                return False
+        elif not _field_matches(condition, payload):
             return False
     return True
 

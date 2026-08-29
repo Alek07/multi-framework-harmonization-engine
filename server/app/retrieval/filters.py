@@ -5,17 +5,19 @@ zone and mapping type — and the project's second invariant says nothing may be
 restricted in silence. Both hold at once because of how the filter is used, and
 that is worth stating plainly:
 
-* **The engine never filters on its own initiative.** `RetrievalService` runs
-  unfiltered unless a caller hands it a lens. Narrowing what the operator is
-  allowed to see, without being asked, is the failure this ticket exists to
-  prevent.
-* **A lens is a human's question, not a policy.** "Show me the EU reading of this
-  zone" (`GET /delta?regions=US,EU`) or "only the frameworks that carry the
-  mechanism in an OT zone". The answer is a *view*, and the baseline is unchanged.
+* **Most axes are a human's question, not a policy.** "Show me the EU reading of
+  this zone" (`GET /delta?regions=US,EU`) or "only the frameworks that carry the
+  mechanism in an OT zone". The engine does not narrow these on its own; the
+  answer is a *view*, and the baseline is unchanged.
+* **The sector axis is the engine's own determination (UCM-52).** Sectoral
+  applicability (UCM-47) — "a norm that does not govern this sector is not a
+  candidate here" — is decided, not asked, exactly as gating decides the technical
+  dimension. Building it is not the failure this module guards against: that
+  failure is a *silent* narrowing, and this one is anything but.
 * **Everything a lens excludes comes back.** The service re-runs the same query
   unfiltered and reports the difference as `set_aside`, with the axis responsible
-  (`excluded_axes`). The lens can therefore be audited: what it hid is on the
-  record next to what it showed.
+  (`excluded_axes`). Any lens can therefore be audited — the operator's and the
+  engine's alike: what it set aside is on the record next to what it showed.
 
 The zone axis deserves one more note. There is no "zone" field on a control — a
 control belongs to a framework, not to a zone — so a zone lens is expressed as the
@@ -72,6 +74,27 @@ def to_qdrant(payload_filter: PayloadFilter | None) -> qdrant.Filter | None:
                 match=qdrant.MatchAny(any=[m.value for m in payload_filter.mapping_types]),
             )
         )
+    if payload_filter.sectors:
+        # Sectoral applicability (UCM-47) as a lens. A control applies when its
+        # declared scope is *empty* — transversal, the CIS/CSF/IEC case — or when
+        # it meets the zone's sectors. Both must survive, so this is a nested OR
+        # (`should`, min 1), not a plain `MatchAny`: filtering a transversal
+        # control out on `energy ∉ []` would assert it does not apply where it in
+        # fact does. What the lens does exclude is a norm whose enumerated scope is
+        # disjoint from the zone's — IMO's maritime controls on a gas pipeline.
+        conditions.append(
+            qdrant.Filter(
+                should=[
+                    qdrant.IsEmptyCondition(
+                        is_empty=qdrant.PayloadField(key="applies_to_sectors")
+                    ),
+                    qdrant.FieldCondition(
+                        key="applies_to_sectors",
+                        match=qdrant.MatchAny(any=[s.value for s in payload_filter.sectors]),
+                    ),
+                ]
+            )
+        )
     return qdrant.Filter(must=conditions)
 
 
@@ -90,6 +113,15 @@ def excluded_axes(payload_filter: PayloadFilter, payload: ControlPayload) -> lis
         m.value for m in payload_filter.mapping_types
     }:
         axes.append(FilterAxis.MAPPING_TYPE)
+    # Sector excludes only an *enumerated* scope disjoint from the lens: an empty
+    # scope is transversal and is never set aside (mirrors `to_qdrant` and UCM-47's
+    # `control_applies`), so `energy` does not exclude a control that declares none.
+    if (
+        payload_filter.sectors
+        and payload.applies_to_sectors
+        and not set(payload.applies_to_sectors) & {s.value for s in payload_filter.sectors}
+    ):
+        axes.append(FilterAxis.SECTOR)
     return axes
 
 
