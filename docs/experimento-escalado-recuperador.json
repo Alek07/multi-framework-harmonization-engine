@@ -1,0 +1,5663 @@
+{
+  "settings": {
+    "embedding_model": "intfloat/multilingual-e5-base",
+    "embedding_dim": 768,
+    "embedding_num_threads": 1,
+    "rag_top_k": 10,
+    "tie_epsilon": 0.01
+  },
+  "points": [
+    {
+      "catalog_version": "0.1.0",
+      "controls": 69
+    },
+    {
+      "catalog_version": "0.2.0",
+      "controls": 225
+    },
+    {
+      "catalog_version": "0.3.0",
+      "controls": 226
+    },
+    {
+      "catalog_version": "0.4.0",
+      "controls": 226
+    }
+  ],
+  "controlled_query_set": [
+    "CAP-DE-LOG",
+    "CAP-DE-MONITOR",
+    "CAP-GOV-RISK",
+    "CAP-GOV-ROLES",
+    "CAP-GOV-SUPPLY",
+    "CAP-ID-ASSET",
+    "CAP-ID-RISK",
+    "CAP-PR-ACCESS",
+    "CAP-PR-ALLOWLIST",
+    "CAP-PR-AWARENESS",
+    "CAP-PR-BACKUP",
+    "CAP-PR-DATACONF",
+    "CAP-PR-HARDENING",
+    "CAP-PR-IDENTITY",
+    "CAP-PR-INTEGRITY",
+    "CAP-PR-MALWARE",
+    "CAP-PR-MEDIA",
+    "CAP-PR-MFA",
+    "CAP-PR-PAM",
+    "CAP-PR-PATCH",
+    "CAP-PR-SEGMENT",
+    "CAP-RC-RECOVER",
+    "CAP-RS-IR",
+    "CAP-RS-REPORT"
+  ],
+  "edited_shared_controls": [
+    "CTL-CSF-DEAE02",
+    "CTL-CSF-DECM01",
+    "CTL-CSF-DECM09",
+    "CTL-CSF-GVRM01",
+    "CTL-CSF-GVRR01",
+    "CTL-CSF-GVSC01",
+    "CTL-CSF-IDAM02",
+    "CTL-CSF-IDRA01",
+    "CTL-CSF-IDRA03",
+    "CTL-CSF-PRAA01",
+    "CTL-CSF-PRAA03",
+    "CTL-CSF-PRAA05",
+    "CTL-CSF-PRAT01",
+    "CTL-CSF-PRDS01",
+    "CTL-CSF-PRDS02",
+    "CTL-CSF-PRIR01",
+    "CTL-CSF-PRPS02",
+    "CTL-CSF-PRPS05",
+    "CTL-CSF-RCRP01",
+    "CTL-CSF-RSMA01"
+  ],
+  "detail_note": "El brazo 'plain' conserva el detalle por capacidad, que es sobre el que razona el documento. Los brazos 'title' y 'zone' se guardan solo como agregados ('summary'): todo lo que el informe imprime de ellos está ahí, y el fichero se regenera entero ejecutando scripts/retrieval_scaling.py.",
+  "arms": {
+    "plain": {
+      "0.1.0": {
+        "catalog_version": "0.1.0",
+        "controls": 69,
+        "capabilities": 24,
+        "mappings": 77,
+        "collection": "catalog_v0_1_0_6f27d753b02b",
+        "cut_fraction": 0.14492753623188406,
+        "capabilities_measured": {
+          "CAP-GOV-RISK": {
+            "band": {
+              "first": 0.9026302,
+              "tenth": 0.82693934,
+              "last": 0.77347124,
+              "spread_1_10": 0.07569086000000003,
+              "spread_1_last": 0.12915896000000004,
+              "stdev": 0.020634154660785147
+            },
+            "near_ties_at_10": 10,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [
+              "CTL-IMO-42898"
+            ],
+            "top_k_ids": [
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-GVSC01",
+              "CTL-IMO-42898",
+              "CTL-NIS2-A21",
+              "CTL-CSF-GVRR01",
+              "CTL-IEC-SR73",
+              "CTL-CSF-PRAT01",
+              "CTL-IEC-SR43",
+              "CTL-CSF-PRPS01",
+              "CTL-CSF-PRAA01"
+            ],
+            "full_query_ms": 223.6609999963548
+          },
+          "CAP-GOV-ROLES": {
+            "band": {
+              "first": 0.8787508,
+              "tenth": 0.8209594,
+              "last": 0.779455,
+              "spread_1_10": 0.05779140000000005,
+              "spread_1_last": 0.09929580000000005,
+              "stdev": 0.015671070155162628
+            },
+            "near_ties_at_10": 19,
+            "recall": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-GVRR01",
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-PRAA01",
+              "CTL-IEC-SR73",
+              "CTL-CSF-PRAT01",
+              "CTL-CIS-1701",
+              "CTL-CSF-GVSC01",
+              "CTL-IEC-SR43",
+              "CTL-CIS-1301",
+              "CTL-IEC-SR76"
+            ],
+            "full_query_ms": 381.36029999441234
+          },
+          "CAP-GOV-SUPPLY": {
+            "band": {
+              "first": 0.86689365,
+              "tenth": 0.83585364,
+              "last": 0.7735925,
+              "spread_1_10": 0.031040010000000007,
+              "spread_1_last": 0.09330114999999994,
+              "stdev": 0.018043476091352324
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-GVSC01",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR78",
+              "CTL-NIS2-A21",
+              "CTL-CSF-GVSC04",
+              "CTL-CIS-1501",
+              "CTL-CIS-0201",
+              "CTL-CSF-PRPS02",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR43"
+            ],
+            "full_query_ms": 264.4469000006211
+          },
+          "CAP-ID-ASSET": {
+            "band": {
+              "first": 0.9049484,
+              "tenth": 0.84298056,
+              "last": 0.7703842,
+              "spread_1_10": 0.061967839999999996,
+              "spread_1_last": 0.13456420000000002,
+              "stdev": 0.02606461690826688
+            },
+            "near_ties_at_10": 3,
+            "recall": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR78",
+              "CTL-CIS-0201",
+              "CTL-CSF-IDAM02",
+              "CTL-CSF-IDAM01",
+              "CTL-IEC-SR73",
+              "CTL-CIS-1501",
+              "CTL-CIS-0101",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR13",
+              "CTL-IEC-SR74"
+            ],
+            "full_query_ms": 249.45039999875007
+          },
+          "CAP-ID-RISK": {
+            "band": {
+              "first": 0.8546635,
+              "tenth": 0.8205871,
+              "last": 0.7779299,
+              "spread_1_10": 0.03407640000000001,
+              "spread_1_last": 0.07673360000000007,
+              "stdev": 0.015426352659291629
+            },
+            "near_ties_at_10": 19,
+            "recall": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-IDRA01",
+              "CTL-CSF-DEAE02",
+              "CTL-IEC-SR33",
+              "CTL-CSF-IDRA03",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR12",
+              "CTL-CSF-GVRM01",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR28",
+              "CTL-CSF-PRPS02"
+            ],
+            "full_query_ms": 287.6875000001746
+          },
+          "CAP-PR-IDENTITY": {
+            "band": {
+              "first": 0.8945397,
+              "tenth": 0.83001506,
+              "last": 0.7751665,
+              "spread_1_10": 0.06452464000000002,
+              "spread_1_last": 0.11937320000000007,
+              "stdev": 0.02398964527400218
+            },
+            "near_ties_at_10": 12,
+            "recall": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRAA03",
+              "CTL-IEC-SR11",
+              "CTL-CSF-PRAA01",
+              "CTL-IEC-SR15",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0401",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR17",
+              "CTL-IEC-SR43"
+            ],
+            "full_query_ms": 289.17340000043623
+          },
+          "CAP-PR-MFA": {
+            "band": {
+              "first": 0.87238216,
+              "tenth": 0.8390447,
+              "last": 0.7777568,
+              "spread_1_10": 0.03333746000000004,
+              "spread_1_last": 0.09462535999999999,
+              "stdev": 0.01923575334495783
+            },
+            "near_ties_at_10": 8,
+            "recall": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR17",
+              "CTL-CIS-0604",
+              "CTL-CIS-0605",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR113",
+              "CTL-CIS-0603",
+              "CTL-CIS-0311",
+              "CTL-CSF-PRAA03",
+              "CTL-IEC-SR76",
+              "CTL-IEC-SR15"
+            ],
+            "full_query_ms": 365.77219999890076
+          },
+          "CAP-PR-ACCESS": {
+            "band": {
+              "first": 0.88605684,
+              "tenth": 0.8252368,
+              "last": 0.7789317,
+              "spread_1_10": 0.060820039999999964,
+              "spread_1_last": 0.10712513999999995,
+              "stdev": 0.018135868229820835
+            },
+            "near_ties_at_10": 11,
+            "recall": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRAA05",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR21",
+              "CTL-CIS-0605",
+              "CTL-CIS-0504",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR113",
+              "CTL-CIS-0205",
+              "CTL-IEC-SR43",
+              "CTL-CIS-0604"
+            ],
+            "full_query_ms": 253.2202000002144
+          },
+          "CAP-PR-PAM": {
+            "band": {
+              "first": 0.8528694,
+              "tenth": 0.82363164,
+              "last": 0.7719008,
+              "spread_1_10": 0.02923776,
+              "spread_1_last": 0.08096859999999995,
+              "stdev": 0.014392505792700959
+            },
+            "near_ties_at_10": 15,
+            "recall": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRAA05",
+              "CTL-CIS-0504",
+              "CTL-IEC-SR73",
+              "CTL-CSF-PRAA01",
+              "CTL-IEC-SR13",
+              "CTL-CIS-0605",
+              "CTL-CIS-0201",
+              "CTL-IEC-SR113",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR78"
+            ],
+            "full_query_ms": 259.1023999993922
+          },
+          "CAP-PR-DATACONF": {
+            "band": {
+              "first": 0.88440627,
+              "tenth": 0.83189845,
+              "last": 0.7722276,
+              "spread_1_10": 0.052507820000000094,
+              "spread_1_last": 0.11217867000000004,
+              "stdev": 0.02111957414689921
+            },
+            "near_ties_at_10": 8,
+            "recall": {
+              "1": 0.2,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.2,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.2,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.2,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRDS02",
+              "CTL-CSF-PRDS01",
+              "CTL-CIS-0311",
+              "CTL-IEC-SR41",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR34",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRAA01",
+              "CTL-CSF-PRAA03"
+            ],
+            "full_query_ms": 243.03730000247015
+          },
+          "CAP-PR-INTEGRITY": {
+            "band": {
+              "first": 0.87820184,
+              "tenth": 0.83138794,
+              "last": 0.77335453,
+              "spread_1_10": 0.046813899999999964,
+              "spread_1_last": 0.10484731000000003,
+              "stdev": 0.019503819641337343
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR34",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR43",
+              "CTL-CIS-0201",
+              "CTL-CSF-PRPS02",
+              "CTL-CIS-1001",
+              "CTL-CSF-IDAM02",
+              "CTL-IEC-SR32"
+            ],
+            "full_query_ms": 299.1710000060266
+          },
+          "CAP-PR-HARDENING": {
+            "band": {
+              "first": 0.882179,
+              "tenth": 0.83803785,
+              "last": 0.78332853,
+              "spread_1_10": 0.04414115000000007,
+              "spread_1_last": 0.09885047000000002,
+              "stdev": 0.020085114549646437
+            },
+            "near_ties_at_10": 5,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR76",
+              "CTL-CIS-0401",
+              "CTL-IEC-SR73",
+              "CTL-CSF-PRPS01",
+              "CTL-CIS-1202",
+              "CTL-IEC-SR78",
+              "CTL-IEC-SR74",
+              "CTL-IEC-SR62",
+              "CTL-CIS-1401",
+              "CTL-IEC-SR33"
+            ],
+            "full_query_ms": 240.71120000007795
+          },
+          "CAP-PR-ALLOWLIST": {
+            "band": {
+              "first": 0.8996398,
+              "tenth": 0.8264027,
+              "last": 0.77027893,
+              "spread_1_10": 0.07323709999999994,
+              "spread_1_last": 0.12936086999999996,
+              "stdev": 0.019547695489776327
+            },
+            "near_ties_at_10": 11,
+            "recall": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0205",
+              "CTL-CSF-PRPS05",
+              "CTL-CIS-0201",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR21",
+              "CTL-IEC-SR73",
+              "CTL-CIS-0605",
+              "CTL-CIS-0603",
+              "CTL-IEC-SR33",
+              "CTL-CSF-DECM09"
+            ],
+            "full_query_ms": 275.8436000003712
+          },
+          "CAP-PR-MALWARE": {
+            "band": {
+              "first": 0.90016305,
+              "tenth": 0.8298717,
+              "last": 0.7751994,
+              "spread_1_10": 0.07029134999999997,
+              "spread_1_last": 0.12496364999999998,
+              "stdev": 0.019752169801077666
+            },
+            "near_ties_at_10": 15,
+            "recall": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR32",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-CIS-1001",
+              "CTL-CSF-PRPS02",
+              "CTL-CIS-1301",
+              "CTL-IEC-SR78",
+              "CTL-CSF-PRAA03"
+            ],
+            "full_query_ms": 302.4899000010919
+          },
+          "CAP-PR-MEDIA": {
+            "band": {
+              "first": 0.84893936,
+              "tenth": 0.82513404,
+              "last": 0.7740383,
+              "spread_1_10": 0.02380532000000002,
+              "spread_1_last": 0.07490106000000007,
+              "stdev": 0.01466926739520385
+            },
+            "near_ties_at_10": 14,
+            "recall": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-1003",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR78",
+              "CTL-IEC-SR43",
+              "CTL-CIS-0201",
+              "CTL-IEC-SR113",
+              "CTL-IEC-SR62",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR74",
+              "CTL-IEC-SR33"
+            ],
+            "full_query_ms": 282.51019999879645
+          },
+          "CAP-PR-SEGMENT": {
+            "band": {
+              "first": 0.86785215,
+              "tenth": 0.8254666,
+              "last": 0.7785544,
+              "spread_1_10": 0.042385549999999994,
+              "spread_1_last": 0.08929775000000006,
+              "stdev": 0.015787683445030072
+            },
+            "near_ties_at_10": 8,
+            "recall": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR51",
+              "CTL-IEC-SR52",
+              "CTL-IEC-SR43",
+              "CTL-CIS-1202",
+              "CTL-IEC-SR76",
+              "CTL-CIS-1301",
+              "CTL-CSF-IDRA03",
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRIR01",
+              "CTL-IEC-SR33"
+            ],
+            "full_query_ms": 288.94239999499405
+          },
+          "CAP-PR-PATCH": {
+            "band": {
+              "first": 0.843341,
+              "tenth": 0.8339428,
+              "last": 0.78693056,
+              "spread_1_10": 0.009398200000000023,
+              "spread_1_last": 0.05641044000000006,
+              "stdev": 0.013440393718993965
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0701",
+              "CTL-CSF-PRAA01",
+              "CTL-CIS-0201",
+              "CTL-CSF-IDRA01",
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRPS01",
+              "CTL-CIS-1301",
+              "CTL-IEC-SR43"
+            ],
+            "full_query_ms": 266.6989999997895
+          },
+          "CAP-PR-AWARENESS": {
+            "band": {
+              "first": 0.89495724,
+              "tenth": 0.8327055,
+              "last": 0.77366436,
+              "spread_1_10": 0.06225174,
+              "spread_1_last": 0.12129287999999994,
+              "stdev": 0.018485591155833214
+            },
+            "near_ties_at_10": 10,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRAT01",
+              "CTL-CIS-1401",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR41",
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-PRAA01",
+              "CTL-CSF-PRAA03",
+              "CTL-IEC-SR73"
+            ],
+            "full_query_ms": 254.8084000009112
+          },
+          "CAP-PR-BACKUP": {
+            "band": {
+              "first": 0.8909426,
+              "tenth": 0.82534504,
+              "last": 0.77237,
+              "spread_1_10": 0.06559756000000005,
+              "spread_1_last": 0.11857260000000003,
+              "stdev": 0.02121606885633584
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR74",
+              "CTL-CIS-0802",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR43",
+              "CTL-CIS-1101",
+              "CTL-IEC-SR76",
+              "CTL-CSF-RCRP01",
+              "CTL-IEC-SR12",
+              "CTL-CIS-0401"
+            ],
+            "full_query_ms": 328.44910000130767
+          },
+          "CAP-DE-MONITOR": {
+            "band": {
+              "first": 0.8659815,
+              "tenth": 0.8319108,
+              "last": 0.7836114,
+              "spread_1_10": 0.03407070000000001,
+              "spread_1_last": 0.0823701,
+              "stdev": 0.016583183321223466
+            },
+            "near_ties_at_10": 10,
+            "recall": {
+              "1": 0.25,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR62",
+              "CTL-IEC-SR73",
+              "CTL-CSF-DECM01",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0802",
+              "CTL-CSF-DECM09",
+              "CTL-IEC-SR78",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR28",
+              "CTL-IEC-SR76"
+            ],
+            "full_query_ms": 393.3093000014196
+          },
+          "CAP-DE-LOG": {
+            "band": {
+              "first": 0.899131,
+              "tenth": 0.83099437,
+              "last": 0.7750135,
+              "spread_1_10": 0.06813663000000003,
+              "spread_1_last": 0.12411749999999999,
+              "stdev": 0.020513917747068754
+            },
+            "near_ties_at_10": 11,
+            "recall": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR28",
+              "CTL-IEC-SR61",
+              "CTL-CIS-0802",
+              "CTL-IEC-SR12",
+              "CTL-CIS-1301",
+              "CTL-CSF-IDRA01",
+              "CTL-IEC-SR33",
+              "CTL-CSF-DEAE02",
+              "CTL-IEC-SR73",
+              "CTL-CSF-DECM01"
+            ],
+            "full_query_ms": 266.13269999506883
+          },
+          "CAP-RS-IR": {
+            "band": {
+              "first": 0.87602305,
+              "tenth": 0.82700306,
+              "last": 0.7753843,
+              "spread_1_10": 0.04901999000000001,
+              "spread_1_last": 0.10063875,
+              "stdev": 0.01937895475882795
+            },
+            "near_ties_at_10": 3,
+            "recall": {
+              "1": 0.0,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-RCRP01",
+              "CTL-CSF-RSMA01",
+              "CTL-CIS-1701",
+              "CTL-CSF-RSCO02",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR74",
+              "CTL-CSF-DEAE02",
+              "CTL-CSF-IDRA03",
+              "CTL-CIS-1301",
+              "CTL-IEC-SR28"
+            ],
+            "full_query_ms": 229.70540000096662
+          },
+          "CAP-RS-REPORT": {
+            "band": {
+              "first": 0.8920792,
+              "tenth": 0.81174093,
+              "last": 0.76107216,
+              "spread_1_10": 0.08033826999999993,
+              "spread_1_last": 0.13100703999999996,
+              "stdev": 0.02255486051330775
+            },
+            "near_ties_at_10": 11,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [
+              "CTL-IMO-42898"
+            ],
+            "top_k_ids": [
+              "CTL-CSF-RSCO02",
+              "CTL-NIS2-A23",
+              "CTL-CSF-IDRA03",
+              "CTL-IEC-SR28",
+              "CTL-CIS-1701",
+              "CTL-CIS-1301",
+              "CTL-CSF-RSMA01",
+              "CTL-CSF-IDRA01",
+              "CTL-CIS-0802",
+              "CTL-IEC-SR73"
+            ],
+            "full_query_ms": 275.7821000050171
+          },
+          "CAP-RC-RECOVER": {
+            "band": {
+              "first": 0.9248465,
+              "tenth": 0.8250102,
+              "last": 0.7617743,
+              "spread_1_10": 0.09983629999999999,
+              "spread_1_last": 0.1630722,
+              "stdev": 0.024486368007997483
+            },
+            "near_ties_at_10": 11,
+            "recall": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR74",
+              "CTL-IEC-SR73",
+              "CTL-CSF-RCRP01",
+              "CTL-CIS-1101",
+              "CTL-IEC-SR78",
+              "CTL-IEC-SR12",
+              "CTL-CIS-0401",
+              "CTL-CIS-1701",
+              "CTL-CSF-PRPS01",
+              "CTL-IEC-SR13"
+            ],
+            "full_query_ms": 167.09979999723146
+          }
+        },
+        "index_build_seconds": 14.250778299996455,
+        "latency": {
+          "encode_query_ms_mean": 172.83205416636824,
+          "query_total_ms_mean": 185.92027083226034,
+          "qdrant_share_ms_mean": 13.088216665892105,
+          "queries": 24
+        },
+        "summary": {
+          "first": 0.8817674254166666,
+          "tenth": 0.8288375091666667,
+          "recall_frozen_truth_10": 0.8715277777777778,
+          "recall_sector_adjusted_10": 0.8854166666666666
+        }
+      },
+      "0.2.0": {
+        "catalog_version": "0.2.0",
+        "controls": 225,
+        "capabilities": 37,
+        "mappings": 263,
+        "collection": "catalog_v0_2_0_4b5f0a47b3bd",
+        "cut_fraction": 0.044444444444444446,
+        "capabilities_measured": {
+          "CAP-GOV-RISK": {
+            "band": {
+              "first": 0.8853066,
+              "tenth": 0.8577157,
+              "last": 0.7637478,
+              "spread_1_10": 0.027590900000000085,
+              "spread_1_last": 0.12155880000000008,
+              "stdev": 0.022420007215850878
+            },
+            "near_ties_at_10": 7,
+            "recall": {
+              "1": 0.1,
+              "5": 0.2,
+              "10": 0.2,
+              "20": 0.6,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [
+              "CTL-IMO-42898"
+            ],
+            "top_k_ids": [
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-GVRR02",
+              "CTL-CSF-GVPO01",
+              "CTL-CSF-GVRM03",
+              "CTL-NIS2-A21F",
+              "CTL-CSF-GVOC01",
+              "CTL-CSF-GVRR03",
+              "CTL-CSF-GVOC02",
+              "CTL-CSF-GVSC01",
+              "CTL-CSF-GVOV01"
+            ],
+            "full_query_ms": 179.87859999993816
+          },
+          "CAP-GOV-ROLES": {
+            "band": {
+              "first": 0.86901486,
+              "tenth": 0.83842677,
+              "last": 0.7726631,
+              "spread_1_10": 0.030588089999999957,
+              "spread_1_last": 0.0963517599999999,
+              "stdev": 0.015963583247555736
+            },
+            "near_ties_at_10": 6,
+            "recall": {
+              "1": 0.2,
+              "5": 0.6,
+              "10": 0.6,
+              "20": 0.8,
+              "50": 0.8
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-GVRR01",
+              "CTL-CSF-GVSC02",
+              "CTL-CSF-GVRR02",
+              "CTL-CSF-GVRR03",
+              "CTL-CSF-GVOC01",
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-RCRP04",
+              "CTL-CSF-GVOC03",
+              "CTL-NIS2-A21B",
+              "CTL-CSF-GVRM05"
+            ],
+            "full_query_ms": 237.83410000032745
+          },
+          "CAP-GOV-SUPPLY": {
+            "band": {
+              "first": 0.8656641,
+              "tenth": 0.8432808,
+              "last": 0.7671585,
+              "spread_1_10": 0.022383299999999995,
+              "spread_1_last": 0.09850560000000008,
+              "stdev": 0.018183848238322815
+            },
+            "near_ties_at_10": 16,
+            "recall": {
+              "1": 0.058823529411764705,
+              "5": 0.17647058823529413,
+              "10": 0.4117647058823529,
+              "20": 0.7647058823529411,
+              "50": 0.9411764705882353
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-GVSC03",
+              "CTL-CSF-GVSC07",
+              "CTL-IEC-SR73",
+              "CTL-CSF-GVSC01",
+              "CTL-CSF-GVRM05",
+              "CTL-CSF-GVSC05",
+              "CTL-NIS2-A21D",
+              "CTL-CSF-GVSC09",
+              "CTL-IEC-SR78",
+              "CTL-NIS2-A21"
+            ],
+            "full_query_ms": 201.51800000166986
+          },
+          "CAP-ID-ASSET": {
+            "band": {
+              "first": 0.9049484,
+              "tenth": 0.8462234,
+              "last": 0.76424384,
+              "spread_1_10": 0.05872500000000003,
+              "spread_1_last": 0.14070455999999998,
+              "stdev": 0.023093147022557672
+            },
+            "near_ties_at_10": 7,
+            "recall": {
+              "1": 0.06666666666666667,
+              "5": 0.26666666666666666,
+              "10": 0.4,
+              "20": 0.5333333333333333,
+              "50": 0.7333333333333333
+            },
+            "recall_frozen_truth": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR78",
+              "CTL-CIS-0201",
+              "CTL-CSF-IDAM01",
+              "CTL-CSF-IDAM02",
+              "CTL-CIS-0501",
+              "CTL-IEC-SR73",
+              "CTL-CIS-0302",
+              "CTL-CIS-1501",
+              "CTL-CIS-0101",
+              "CTL-CSF-IDAM04"
+            ],
+            "full_query_ms": 232.9466000010143
+          },
+          "CAP-ID-RISK": {
+            "band": {
+              "first": 0.8538408,
+              "tenth": 0.83400226,
+              "last": 0.76434636,
+              "spread_1_10": 0.01983853999999996,
+              "spread_1_last": 0.08949443999999995,
+              "stdev": 0.01615725238698739
+            },
+            "near_ties_at_10": 20,
+            "recall": {
+              "1": 0.14285714285714285,
+              "5": 0.42857142857142855,
+              "10": 0.42857142857142855,
+              "20": 0.42857142857142855,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-IDRA01",
+              "CTL-CSF-IDRA04",
+              "CTL-CSF-IDRA05",
+              "CTL-CSF-DEAE02",
+              "CTL-NIS2-A21A",
+              "CTL-CSF-RSMA02",
+              "CTL-NIS2-A21F",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR12"
+            ],
+            "full_query_ms": 203.99969999562018
+          },
+          "CAP-PR-IDENTITY": {
+            "band": {
+              "first": 0.8945397,
+              "tenth": 0.83691037,
+              "last": 0.75877154,
+              "spread_1_10": 0.057629330000000034,
+              "spread_1_last": 0.13576816000000003,
+              "stdev": 0.02078749786027302
+            },
+            "near_ties_at_10": 15,
+            "recall": {
+              "1": 0.08333333333333333,
+              "5": 0.4166666666666667,
+              "10": 0.5833333333333334,
+              "20": 0.6666666666666666,
+              "50": 0.8333333333333334
+            },
+            "recall_frozen_truth": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRAA03",
+              "CTL-IEC-SR11",
+              "CTL-IEC-SR15",
+              "CTL-CSF-PRAA01",
+              "CTL-IEC-SR14",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0401",
+              "CTL-IEC-SR110",
+              "CTL-IEC-SR73"
+            ],
+            "full_query_ms": 215.38789999613073
+          },
+          "CAP-PR-MFA": {
+            "band": {
+              "first": 0.8723823,
+              "tenth": 0.84182066,
+              "last": 0.7723812,
+              "spread_1_10": 0.030561640000000057,
+              "spread_1_last": 0.10000110000000006,
+              "stdev": 0.017369501995243446
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.125,
+              "5": 0.625,
+              "10": 0.875,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR17",
+              "CTL-CIS-0604",
+              "CTL-NIS2-A21J",
+              "CTL-CIS-0605",
+              "CTL-IEC-SR19",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR113",
+              "CTL-CIS-0603",
+              "CTL-IEC-SR111",
+              "CTL-IEC-SR110"
+            ],
+            "full_query_ms": 228.05380000500008
+          },
+          "CAP-PR-ACCESS": {
+            "band": {
+              "first": 0.86550987,
+              "tenth": 0.8363143,
+              "last": 0.75499135,
+              "spread_1_10": 0.02919557000000006,
+              "spread_1_last": 0.11051852000000006,
+              "stdev": 0.01946078803741142
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.08333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.5833333333333334,
+              "20": 0.8333333333333334,
+              "50": 0.9166666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0303",
+              "CTL-CSF-PRAA05",
+              "CTL-CIS-0608",
+              "CTL-CIS-0607",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR22",
+              "CTL-IEC-SR112",
+              "CTL-IEC-SR21",
+              "CTL-IEC-SR35",
+              "CTL-IEC-SR16"
+            ],
+            "full_query_ms": 187.37330000294605
+          },
+          "CAP-PR-PAM": {
+            "band": {
+              "first": 0.8511176,
+              "tenth": 0.82852817,
+              "last": 0.759315,
+              "spread_1_10": 0.02258943000000002,
+              "spread_1_last": 0.09180260000000007,
+              "stdev": 0.016061976430820992
+            },
+            "near_ties_at_10": 25,
+            "recall": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0303",
+              "CTL-CIS-0504",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR16",
+              "CTL-NIS2-A21B",
+              "CTL-IEC-SR13",
+              "CTL-CIS-0605",
+              "CTL-CIS-0201",
+              "CTL-IEC-SR113",
+              "CTL-CSF-PRAA05"
+            ],
+            "full_query_ms": 211.97699999902397
+          },
+          "CAP-PR-DATACONF": {
+            "band": {
+              "first": 0.8844303,
+              "tenth": 0.8435238,
+              "last": 0.7668854,
+              "spread_1_10": 0.04090649999999996,
+              "spread_1_last": 0.11754489999999995,
+              "stdev": 0.01825228835539382
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.1,
+              "5": 0.5,
+              "10": 0.8,
+              "20": 0.9,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRDS02",
+              "CTL-CSF-PRDS01",
+              "CTL-CIS-0311",
+              "CTL-CIS-0310",
+              "CTL-IEC-SR41",
+              "CTL-CSF-PRDS10",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR42",
+              "CTL-IEC-SR31",
+              "CTL-CIS-1105"
+            ],
+            "full_query_ms": 213.56309999828227
+          },
+          "CAP-PR-INTEGRITY": {
+            "band": {
+              "first": 0.87820184,
+              "tenth": 0.8360162,
+              "last": 0.74631655,
+              "spread_1_10": 0.042185640000000024,
+              "spread_1_last": 0.13188529000000004,
+              "stdev": 0.018562519724951692
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.14285714285714285,
+              "5": 0.42857142857142855,
+              "10": 0.5714285714285714,
+              "20": 0.8571428571428571,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR34",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-CSF-IDRA09",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR31",
+              "CTL-IEC-SR38",
+              "CTL-IEC-SR43",
+              "CTL-CIS-1105",
+              "CTL-CIS-0201"
+            ],
+            "full_query_ms": 238.92180000257213
+          },
+          "CAP-PR-HARDENING": {
+            "band": {
+              "first": 0.882179,
+              "tenth": 0.84100366,
+              "last": 0.7642734,
+              "spread_1_10": 0.041175340000000005,
+              "spread_1_last": 0.11790560000000005,
+              "stdev": 0.01867159590285392
+            },
+            "near_ties_at_10": 11,
+            "recall": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 0.8,
+              "20": 0.8,
+              "50": 0.8
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR76",
+              "CTL-CIS-0401",
+              "CTL-CIS-0402",
+              "CTL-IEC-SR73",
+              "CTL-CSF-PRPS01",
+              "CTL-CIS-1202",
+              "CTL-IEC-SR78",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR74",
+              "CTL-IEC-SR62"
+            ],
+            "full_query_ms": 190.1205999965896
+          },
+          "CAP-PR-ALLOWLIST": {
+            "band": {
+              "first": 0.8996398,
+              "tenth": 0.83352417,
+              "last": 0.7599857,
+              "spread_1_10": 0.06611562999999998,
+              "spread_1_last": 0.1396541,
+              "stdev": 0.019128586635462408
+            },
+            "near_ties_at_10": 14,
+            "recall": {
+              "1": 0.2,
+              "5": 0.6,
+              "10": 0.6,
+              "20": 0.6,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0205",
+              "CTL-CSF-PRPS05",
+              "CTL-CIS-0203",
+              "CTL-CIS-0201",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR54",
+              "CTL-IEC-SR21",
+              "CTL-CIS-0202",
+              "CTL-IEC-SR112"
+            ],
+            "full_query_ms": 200.6732000008924
+          },
+          "CAP-PR-MALWARE": {
+            "band": {
+              "first": 0.90016305,
+              "tenth": 0.83347046,
+              "last": 0.7615019,
+              "spread_1_10": 0.06669258999999994,
+              "spread_1_last": 0.13866115,
+              "stdev": 0.018257155346867476
+            },
+            "near_ties_at_10": 28,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR32",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR43",
+              "CTL-IMO-FAL3PR",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR112",
+              "CTL-CIS-1001",
+              "CTL-CIS-1105",
+              "CTL-CSF-PRPS02"
+            ],
+            "full_query_ms": 192.5967999995919
+          },
+          "CAP-PR-MEDIA": {
+            "band": {
+              "first": 0.84893936,
+              "tenth": 0.83174664,
+              "last": 0.75580883,
+              "spread_1_10": 0.01719272000000005,
+              "spread_1_last": 0.09313053000000004,
+              "stdev": 0.01708619476102025
+            },
+            "near_ties_at_10": 20,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-1003",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR35",
+              "CTL-IEC-SR78",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR22",
+              "CTL-IEC-SR23",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR36",
+              "CTL-IEC-SR110"
+            ],
+            "full_query_ms": 181.71730000176467
+          },
+          "CAP-PR-SEGMENT": {
+            "band": {
+              "first": 0.86785215,
+              "tenth": 0.8275886,
+              "last": 0.7726737,
+              "spread_1_10": 0.04026355000000004,
+              "spread_1_last": 0.09517845000000003,
+              "stdev": 0.013844672780252457
+            },
+            "near_ties_at_10": 18,
+            "recall": {
+              "1": 0.1111111111111111,
+              "5": 0.3333333333333333,
+              "10": 0.4444444444444444,
+              "20": 0.4444444444444444,
+              "50": 0.8888888888888888
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR51",
+              "CTL-IEC-SR52",
+              "CTL-IEC-SR43",
+              "CTL-CSF-RSMA03",
+              "CTL-CIS-1202",
+              "CTL-CIS-1409",
+              "CTL-IEC-SR76",
+              "CTL-CIS-1301",
+              "CTL-CSF-PRIR01",
+              "CTL-CIS-0402"
+            ],
+            "full_query_ms": 246.0371999986819
+          },
+          "CAP-PR-PATCH": {
+            "band": {
+              "first": 0.8461164,
+              "tenth": 0.8362526,
+              "last": 0.77887726,
+              "spread_1_10": 0.009863799999999978,
+              "spread_1_last": 0.06723913999999998,
+              "stdev": 0.01367231186271262
+            },
+            "near_ties_at_10": 31,
+            "recall": {
+              "1": 0.0,
+              "5": 0.16666666666666666,
+              "10": 0.3333333333333333,
+              "20": 0.3333333333333333,
+              "50": 0.6666666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-NIS2-A21B",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0701",
+              "CTL-CIS-0201",
+              "CTL-CSF-IDRA01",
+              "CTL-CSF-IDRA04",
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRPS01",
+              "CTL-CSF-RSMI01"
+            ],
+            "full_query_ms": 212.18680000310997
+          },
+          "CAP-PR-AWARENESS": {
+            "band": {
+              "first": 0.89219856,
+              "tenth": 0.83771956,
+              "last": 0.7626823,
+              "spread_1_10": 0.054478999999999944,
+              "spread_1_last": 0.12951625999999994,
+              "stdev": 0.018089647144348076
+            },
+            "near_ties_at_10": 27,
+            "recall": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 0.8333333333333334
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRAT01",
+              "CTL-NIS2-A21G",
+              "CTL-CSF-GVRR04",
+              "CTL-CIS-1409",
+              "CTL-CSF-PRAT02",
+              "CTL-CIS-1401",
+              "CTL-IEC-SR43",
+              "CTL-CSF-IDRA02",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12"
+            ],
+            "full_query_ms": 195.28600000194274
+          },
+          "CAP-PR-BACKUP": {
+            "band": {
+              "first": 0.89388835,
+              "tenth": 0.8431565,
+              "last": 0.7545587,
+              "spread_1_10": 0.05073185000000002,
+              "spread_1_last": 0.13932964999999997,
+              "stdev": 0.021036474180441442
+            },
+            "near_ties_at_10": 5,
+            "recall": {
+              "1": 0.1111111111111111,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.7777777777777778,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-1105",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR74",
+              "CTL-IMO-FAL3RC",
+              "CTL-CSF-PRDS11",
+              "CTL-CIS-1103",
+              "CTL-CIS-1102",
+              "CTL-CSF-RCRP03",
+              "CTL-CIS-0802",
+              "CTL-CIS-1708"
+            ],
+            "full_query_ms": 202.74380000046222
+          },
+          "CAP-DE-MONITOR": {
+            "band": {
+              "first": 0.86691445,
+              "tenth": 0.83486503,
+              "last": 0.75138557,
+              "spread_1_10": 0.032049419999999995,
+              "spread_1_last": 0.11552888000000006,
+              "stdev": 0.017893809126071816
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.375,
+              "20": 0.5,
+              "50": 0.875
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0811",
+              "CTL-IEC-SR62",
+              "CTL-IEC-SR73",
+              "CTL-CSF-DECM01",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0802",
+              "CTL-CSF-DECM09",
+              "CTL-IEC-SR78",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR28"
+            ],
+            "full_query_ms": 201.5984000026947
+          },
+          "CAP-DE-LOG": {
+            "band": {
+              "first": 0.899131,
+              "tenth": 0.83796227,
+              "last": 0.76508105,
+              "spread_1_10": 0.061168730000000004,
+              "spread_1_last": 0.13404994999999997,
+              "stdev": 0.019067658406095145
+            },
+            "near_ties_at_10": 19,
+            "recall": {
+              "1": 0.09090909090909091,
+              "5": 0.36363636363636365,
+              "10": 0.5454545454545454,
+              "20": 0.8181818181818182,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR28",
+              "CTL-IEC-SR61",
+              "CTL-CIS-0802",
+              "CTL-CIS-0811",
+              "CTL-IEC-SR12",
+              "CTL-CIS-1301",
+              "CTL-CSF-DEAE06",
+              "CTL-CSF-IDRA01",
+              "CTL-IEC-SR39",
+              "CTL-IEC-SR33"
+            ],
+            "full_query_ms": 229.73890000139363
+          },
+          "CAP-RS-IR": {
+            "band": {
+              "first": 0.8753698,
+              "tenth": 0.84866726,
+              "last": 0.763583,
+              "spread_1_10": 0.02670253999999994,
+              "spread_1_last": 0.11178679999999996,
+              "stdev": 0.020105348798609632
+            },
+            "near_ties_at_10": 5,
+            "recall": {
+              "1": 0.09090909090909091,
+              "5": 0.36363636363636365,
+              "10": 0.6363636363636364,
+              "20": 0.9090909090909091,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-RSMA01",
+              "CTL-NIS2-A21B",
+              "CTL-CSF-RCRP01",
+              "CTL-CSF-IDIM04",
+              "CTL-CIS-1704",
+              "CTL-CIS-1708",
+              "CTL-CSF-RSMI01",
+              "CTL-IMO-FAL3RS",
+              "CTL-CIS-1701",
+              "CTL-CSF-RSMA03"
+            ],
+            "full_query_ms": 155.78370000002906
+          },
+          "CAP-RS-REPORT": {
+            "band": {
+              "first": 0.8920792,
+              "tenth": 0.8416977,
+              "last": 0.74356616,
+              "spread_1_10": 0.05038149999999997,
+              "spread_1_last": 0.14851303999999999,
+              "stdev": 0.021852163955033005
+            },
+            "near_ties_at_10": 6,
+            "recall": {
+              "1": 0.2,
+              "5": 0.6,
+              "10": 0.8,
+              "20": 0.8,
+              "50": 0.8
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [
+              "CTL-IMO-42898"
+            ],
+            "top_k_ids": [
+              "CTL-CSF-RSCO02",
+              "CTL-NIS2-A23",
+              "CTL-CIS-1702",
+              "CTL-NIS2-A21B",
+              "CTL-CSF-RSMA02",
+              "CTL-CSF-RSMA03",
+              "CTL-CSF-RSMI01",
+              "CTL-CSF-RSMA04",
+              "CTL-CSF-IDRA03",
+              "CTL-CSF-RSCO03"
+            ],
+            "full_query_ms": 187.1138000060455
+          },
+          "CAP-RC-RECOVER": {
+            "band": {
+              "first": 0.92484653,
+              "tenth": 0.8465848,
+              "last": 0.7565105,
+              "spread_1_10": 0.07826172999999992,
+              "spread_1_last": 0.16833602999999997,
+              "stdev": 0.02337105655626919
+            },
+            "near_ties_at_10": 3,
+            "recall": {
+              "1": 0.1111111111111111,
+              "5": 0.2222222222222222,
+              "10": 0.4444444444444444,
+              "20": 0.7777777777777778,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR74",
+              "CTL-IMO-FAL3RC",
+              "CTL-IEC-SR73",
+              "CTL-CSF-RSMA05",
+              "CTL-CIS-1708",
+              "CTL-CIS-1105",
+              "CTL-CSF-RCRP01",
+              "CTL-NIS2-A21B",
+              "CTL-CIS-1101",
+              "CTL-IMO-FAL3RS"
+            ],
+            "full_query_ms": 174.2986999961431
+          }
+        },
+        "index_build_seconds": 34.4206378999952,
+        "latency": {
+          "encode_query_ms_mean": 169.7538458326259,
+          "query_total_ms_mean": 180.7806624992736,
+          "qdrant_share_ms_mean": 11.026816666647704,
+          "queries": 24
+        },
+        "summary": {
+          "first": 0.8797614175,
+          "tenth": 0.8390417366666667,
+          "recall_frozen_truth_10": 0.7708333333333334,
+          "recall_sector_adjusted_10": 0.7916666666666666
+        }
+      },
+      "0.3.0": {
+        "catalog_version": "0.3.0",
+        "controls": 226,
+        "capabilities": 37,
+        "mappings": 266,
+        "collection": "catalog_v0_3_0_e64a6788c320",
+        "cut_fraction": 0.04424778761061947,
+        "capabilities_measured": {
+          "CAP-GOV-RISK": {
+            "band": {
+              "first": 0.8853066,
+              "tenth": 0.857793,
+              "last": 0.7637478,
+              "spread_1_10": 0.027513600000000027,
+              "spread_1_last": 0.12155880000000008,
+              "stdev": 0.022700359605121047
+            },
+            "near_ties_at_10": 8,
+            "recall": {
+              "1": 0.1,
+              "5": 0.2,
+              "10": 0.2,
+              "20": 0.6,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [
+              "CTL-IMO-42898"
+            ],
+            "top_k_ids": [
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-GVRR02",
+              "CTL-CSF-GVPO01",
+              "CTL-CSF-GVRM03",
+              "CTL-NIS2-A21F",
+              "CTL-CSF-GVOC01",
+              "CTL-CSF-GVRR03",
+              "CTL-IMO-FAL3GOV",
+              "CTL-CSF-GVOC02",
+              "CTL-CSF-GVSC01"
+            ],
+            "full_query_ms": 175.8064000023296
+          },
+          "CAP-GOV-ROLES": {
+            "band": {
+              "first": 0.86901486,
+              "tenth": 0.8384309,
+              "last": 0.7726631,
+              "spread_1_10": 0.030583959999999966,
+              "spread_1_last": 0.0963517599999999,
+              "stdev": 0.01615971074909037
+            },
+            "near_ties_at_10": 7,
+            "recall": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.8333333333333334,
+              "50": 0.8333333333333334
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-GVRR01",
+              "CTL-CSF-GVSC02",
+              "CTL-CSF-GVRR02",
+              "CTL-CSF-GVRR03",
+              "CTL-IMO-FAL3GOV",
+              "CTL-CSF-GVOC01",
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-RCRP04",
+              "CTL-CSF-GVOC03",
+              "CTL-NIS2-A21B"
+            ],
+            "full_query_ms": 191.63960000150837
+          },
+          "CAP-GOV-SUPPLY": {
+            "band": {
+              "first": 0.8656641,
+              "tenth": 0.84300363,
+              "last": 0.7671585,
+              "spread_1_10": 0.022660470000000044,
+              "spread_1_last": 0.09850560000000008,
+              "stdev": 0.01815191123843642
+            },
+            "near_ties_at_10": 18,
+            "recall": {
+              "1": 0.058823529411764705,
+              "5": 0.17647058823529413,
+              "10": 0.4117647058823529,
+              "20": 0.7647058823529411,
+              "50": 0.9411764705882353
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-GVSC03",
+              "CTL-CSF-GVSC07",
+              "CTL-IEC-SR73",
+              "CTL-CSF-GVSC01",
+              "CTL-CSF-GVRM05",
+              "CTL-CSF-GVSC05",
+              "CTL-CSF-GVSC09",
+              "CTL-IEC-SR78",
+              "CTL-NIS2-A21",
+              "CTL-NIS2-A21D"
+            ],
+            "full_query_ms": 194.94290000147885
+          },
+          "CAP-ID-ASSET": {
+            "band": {
+              "first": 0.9049484,
+              "tenth": 0.8462234,
+              "last": 0.76424384,
+              "spread_1_10": 0.05872500000000003,
+              "spread_1_last": 0.14070455999999998,
+              "stdev": 0.023089150084769767
+            },
+            "near_ties_at_10": 7,
+            "recall": {
+              "1": 0.06666666666666667,
+              "5": 0.26666666666666666,
+              "10": 0.4,
+              "20": 0.5333333333333333,
+              "50": 0.7333333333333333
+            },
+            "recall_frozen_truth": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR78",
+              "CTL-CIS-0201",
+              "CTL-CSF-IDAM01",
+              "CTL-CSF-IDAM02",
+              "CTL-CIS-0501",
+              "CTL-IEC-SR73",
+              "CTL-CIS-0302",
+              "CTL-CIS-1501",
+              "CTL-CIS-0101",
+              "CTL-CSF-IDAM04"
+            ],
+            "full_query_ms": 199.37629999913042
+          },
+          "CAP-ID-RISK": {
+            "band": {
+              "first": 0.8538408,
+              "tenth": 0.83400226,
+              "last": 0.76434636,
+              "spread_1_10": 0.01983853999999996,
+              "spread_1_last": 0.08949443999999995,
+              "stdev": 0.016199175047595646
+            },
+            "near_ties_at_10": 20,
+            "recall": {
+              "1": 0.14285714285714285,
+              "5": 0.42857142857142855,
+              "10": 0.42857142857142855,
+              "20": 0.42857142857142855,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-IDRA01",
+              "CTL-CSF-IDRA04",
+              "CTL-CSF-IDRA05",
+              "CTL-CSF-DEAE02",
+              "CTL-NIS2-A21A",
+              "CTL-CSF-RSMA02",
+              "CTL-NIS2-A21F",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR12"
+            ],
+            "full_query_ms": 170.46529999788618
+          },
+          "CAP-PR-IDENTITY": {
+            "band": {
+              "first": 0.8945397,
+              "tenth": 0.83691037,
+              "last": 0.75877154,
+              "spread_1_10": 0.057629330000000034,
+              "spread_1_last": 0.13576816000000003,
+              "stdev": 0.020770225513979338
+            },
+            "near_ties_at_10": 15,
+            "recall": {
+              "1": 0.08333333333333333,
+              "5": 0.4166666666666667,
+              "10": 0.5833333333333334,
+              "20": 0.6666666666666666,
+              "50": 0.8333333333333334
+            },
+            "recall_frozen_truth": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRAA03",
+              "CTL-IEC-SR11",
+              "CTL-IEC-SR15",
+              "CTL-CSF-PRAA01",
+              "CTL-IEC-SR14",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0401",
+              "CTL-IEC-SR110",
+              "CTL-IEC-SR73"
+            ],
+            "full_query_ms": 198.34199999604607
+          },
+          "CAP-PR-MFA": {
+            "band": {
+              "first": 0.8723823,
+              "tenth": 0.84182066,
+              "last": 0.7723812,
+              "spread_1_10": 0.030561640000000057,
+              "spread_1_last": 0.10000110000000006,
+              "stdev": 0.017325137081389826
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.125,
+              "5": 0.625,
+              "10": 0.875,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR17",
+              "CTL-CIS-0604",
+              "CTL-CIS-0605",
+              "CTL-NIS2-A21J",
+              "CTL-IEC-SR19",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR113",
+              "CTL-CIS-0603",
+              "CTL-IEC-SR111",
+              "CTL-IEC-SR110"
+            ],
+            "full_query_ms": 238.18329999630805
+          },
+          "CAP-PR-ACCESS": {
+            "band": {
+              "first": 0.86550987,
+              "tenth": 0.8363143,
+              "last": 0.75499135,
+              "spread_1_10": 0.02919557000000006,
+              "spread_1_last": 0.11051852000000006,
+              "stdev": 0.019457631395809104
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.08333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.5833333333333334,
+              "20": 0.8333333333333334,
+              "50": 0.9166666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0303",
+              "CTL-CSF-PRAA05",
+              "CTL-CIS-0608",
+              "CTL-CIS-0607",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR22",
+              "CTL-IEC-SR112",
+              "CTL-IEC-SR21",
+              "CTL-IEC-SR35",
+              "CTL-IEC-SR16"
+            ],
+            "full_query_ms": 173.73690000385977
+          },
+          "CAP-PR-PAM": {
+            "band": {
+              "first": 0.8511176,
+              "tenth": 0.82852817,
+              "last": 0.759315,
+              "spread_1_10": 0.02258943000000002,
+              "spread_1_last": 0.09180260000000007,
+              "stdev": 0.01609455310628972
+            },
+            "near_ties_at_10": 25,
+            "recall": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0303",
+              "CTL-CIS-0504",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR16",
+              "CTL-NIS2-A21B",
+              "CTL-IEC-SR13",
+              "CTL-CIS-0605",
+              "CTL-CIS-0201",
+              "CTL-IEC-SR113",
+              "CTL-CSF-PRAA05"
+            ],
+            "full_query_ms": 196.01619999593822
+          },
+          "CAP-PR-DATACONF": {
+            "band": {
+              "first": 0.8844303,
+              "tenth": 0.8435238,
+              "last": 0.7668854,
+              "spread_1_10": 0.04090649999999996,
+              "spread_1_last": 0.11754489999999995,
+              "stdev": 0.018236214632961694
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.1,
+              "5": 0.5,
+              "10": 0.8,
+              "20": 0.9,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRDS02",
+              "CTL-CSF-PRDS01",
+              "CTL-CIS-0311",
+              "CTL-CIS-0310",
+              "CTL-IEC-SR41",
+              "CTL-CSF-PRDS10",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR42",
+              "CTL-IEC-SR31",
+              "CTL-CIS-1105"
+            ],
+            "full_query_ms": 190.20739999541547
+          },
+          "CAP-PR-INTEGRITY": {
+            "band": {
+              "first": 0.87820184,
+              "tenth": 0.8360162,
+              "last": 0.74631655,
+              "spread_1_10": 0.042185640000000024,
+              "spread_1_last": 0.13188529000000004,
+              "stdev": 0.018528212661910553
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.14285714285714285,
+              "5": 0.42857142857142855,
+              "10": 0.5714285714285714,
+              "20": 0.8571428571428571,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR34",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-CSF-IDRA09",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR31",
+              "CTL-IEC-SR38",
+              "CTL-IEC-SR43",
+              "CTL-CIS-1105",
+              "CTL-CIS-0201"
+            ],
+            "full_query_ms": 232.35240000212798
+          },
+          "CAP-PR-HARDENING": {
+            "band": {
+              "first": 0.882179,
+              "tenth": 0.84100366,
+              "last": 0.7642734,
+              "spread_1_10": 0.041175340000000005,
+              "spread_1_last": 0.11790560000000005,
+              "stdev": 0.018620856923380637
+            },
+            "near_ties_at_10": 11,
+            "recall": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 0.8,
+              "20": 0.8,
+              "50": 0.8
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR76",
+              "CTL-CIS-0401",
+              "CTL-CIS-0402",
+              "CTL-IEC-SR73",
+              "CTL-CSF-PRPS01",
+              "CTL-CIS-1202",
+              "CTL-IEC-SR78",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR74",
+              "CTL-IEC-SR62"
+            ],
+            "full_query_ms": 189.39489999320358
+          },
+          "CAP-PR-ALLOWLIST": {
+            "band": {
+              "first": 0.8996398,
+              "tenth": 0.83352417,
+              "last": 0.7587558,
+              "spread_1_10": 0.06611562999999998,
+              "spread_1_last": 0.140884,
+              "stdev": 0.01926817916029201
+            },
+            "near_ties_at_10": 14,
+            "recall": {
+              "1": 0.2,
+              "5": 0.6,
+              "10": 0.6,
+              "20": 0.6,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0205",
+              "CTL-CSF-PRPS05",
+              "CTL-CIS-0203",
+              "CTL-CIS-0201",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR54",
+              "CTL-IEC-SR21",
+              "CTL-CIS-0202",
+              "CTL-IEC-SR112"
+            ],
+            "full_query_ms": 172.11229999520583
+          },
+          "CAP-PR-MALWARE": {
+            "band": {
+              "first": 0.90016305,
+              "tenth": 0.83347046,
+              "last": 0.7615019,
+              "spread_1_10": 0.06669258999999994,
+              "spread_1_last": 0.13866115,
+              "stdev": 0.01824280475463444
+            },
+            "near_ties_at_10": 28,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR32",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR43",
+              "CTL-IMO-FAL3PR",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR112",
+              "CTL-CIS-1001",
+              "CTL-CIS-1105",
+              "CTL-CSF-PRPS02"
+            ],
+            "full_query_ms": 154.45700000418583
+          },
+          "CAP-PR-MEDIA": {
+            "band": {
+              "first": 0.84893936,
+              "tenth": 0.83174664,
+              "last": 0.75580883,
+              "spread_1_10": 0.01719272000000005,
+              "spread_1_last": 0.09313053000000004,
+              "stdev": 0.017088685669207786
+            },
+            "near_ties_at_10": 20,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-1003",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR35",
+              "CTL-IEC-SR78",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR22",
+              "CTL-IEC-SR23",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR36",
+              "CTL-IEC-SR110"
+            ],
+            "full_query_ms": 187.74200000189012
+          },
+          "CAP-PR-SEGMENT": {
+            "band": {
+              "first": 0.86785215,
+              "tenth": 0.8275886,
+              "last": 0.7726737,
+              "spread_1_10": 0.04026355000000004,
+              "spread_1_last": 0.09517845000000003,
+              "stdev": 0.013872668475240118
+            },
+            "near_ties_at_10": 18,
+            "recall": {
+              "1": 0.1111111111111111,
+              "5": 0.3333333333333333,
+              "10": 0.4444444444444444,
+              "20": 0.4444444444444444,
+              "50": 0.8888888888888888
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR51",
+              "CTL-IEC-SR52",
+              "CTL-IEC-SR43",
+              "CTL-CSF-RSMA03",
+              "CTL-CIS-1202",
+              "CTL-CIS-1409",
+              "CTL-IEC-SR76",
+              "CTL-CIS-1301",
+              "CTL-CSF-PRIR01",
+              "CTL-CIS-0402"
+            ],
+            "full_query_ms": 176.3076999995974
+          },
+          "CAP-PR-PATCH": {
+            "band": {
+              "first": 0.8461164,
+              "tenth": 0.8362526,
+              "last": 0.77887726,
+              "spread_1_10": 0.009863799999999978,
+              "spread_1_last": 0.06723913999999998,
+              "stdev": 0.013727927150693604
+            },
+            "near_ties_at_10": 31,
+            "recall": {
+              "1": 0.0,
+              "5": 0.16666666666666666,
+              "10": 0.3333333333333333,
+              "20": 0.3333333333333333,
+              "50": 0.6666666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-NIS2-A21B",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0701",
+              "CTL-CIS-0201",
+              "CTL-CSF-IDRA01",
+              "CTL-CSF-IDRA04",
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRPS01",
+              "CTL-CSF-RSMI01"
+            ],
+            "full_query_ms": 180.39069999940693
+          },
+          "CAP-PR-AWARENESS": {
+            "band": {
+              "first": 0.89219856,
+              "tenth": 0.83771956,
+              "last": 0.7626823,
+              "spread_1_10": 0.054478999999999944,
+              "spread_1_last": 0.12951625999999994,
+              "stdev": 0.018085947108465728
+            },
+            "near_ties_at_10": 27,
+            "recall": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 0.8333333333333334
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRAT01",
+              "CTL-NIS2-A21G",
+              "CTL-CSF-GVRR04",
+              "CTL-CIS-1409",
+              "CTL-CSF-PRAT02",
+              "CTL-CIS-1401",
+              "CTL-IEC-SR43",
+              "CTL-CSF-IDRA02",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12"
+            ],
+            "full_query_ms": 192.0553000018117
+          },
+          "CAP-PR-BACKUP": {
+            "band": {
+              "first": 0.89388835,
+              "tenth": 0.8431565,
+              "last": 0.7545587,
+              "spread_1_10": 0.05073185000000002,
+              "spread_1_last": 0.13932964999999997,
+              "stdev": 0.021066609007755182
+            },
+            "near_ties_at_10": 5,
+            "recall": {
+              "1": 0.1,
+              "5": 0.3,
+              "10": 0.6,
+              "20": 0.7,
+              "50": 0.9
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-1105",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR74",
+              "CTL-IMO-FAL3RC",
+              "CTL-CSF-PRDS11",
+              "CTL-CIS-1103",
+              "CTL-CIS-1102",
+              "CTL-CSF-RCRP03",
+              "CTL-CIS-0802",
+              "CTL-CIS-1708"
+            ],
+            "full_query_ms": 190.688599999703
+          },
+          "CAP-DE-MONITOR": {
+            "band": {
+              "first": 0.86691445,
+              "tenth": 0.83486503,
+              "last": 0.75138557,
+              "spread_1_10": 0.032049419999999995,
+              "spread_1_last": 0.11552888000000006,
+              "stdev": 0.01791513643001745
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.375,
+              "20": 0.5,
+              "50": 0.875
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0811",
+              "CTL-IEC-SR62",
+              "CTL-IEC-SR73",
+              "CTL-CSF-DECM01",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0802",
+              "CTL-CSF-DECM09",
+              "CTL-IEC-SR78",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR28"
+            ],
+            "full_query_ms": 177.79149999842048
+          },
+          "CAP-DE-LOG": {
+            "band": {
+              "first": 0.899131,
+              "tenth": 0.83796227,
+              "last": 0.76508105,
+              "spread_1_10": 0.061168730000000004,
+              "spread_1_last": 0.13404994999999997,
+              "stdev": 0.019082435204596265
+            },
+            "near_ties_at_10": 19,
+            "recall": {
+              "1": 0.09090909090909091,
+              "5": 0.36363636363636365,
+              "10": 0.5454545454545454,
+              "20": 0.8181818181818182,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR28",
+              "CTL-IEC-SR61",
+              "CTL-CIS-0802",
+              "CTL-CIS-0811",
+              "CTL-IEC-SR12",
+              "CTL-CIS-1301",
+              "CTL-CSF-DEAE06",
+              "CTL-CSF-IDRA01",
+              "CTL-IEC-SR39",
+              "CTL-IEC-SR33"
+            ],
+            "full_query_ms": 162.74719999637455
+          },
+          "CAP-RS-IR": {
+            "band": {
+              "first": 0.8753698,
+              "tenth": 0.84866726,
+              "last": 0.76053494,
+              "spread_1_10": 0.02670253999999994,
+              "spread_1_last": 0.11483485999999998,
+              "stdev": 0.020139586256552534
+            },
+            "near_ties_at_10": 5,
+            "recall": {
+              "1": 0.09090909090909091,
+              "5": 0.36363636363636365,
+              "10": 0.6363636363636364,
+              "20": 0.9090909090909091,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-RSMA01",
+              "CTL-NIS2-A21B",
+              "CTL-CSF-RCRP01",
+              "CTL-CSF-IDIM04",
+              "CTL-CIS-1704",
+              "CTL-CIS-1708",
+              "CTL-CSF-RSMI01",
+              "CTL-IMO-FAL3RS",
+              "CTL-CIS-1701",
+              "CTL-CSF-RSMA03"
+            ],
+            "full_query_ms": 178.4278999984963
+          },
+          "CAP-RS-REPORT": {
+            "band": {
+              "first": 0.8920792,
+              "tenth": 0.8416977,
+              "last": 0.74356616,
+              "spread_1_10": 0.05038149999999997,
+              "spread_1_last": 0.14851303999999999,
+              "stdev": 0.02185900885789913
+            },
+            "near_ties_at_10": 6,
+            "recall": {
+              "1": 0.2,
+              "5": 0.6,
+              "10": 0.8,
+              "20": 0.8,
+              "50": 0.8
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [
+              "CTL-IMO-42898"
+            ],
+            "top_k_ids": [
+              "CTL-CSF-RSCO02",
+              "CTL-NIS2-A23",
+              "CTL-CIS-1702",
+              "CTL-NIS2-A21B",
+              "CTL-CSF-RSMA02",
+              "CTL-CSF-RSMA03",
+              "CTL-CSF-RSMI01",
+              "CTL-CSF-RSMA04",
+              "CTL-CSF-IDRA03",
+              "CTL-CSF-RSCO03"
+            ],
+            "full_query_ms": 177.71209999773419
+          },
+          "CAP-RC-RECOVER": {
+            "band": {
+              "first": 0.92484653,
+              "tenth": 0.8465848,
+              "last": 0.7565105,
+              "spread_1_10": 0.07826172999999992,
+              "spread_1_last": 0.16833602999999997,
+              "stdev": 0.023380191499333233
+            },
+            "near_ties_at_10": 3,
+            "recall": {
+              "1": 0.1111111111111111,
+              "5": 0.2222222222222222,
+              "10": 0.4444444444444444,
+              "20": 0.7777777777777778,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR74",
+              "CTL-IMO-FAL3RC",
+              "CTL-IEC-SR73",
+              "CTL-CSF-RSMA05",
+              "CTL-CIS-1708",
+              "CTL-CIS-1105",
+              "CTL-CSF-RCRP01",
+              "CTL-NIS2-A21B",
+              "CTL-CIS-1101",
+              "CTL-IMO-FAL3RS"
+            ],
+            "full_query_ms": 168.59239999757847
+          }
+        },
+        "index_build_seconds": 22.219745700000203,
+        "latency": {
+          "encode_query_ms_mean": 172.4053041668109,
+          "query_total_ms_mean": 178.9478083328504,
+          "qdrant_share_ms_mean": 6.5425041660394925,
+          "queries": 24
+        },
+        "summary": {
+          "first": 0.8797614175,
+          "tenth": 0.8390335808333332,
+          "recall_frozen_truth_10": 0.7708333333333334,
+          "recall_sector_adjusted_10": 0.7916666666666666
+        }
+      },
+      "0.4.0": {
+        "catalog_version": "0.4.0",
+        "controls": 226,
+        "capabilities": 37,
+        "mappings": 266,
+        "collection": "catalog_v0_4_0_80982ba7e2f8",
+        "cut_fraction": 0.04424778761061947,
+        "capabilities_measured": {
+          "CAP-GOV-RISK": {
+            "band": {
+              "first": 0.8853066,
+              "tenth": 0.857793,
+              "last": 0.7637478,
+              "spread_1_10": 0.027513600000000027,
+              "spread_1_last": 0.12155880000000008,
+              "stdev": 0.022700359605121047
+            },
+            "near_ties_at_10": 8,
+            "recall": {
+              "1": 0.1,
+              "5": 0.2,
+              "10": 0.2,
+              "20": 0.6,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [
+              "CTL-IMO-42898"
+            ],
+            "top_k_ids": [
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-GVRR02",
+              "CTL-CSF-GVPO01",
+              "CTL-CSF-GVRM03",
+              "CTL-NIS2-A21F",
+              "CTL-CSF-GVOC01",
+              "CTL-CSF-GVRR03",
+              "CTL-IMO-FAL3GOV",
+              "CTL-CSF-GVOC02",
+              "CTL-CSF-GVSC01"
+            ],
+            "full_query_ms": 178.77430000226013
+          },
+          "CAP-GOV-ROLES": {
+            "band": {
+              "first": 0.86901486,
+              "tenth": 0.8384309,
+              "last": 0.7726631,
+              "spread_1_10": 0.030583959999999966,
+              "spread_1_last": 0.0963517599999999,
+              "stdev": 0.01615971074909037
+            },
+            "near_ties_at_10": 7,
+            "recall": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.8333333333333334,
+              "50": 0.8333333333333334
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-GVRR01",
+              "CTL-CSF-GVSC02",
+              "CTL-CSF-GVRR02",
+              "CTL-CSF-GVRR03",
+              "CTL-IMO-FAL3GOV",
+              "CTL-CSF-GVOC01",
+              "CTL-CSF-GVRM01",
+              "CTL-CSF-RCRP04",
+              "CTL-CSF-GVOC03",
+              "CTL-NIS2-A21B"
+            ],
+            "full_query_ms": 219.8160000043572
+          },
+          "CAP-GOV-SUPPLY": {
+            "band": {
+              "first": 0.8656641,
+              "tenth": 0.84300363,
+              "last": 0.7671585,
+              "spread_1_10": 0.022660470000000044,
+              "spread_1_last": 0.09850560000000008,
+              "stdev": 0.01815191123843642
+            },
+            "near_ties_at_10": 18,
+            "recall": {
+              "1": 0.058823529411764705,
+              "5": 0.17647058823529413,
+              "10": 0.4117647058823529,
+              "20": 0.7647058823529411,
+              "50": 0.9411764705882353
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.5,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-GVSC03",
+              "CTL-CSF-GVSC07",
+              "CTL-IEC-SR73",
+              "CTL-CSF-GVSC01",
+              "CTL-CSF-GVRM05",
+              "CTL-CSF-GVSC05",
+              "CTL-CSF-GVSC09",
+              "CTL-IEC-SR78",
+              "CTL-NIS2-A21",
+              "CTL-NIS2-A21D"
+            ],
+            "full_query_ms": 208.51450000191107
+          },
+          "CAP-ID-ASSET": {
+            "band": {
+              "first": 0.9049484,
+              "tenth": 0.8462234,
+              "last": 0.76424384,
+              "spread_1_10": 0.05872500000000003,
+              "spread_1_last": 0.14070455999999998,
+              "stdev": 0.023089150084769767
+            },
+            "near_ties_at_10": 7,
+            "recall": {
+              "1": 0.06666666666666667,
+              "5": 0.26666666666666666,
+              "10": 0.4,
+              "20": 0.5333333333333333,
+              "50": 0.7333333333333333
+            },
+            "recall_frozen_truth": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR78",
+              "CTL-CIS-0201",
+              "CTL-CSF-IDAM01",
+              "CTL-CSF-IDAM02",
+              "CTL-CIS-0501",
+              "CTL-IEC-SR73",
+              "CTL-CIS-0302",
+              "CTL-CIS-1501",
+              "CTL-CIS-0101",
+              "CTL-CSF-IDAM04"
+            ],
+            "full_query_ms": 194.45640000049025
+          },
+          "CAP-ID-RISK": {
+            "band": {
+              "first": 0.8538408,
+              "tenth": 0.83400226,
+              "last": 0.76434636,
+              "spread_1_10": 0.01983853999999996,
+              "spread_1_last": 0.08949443999999995,
+              "stdev": 0.016199175047595646
+            },
+            "near_ties_at_10": 20,
+            "recall": {
+              "1": 0.14285714285714285,
+              "5": 0.42857142857142855,
+              "10": 0.42857142857142855,
+              "20": 0.42857142857142855,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-IDRA01",
+              "CTL-CSF-IDRA04",
+              "CTL-CSF-IDRA05",
+              "CTL-CSF-DEAE02",
+              "CTL-NIS2-A21A",
+              "CTL-CSF-RSMA02",
+              "CTL-NIS2-A21F",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR12"
+            ],
+            "full_query_ms": 206.24530000350205
+          },
+          "CAP-PR-IDENTITY": {
+            "band": {
+              "first": 0.8945397,
+              "tenth": 0.83691037,
+              "last": 0.75877154,
+              "spread_1_10": 0.057629330000000034,
+              "spread_1_last": 0.13576816000000003,
+              "stdev": 0.020770225513979338
+            },
+            "near_ties_at_10": 15,
+            "recall": {
+              "1": 0.08333333333333333,
+              "5": 0.4166666666666667,
+              "10": 0.5833333333333334,
+              "20": 0.6666666666666666,
+              "50": 0.8333333333333334
+            },
+            "recall_frozen_truth": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.16666666666666666,
+              "5": 0.8333333333333334,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRAA03",
+              "CTL-IEC-SR11",
+              "CTL-IEC-SR15",
+              "CTL-CSF-PRAA01",
+              "CTL-IEC-SR14",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0401",
+              "CTL-IEC-SR110",
+              "CTL-IEC-SR73"
+            ],
+            "full_query_ms": 195.2056000009179
+          },
+          "CAP-PR-MFA": {
+            "band": {
+              "first": 0.8723823,
+              "tenth": 0.84182066,
+              "last": 0.7723812,
+              "spread_1_10": 0.030561640000000057,
+              "spread_1_last": 0.10000110000000006,
+              "stdev": 0.017325137081389826
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.125,
+              "5": 0.625,
+              "10": 0.875,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.16666666666666666,
+              "5": 0.5,
+              "10": 0.8333333333333334,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR17",
+              "CTL-CIS-0604",
+              "CTL-CIS-0605",
+              "CTL-NIS2-A21J",
+              "CTL-IEC-SR19",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR113",
+              "CTL-CIS-0603",
+              "CTL-IEC-SR111",
+              "CTL-IEC-SR110"
+            ],
+            "full_query_ms": 227.9359999956796
+          },
+          "CAP-PR-ACCESS": {
+            "band": {
+              "first": 0.86550987,
+              "tenth": 0.8363143,
+              "last": 0.75499135,
+              "spread_1_10": 0.02919557000000006,
+              "spread_1_last": 0.11051852000000006,
+              "stdev": 0.019457631395809104
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.08333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.5833333333333334,
+              "20": 0.8333333333333334,
+              "50": 0.9166666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0303",
+              "CTL-CSF-PRAA05",
+              "CTL-CIS-0608",
+              "CTL-CIS-0607",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR22",
+              "CTL-IEC-SR112",
+              "CTL-IEC-SR21",
+              "CTL-IEC-SR35",
+              "CTL-IEC-SR16"
+            ],
+            "full_query_ms": 201.3236999991932
+          },
+          "CAP-PR-PAM": {
+            "band": {
+              "first": 0.8511176,
+              "tenth": 0.82852817,
+              "last": 0.759315,
+              "spread_1_10": 0.02258943000000002,
+              "spread_1_last": 0.09180260000000007,
+              "stdev": 0.01609455310628972
+            },
+            "near_ties_at_10": 25,
+            "recall": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0303",
+              "CTL-CIS-0504",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR16",
+              "CTL-NIS2-A21B",
+              "CTL-IEC-SR13",
+              "CTL-CIS-0605",
+              "CTL-CIS-0201",
+              "CTL-IEC-SR113",
+              "CTL-CSF-PRAA05"
+            ],
+            "full_query_ms": 177.7903999973205
+          },
+          "CAP-PR-DATACONF": {
+            "band": {
+              "first": 0.8844303,
+              "tenth": 0.8435238,
+              "last": 0.7668854,
+              "spread_1_10": 0.04090649999999996,
+              "spread_1_last": 0.11754489999999995,
+              "stdev": 0.018236214632961694
+            },
+            "near_ties_at_10": 9,
+            "recall": {
+              "1": 0.1,
+              "5": 0.5,
+              "10": 0.8,
+              "20": 0.9,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRDS02",
+              "CTL-CSF-PRDS01",
+              "CTL-CIS-0311",
+              "CTL-CIS-0310",
+              "CTL-IEC-SR41",
+              "CTL-CSF-PRDS10",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR42",
+              "CTL-IEC-SR31",
+              "CTL-CIS-1105"
+            ],
+            "full_query_ms": 181.91229999501957
+          },
+          "CAP-PR-INTEGRITY": {
+            "band": {
+              "first": 0.87820184,
+              "tenth": 0.8360162,
+              "last": 0.74631655,
+              "spread_1_10": 0.042185640000000024,
+              "spread_1_last": 0.13188529000000004,
+              "stdev": 0.018528212661910553
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.14285714285714285,
+              "5": 0.42857142857142855,
+              "10": 0.5714285714285714,
+              "20": 0.8571428571428571,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR34",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-CSF-IDRA09",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR31",
+              "CTL-IEC-SR38",
+              "CTL-IEC-SR43",
+              "CTL-CIS-1105",
+              "CTL-CIS-0201"
+            ],
+            "full_query_ms": 227.49540000222623
+          },
+          "CAP-PR-HARDENING": {
+            "band": {
+              "first": 0.882179,
+              "tenth": 0.84100366,
+              "last": 0.7642734,
+              "spread_1_10": 0.041175340000000005,
+              "spread_1_last": 0.11790560000000005,
+              "stdev": 0.018620856923380637
+            },
+            "near_ties_at_10": 11,
+            "recall": {
+              "1": 0.2,
+              "5": 0.8,
+              "10": 0.8,
+              "20": 0.8,
+              "50": 0.8
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR76",
+              "CTL-CIS-0401",
+              "CTL-CIS-0402",
+              "CTL-IEC-SR73",
+              "CTL-CSF-PRPS01",
+              "CTL-CIS-1202",
+              "CTL-IEC-SR78",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR74",
+              "CTL-IEC-SR62"
+            ],
+            "full_query_ms": 208.2564000011189
+          },
+          "CAP-PR-ALLOWLIST": {
+            "band": {
+              "first": 0.8996398,
+              "tenth": 0.83352417,
+              "last": 0.7587558,
+              "spread_1_10": 0.06611562999999998,
+              "spread_1_last": 0.140884,
+              "stdev": 0.01926817916029201
+            },
+            "near_ties_at_10": 14,
+            "recall": {
+              "1": 0.2,
+              "5": 0.6,
+              "10": 0.6,
+              "20": 0.6,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0205",
+              "CTL-CSF-PRPS05",
+              "CTL-CIS-0203",
+              "CTL-CIS-0201",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR54",
+              "CTL-IEC-SR21",
+              "CTL-CIS-0202",
+              "CTL-IEC-SR112"
+            ],
+            "full_query_ms": 172.62670000491198
+          },
+          "CAP-PR-MALWARE": {
+            "band": {
+              "first": 0.90016305,
+              "tenth": 0.83347046,
+              "last": 0.7615019,
+              "spread_1_10": 0.06669258999999994,
+              "spread_1_last": 0.13866115,
+              "stdev": 0.01824280475463444
+            },
+            "near_ties_at_10": 28,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR32",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR43",
+              "CTL-IMO-FAL3PR",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR112",
+              "CTL-CIS-1001",
+              "CTL-CIS-1105",
+              "CTL-CSF-PRPS02"
+            ],
+            "full_query_ms": 179.36080000072252
+          },
+          "CAP-PR-MEDIA": {
+            "band": {
+              "first": 0.84893936,
+              "tenth": 0.83174664,
+              "last": 0.75580883,
+              "spread_1_10": 0.01719272000000005,
+              "spread_1_last": 0.09313053000000004,
+              "stdev": 0.017088685669207786
+            },
+            "near_ties_at_10": 20,
+            "recall": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 0.5,
+              "20": 0.5,
+              "50": 0.5
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-1003",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR35",
+              "CTL-IEC-SR78",
+              "CTL-CIS-0303",
+              "CTL-IEC-SR22",
+              "CTL-IEC-SR23",
+              "CTL-IEC-SR43",
+              "CTL-IEC-SR36",
+              "CTL-IEC-SR110"
+            ],
+            "full_query_ms": 181.2735999992583
+          },
+          "CAP-PR-SEGMENT": {
+            "band": {
+              "first": 0.86785215,
+              "tenth": 0.8275886,
+              "last": 0.7726737,
+              "spread_1_10": 0.04026355000000004,
+              "spread_1_last": 0.09517845000000003,
+              "stdev": 0.013872668475240118
+            },
+            "near_ties_at_10": 18,
+            "recall": {
+              "1": 0.1111111111111111,
+              "5": 0.3333333333333333,
+              "10": 0.4444444444444444,
+              "20": 0.4444444444444444,
+              "50": 0.8888888888888888
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR51",
+              "CTL-IEC-SR52",
+              "CTL-IEC-SR43",
+              "CTL-CSF-RSMA03",
+              "CTL-CIS-1202",
+              "CTL-CIS-1409",
+              "CTL-IEC-SR76",
+              "CTL-CIS-1301",
+              "CTL-CSF-PRIR01",
+              "CTL-CIS-0402"
+            ],
+            "full_query_ms": 185.9799000012572
+          },
+          "CAP-PR-PATCH": {
+            "band": {
+              "first": 0.8461164,
+              "tenth": 0.8362526,
+              "last": 0.77887726,
+              "spread_1_10": 0.009863799999999978,
+              "spread_1_last": 0.06723913999999998,
+              "stdev": 0.013727927150693604
+            },
+            "near_ties_at_10": 31,
+            "recall": {
+              "1": 0.0,
+              "5": 0.16666666666666666,
+              "10": 0.3333333333333333,
+              "20": 0.3333333333333333,
+              "50": 0.6666666666666666
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-NIS2-A21B",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0701",
+              "CTL-CIS-0201",
+              "CTL-CSF-IDRA01",
+              "CTL-CSF-IDRA04",
+              "CTL-IEC-SR12",
+              "CTL-CSF-PRPS01",
+              "CTL-CSF-RSMI01"
+            ],
+            "full_query_ms": 222.93989999889163
+          },
+          "CAP-PR-AWARENESS": {
+            "band": {
+              "first": 0.89219856,
+              "tenth": 0.83771956,
+              "last": 0.7626823,
+              "spread_1_10": 0.054478999999999944,
+              "spread_1_last": 0.12951625999999994,
+              "stdev": 0.018085947108465728
+            },
+            "near_ties_at_10": 27,
+            "recall": {
+              "1": 0.16666666666666666,
+              "5": 0.6666666666666666,
+              "10": 0.8333333333333334,
+              "20": 0.8333333333333334,
+              "50": 0.8333333333333334
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.3333333333333333,
+              "5": 0.3333333333333333,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-PRAT01",
+              "CTL-NIS2-A21G",
+              "CTL-CSF-GVRR04",
+              "CTL-CIS-1409",
+              "CTL-CSF-PRAT02",
+              "CTL-CIS-1401",
+              "CTL-IEC-SR43",
+              "CTL-CSF-IDRA02",
+              "CTL-IEC-SR33",
+              "CTL-IEC-SR12"
+            ],
+            "full_query_ms": 189.02109999908134
+          },
+          "CAP-PR-BACKUP": {
+            "band": {
+              "first": 0.89388835,
+              "tenth": 0.8431565,
+              "last": 0.7545587,
+              "spread_1_10": 0.05073185000000002,
+              "spread_1_last": 0.13932964999999997,
+              "stdev": 0.021066609007755182
+            },
+            "near_ties_at_10": 5,
+            "recall": {
+              "1": 0.1,
+              "5": 0.3,
+              "10": 0.6,
+              "20": 0.7,
+              "50": 0.9
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.3333333333333333,
+              "10": 0.3333333333333333,
+              "20": 0.6666666666666666,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-1105",
+              "CTL-IEC-SR73",
+              "CTL-IEC-SR74",
+              "CTL-IMO-FAL3RC",
+              "CTL-CSF-PRDS11",
+              "CTL-CIS-1103",
+              "CTL-CIS-1102",
+              "CTL-CSF-RCRP03",
+              "CTL-CIS-0802",
+              "CTL-CIS-1708"
+            ],
+            "full_query_ms": 195.72219999827212
+          },
+          "CAP-DE-MONITOR": {
+            "band": {
+              "first": 0.86691445,
+              "tenth": 0.83486503,
+              "last": 0.75138557,
+              "spread_1_10": 0.032049419999999995,
+              "spread_1_last": 0.11552888000000006,
+              "stdev": 0.01791513643001745
+            },
+            "near_ties_at_10": 17,
+            "recall": {
+              "1": 0.0,
+              "5": 0.25,
+              "10": 0.375,
+              "20": 0.5,
+              "50": 0.875
+            },
+            "recall_frozen_truth": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.0,
+              "5": 0.5,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CIS-0811",
+              "CTL-IEC-SR62",
+              "CTL-IEC-SR73",
+              "CTL-CSF-DECM01",
+              "CTL-IEC-SR33",
+              "CTL-CIS-0802",
+              "CTL-CSF-DECM09",
+              "CTL-IEC-SR78",
+              "CTL-IEC-SR12",
+              "CTL-IEC-SR28"
+            ],
+            "full_query_ms": 206.72010000271257
+          },
+          "CAP-DE-LOG": {
+            "band": {
+              "first": 0.899131,
+              "tenth": 0.83796227,
+              "last": 0.76508105,
+              "spread_1_10": 0.061168730000000004,
+              "spread_1_last": 0.13404994999999997,
+              "stdev": 0.019082435204596265
+            },
+            "near_ties_at_10": 19,
+            "recall": {
+              "1": 0.09090909090909091,
+              "5": 0.36363636363636365,
+              "10": 0.5454545454545454,
+              "20": 0.8181818181818182,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.25,
+              "5": 0.75,
+              "10": 0.75,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR28",
+              "CTL-IEC-SR61",
+              "CTL-CIS-0802",
+              "CTL-CIS-0811",
+              "CTL-IEC-SR12",
+              "CTL-CIS-1301",
+              "CTL-CSF-DEAE06",
+              "CTL-CSF-IDRA01",
+              "CTL-IEC-SR39",
+              "CTL-IEC-SR33"
+            ],
+            "full_query_ms": 189.29249999928288
+          },
+          "CAP-RS-IR": {
+            "band": {
+              "first": 0.8753698,
+              "tenth": 0.84866726,
+              "last": 0.76053494,
+              "spread_1_10": 0.02670253999999994,
+              "spread_1_last": 0.11483485999999998,
+              "stdev": 0.020139586256552534
+            },
+            "near_ties_at_10": 5,
+            "recall": {
+              "1": 0.09090909090909091,
+              "5": 0.36363636363636365,
+              "10": 0.6363636363636364,
+              "20": 0.9090909090909091,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-CSF-RSMA01",
+              "CTL-NIS2-A21B",
+              "CTL-CSF-RCRP01",
+              "CTL-CSF-IDIM04",
+              "CTL-CIS-1704",
+              "CTL-CIS-1708",
+              "CTL-CSF-RSMI01",
+              "CTL-IMO-FAL3RS",
+              "CTL-CIS-1701",
+              "CTL-CSF-RSMA03"
+            ],
+            "full_query_ms": 172.34989999997197
+          },
+          "CAP-RS-REPORT": {
+            "band": {
+              "first": 0.8920792,
+              "tenth": 0.8416977,
+              "last": 0.74356616,
+              "spread_1_10": 0.05038149999999997,
+              "spread_1_last": 0.14851303999999999,
+              "stdev": 0.02185900885789913
+            },
+            "near_ties_at_10": 6,
+            "recall": {
+              "1": 0.2,
+              "5": 0.6,
+              "10": 0.8,
+              "20": 0.8,
+              "50": 0.8
+            },
+            "recall_frozen_truth": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_lens": {
+              "1": 0.3333333333333333,
+              "5": 0.6666666666666666,
+              "10": 0.6666666666666666,
+              "20": 0.6666666666666666,
+              "50": 0.6666666666666666
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 1.0,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [
+              "CTL-IMO-42898"
+            ],
+            "top_k_ids": [
+              "CTL-CSF-RSCO02",
+              "CTL-NIS2-A23",
+              "CTL-CIS-1702",
+              "CTL-NIS2-A21B",
+              "CTL-CSF-RSMA02",
+              "CTL-CSF-RSMA03",
+              "CTL-CSF-RSMI01",
+              "CTL-CSF-RSMA04",
+              "CTL-CSF-IDRA03",
+              "CTL-CSF-RSCO03"
+            ],
+            "full_query_ms": 187.69990000146208
+          },
+          "CAP-RC-RECOVER": {
+            "band": {
+              "first": 0.92484653,
+              "tenth": 0.8465848,
+              "last": 0.7565105,
+              "spread_1_10": 0.07826172999999992,
+              "spread_1_last": 0.16833602999999997,
+              "stdev": 0.023380191499333233
+            },
+            "near_ties_at_10": 3,
+            "recall": {
+              "1": 0.1111111111111111,
+              "5": 0.2222222222222222,
+              "10": 0.4444444444444444,
+              "20": 0.7777777777777778,
+              "50": 1.0
+            },
+            "recall_frozen_truth": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_lens": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "recall_sector_adjusted": {
+              "1": 0.5,
+              "5": 0.5,
+              "10": 1.0,
+              "20": 1.0,
+              "50": 1.0
+            },
+            "truth_dropped_as_inapplicable": [],
+            "top_k_ids": [
+              "CTL-IEC-SR74",
+              "CTL-IMO-FAL3RC",
+              "CTL-IEC-SR73",
+              "CTL-CSF-RSMA05",
+              "CTL-CIS-1708",
+              "CTL-CIS-1105",
+              "CTL-CSF-RCRP01",
+              "CTL-NIS2-A21B",
+              "CTL-CIS-1101",
+              "CTL-IMO-FAL3RS"
+            ],
+            "full_query_ms": 165.41809999762336
+          }
+        },
+        "index_build_seconds": 22.11284870000236,
+        "latency": {
+          "encode_query_ms_mean": 180.622791666489,
+          "query_total_ms_mean": 188.49833333297283,
+          "qdrant_share_ms_mean": 7.8755416664838265,
+          "queries": 24
+        },
+        "summary": {
+          "first": 0.8797614175,
+          "tenth": 0.8390335808333332,
+          "recall_frozen_truth_10": 0.7708333333333334,
+          "recall_sector_adjusted_10": 0.7916666666666666
+        }
+      }
+    },
+    "title": {
+      "0.1.0": {
+        "catalog_version": "0.1.0",
+        "controls": 69,
+        "capabilities": 24,
+        "mappings": 77,
+        "collection": "catalog_v0_1_0_6f27d753b02b_title",
+        "cut_fraction": 0.14492753623188406,
+        "index_build_seconds": 3.9771103000020958,
+        "latency": {
+          "encode_query_ms_mean": 178.14024999976633,
+          "query_total_ms_mean": 186.6183916678589,
+          "qdrant_share_ms_mean": 8.478141668092576,
+          "queries": 24
+        },
+        "summary": {
+          "first": 0.8623946745833333,
+          "tenth": 0.81926516625,
+          "recall_frozen_truth_10": 0.7951388888888888,
+          "recall_sector_adjusted_10": 0.8090277777777778
+        }
+      },
+      "0.2.0": {
+        "catalog_version": "0.2.0",
+        "controls": 225,
+        "capabilities": 37,
+        "mappings": 263,
+        "collection": "catalog_v0_2_0_4b5f0a47b3bd_title",
+        "cut_fraction": 0.044444444444444446,
+        "index_build_seconds": 13.299066899999161,
+        "latency": {
+          "encode_query_ms_mean": 173.3424958329124,
+          "query_total_ms_mean": 185.63081249885727,
+          "qdrant_share_ms_mean": 12.288316665944876,
+          "queries": 24
+        },
+        "summary": {
+          "first": 0.8626439879166666,
+          "tenth": 0.8279563175,
+          "recall_frozen_truth_10": 0.6201388888888889,
+          "recall_sector_adjusted_10": 0.6409722222222222
+        }
+      },
+      "0.3.0": {
+        "catalog_version": "0.3.0",
+        "controls": 226,
+        "capabilities": 37,
+        "mappings": 266,
+        "collection": "catalog_v0_3_0_e64a6788c320_title",
+        "cut_fraction": 0.04424778761061947,
+        "index_build_seconds": 13.12236750000011,
+        "latency": {
+          "encode_query_ms_mean": 179.30803333244208,
+          "query_total_ms_mean": 183.09253750006368,
+          "qdrant_share_ms_mean": 3.7845041676216056,
+          "queries": 24
+        },
+        "summary": {
+          "first": 0.8623033545833333,
+          "tenth": 0.8279330966666666,
+          "recall_frozen_truth_10": 0.6201388888888889,
+          "recall_sector_adjusted_10": 0.6409722222222222
+        }
+      },
+      "0.4.0": {
+        "catalog_version": "0.4.0",
+        "controls": 226,
+        "capabilities": 37,
+        "mappings": 266,
+        "collection": "catalog_v0_4_0_80982ba7e2f8_title",
+        "cut_fraction": 0.04424778761061947,
+        "index_build_seconds": 13.43994830000156,
+        "latency": {
+          "encode_query_ms_mean": 171.98902500058466,
+          "query_total_ms_mean": 188.26993750038432,
+          "qdrant_share_ms_mean": 16.280912499799655,
+          "queries": 24
+        },
+        "summary": {
+          "first": 0.8623033545833333,
+          "tenth": 0.8279330966666666,
+          "recall_frozen_truth_10": 0.6201388888888889,
+          "recall_sector_adjusted_10": 0.6409722222222222
+        }
+      }
+    },
+    "zone": {
+      "0.1.0": {
+        "Z-OT-CORRIDOR": {
+          "catalog_version": "0.1.0",
+          "controls": 69,
+          "capabilities": 24,
+          "mappings": 77,
+          "collection": "catalog_v0_1_0_6f27d753b02b",
+          "cut_fraction": 0.14492753623188406,
+          "summary": {
+            "first": 0.8561505958333333,
+            "tenth": 0.8213235633333333,
+            "recall_frozen_truth_10": 0.6930555555555555,
+            "recall_sector_adjusted_10": 0.7138888888888889,
+            "top10_shared_with_plain": 7.0
+          }
+        },
+        "Z-SIS": {
+          "catalog_version": "0.1.0",
+          "controls": 69,
+          "capabilities": 24,
+          "mappings": 77,
+          "collection": "catalog_v0_1_0_6f27d753b02b",
+          "cut_fraction": 0.14492753623188406,
+          "summary": {
+            "first": 0.8588526058333333,
+            "tenth": 0.8227304758333333,
+            "recall_frozen_truth_10": 0.75,
+            "recall_sector_adjusted_10": 0.7569444444444445,
+            "top10_shared_with_plain": 7.041666666666667
+          }
+        },
+        "Z-ENG-STATION": {
+          "catalog_version": "0.1.0",
+          "controls": 69,
+          "capabilities": 24,
+          "mappings": 77,
+          "collection": "catalog_v0_1_0_6f27d753b02b",
+          "cut_fraction": 0.14492753623188406,
+          "summary": {
+            "first": 0.8595076712499999,
+            "tenth": 0.8234612066666666,
+            "recall_frozen_truth_10": 0.7604166666666666,
+            "recall_sector_adjusted_10": 0.7673611111111112,
+            "top10_shared_with_plain": 7.375
+          }
+        }
+      },
+      "0.2.0": {
+        "Z-OT-CORRIDOR": {
+          "catalog_version": "0.2.0",
+          "controls": 225,
+          "capabilities": 37,
+          "mappings": 263,
+          "collection": "catalog_v0_2_0_4b5f0a47b3bd",
+          "cut_fraction": 0.044444444444444446,
+          "summary": {
+            "first": 0.8541174766666666,
+            "tenth": 0.82712615375,
+            "recall_frozen_truth_10": 0.5784722222222222,
+            "recall_sector_adjusted_10": 0.5993055555555555,
+            "top10_shared_with_plain": 6.958333333333333
+          }
+        },
+        "Z-SIS": {
+          "catalog_version": "0.2.0",
+          "controls": 225,
+          "capabilities": 37,
+          "mappings": 263,
+          "collection": "catalog_v0_2_0_4b5f0a47b3bd",
+          "cut_fraction": 0.044444444444444446,
+          "summary": {
+            "first": 0.8563809883333334,
+            "tenth": 0.8291145904166667,
+            "recall_frozen_truth_10": 0.6097222222222222,
+            "recall_sector_adjusted_10": 0.6305555555555555,
+            "top10_shared_with_plain": 7.25
+          }
+        },
+        "Z-ENG-STATION": {
+          "catalog_version": "0.2.0",
+          "controls": 225,
+          "capabilities": 37,
+          "mappings": 263,
+          "collection": "catalog_v0_2_0_4b5f0a47b3bd",
+          "cut_fraction": 0.044444444444444446,
+          "summary": {
+            "first": 0.8577722849999999,
+            "tenth": 0.8296808241666667,
+            "recall_frozen_truth_10": 0.6284722222222222,
+            "recall_sector_adjusted_10": 0.6493055555555556,
+            "top10_shared_with_plain": 7.208333333333333
+          }
+        }
+      },
+      "0.3.0": {
+        "Z-OT-CORRIDOR": {
+          "catalog_version": "0.3.0",
+          "controls": 226,
+          "capabilities": 37,
+          "mappings": 266,
+          "collection": "catalog_v0_3_0_e64a6788c320",
+          "cut_fraction": 0.04424778761061947,
+          "summary": {
+            "first": 0.85403107,
+            "tenth": 0.82712615375,
+            "recall_frozen_truth_10": 0.5784722222222222,
+            "recall_sector_adjusted_10": 0.5993055555555555,
+            "top10_shared_with_plain": 6.916666666666667
+          }
+        },
+        "Z-SIS": {
+          "catalog_version": "0.3.0",
+          "controls": 226,
+          "capabilities": 37,
+          "mappings": 266,
+          "collection": "catalog_v0_3_0_e64a6788c320",
+          "cut_fraction": 0.04424778761061947,
+          "summary": {
+            "first": 0.8563109616666668,
+            "tenth": 0.8291145904166667,
+            "recall_frozen_truth_10": 0.6097222222222222,
+            "recall_sector_adjusted_10": 0.6305555555555555,
+            "top10_shared_with_plain": 7.208333333333333
+          }
+        },
+        "Z-ENG-STATION": {
+          "catalog_version": "0.3.0",
+          "controls": 226,
+          "capabilities": 37,
+          "mappings": 266,
+          "collection": "catalog_v0_3_0_e64a6788c320",
+          "cut_fraction": 0.04424778761061947,
+          "summary": {
+            "first": 0.8577722849999999,
+            "tenth": 0.8297305404166666,
+            "recall_frozen_truth_10": 0.6284722222222222,
+            "recall_sector_adjusted_10": 0.6493055555555556,
+            "top10_shared_with_plain": 7.166666666666667
+          }
+        }
+      },
+      "0.4.0": {
+        "Z-OT-CORRIDOR": {
+          "catalog_version": "0.4.0",
+          "controls": 226,
+          "capabilities": 37,
+          "mappings": 266,
+          "collection": "catalog_v0_4_0_80982ba7e2f8",
+          "cut_fraction": 0.04424778761061947,
+          "summary": {
+            "first": 0.85403107,
+            "tenth": 0.82712615375,
+            "recall_frozen_truth_10": 0.5784722222222222,
+            "recall_sector_adjusted_10": 0.5993055555555555,
+            "top10_shared_with_plain": 6.916666666666667
+          }
+        },
+        "Z-SIS": {
+          "catalog_version": "0.4.0",
+          "controls": 226,
+          "capabilities": 37,
+          "mappings": 266,
+          "collection": "catalog_v0_4_0_80982ba7e2f8",
+          "cut_fraction": 0.04424778761061947,
+          "summary": {
+            "first": 0.8563109616666668,
+            "tenth": 0.8291145904166667,
+            "recall_frozen_truth_10": 0.6097222222222222,
+            "recall_sector_adjusted_10": 0.6305555555555555,
+            "top10_shared_with_plain": 7.208333333333333
+          }
+        },
+        "Z-ENG-STATION": {
+          "catalog_version": "0.4.0",
+          "controls": 226,
+          "capabilities": 37,
+          "mappings": 266,
+          "collection": "catalog_v0_4_0_80982ba7e2f8",
+          "cut_fraction": 0.04424778761061947,
+          "summary": {
+            "first": 0.8577722849999999,
+            "tenth": 0.8297305404166666,
+            "recall_frozen_truth_10": 0.6284722222222222,
+            "recall_sector_adjusted_10": 0.6493055555555556,
+            "top10_shared_with_plain": 7.166666666666667
+          }
+        }
+      }
+    }
+  },
+  "zone_discrimination": {
+    "0.1.0": {
+      "PROFILE-A": {
+        "catalog_version": "0.1.0",
+        "zones": [
+          "Z-OT-CORRIDOR",
+          "Z-SIS"
+        ],
+        "capability_zone_pairs": 48,
+        "declared_gaps": 0,
+        "catalog_candidates_dropped": 0,
+        "mean_jaccard_between_zones": 1.0,
+        "compared_capabilities": 24
+      },
+      "PROFILE-B": {
+        "catalog_version": "0.1.0",
+        "zones": [
+          "Z-ENG-STATION"
+        ],
+        "capability_zone_pairs": 24,
+        "declared_gaps": 0,
+        "catalog_candidates_dropped": 0,
+        "mean_jaccard_between_zones": null,
+        "compared_capabilities": 0
+      }
+    },
+    "0.2.0": {
+      "PROFILE-A": {
+        "catalog_version": "0.2.0",
+        "zones": [
+          "Z-OT-CORRIDOR",
+          "Z-SIS"
+        ],
+        "capability_zone_pairs": 74,
+        "declared_gaps": 0,
+        "catalog_candidates_dropped": 0,
+        "mean_jaccard_between_zones": 1.0,
+        "compared_capabilities": 37
+      },
+      "PROFILE-B": {
+        "catalog_version": "0.2.0",
+        "zones": [
+          "Z-ENG-STATION"
+        ],
+        "capability_zone_pairs": 37,
+        "declared_gaps": 0,
+        "catalog_candidates_dropped": 0,
+        "mean_jaccard_between_zones": null,
+        "compared_capabilities": 0
+      }
+    },
+    "0.3.0": {
+      "PROFILE-A": {
+        "catalog_version": "0.3.0",
+        "zones": [
+          "Z-OT-CORRIDOR",
+          "Z-SIS"
+        ],
+        "capability_zone_pairs": 74,
+        "declared_gaps": 0,
+        "catalog_candidates_dropped": 0,
+        "mean_jaccard_between_zones": 1.0,
+        "compared_capabilities": 37
+      },
+      "PROFILE-B": {
+        "catalog_version": "0.3.0",
+        "zones": [
+          "Z-ENG-STATION"
+        ],
+        "capability_zone_pairs": 37,
+        "declared_gaps": 0,
+        "catalog_candidates_dropped": 0,
+        "mean_jaccard_between_zones": null,
+        "compared_capabilities": 0
+      }
+    },
+    "0.4.0": {
+      "PROFILE-A": {
+        "catalog_version": "0.4.0",
+        "zones": [
+          "Z-OT-CORRIDOR",
+          "Z-SIS"
+        ],
+        "capability_zone_pairs": 74,
+        "declared_gaps": 0,
+        "catalog_candidates_dropped": 0,
+        "mean_jaccard_between_zones": 1.0,
+        "compared_capabilities": 37
+      },
+      "PROFILE-B": {
+        "catalog_version": "0.4.0",
+        "zones": [
+          "Z-ENG-STATION"
+        ],
+        "capability_zone_pairs": 37,
+        "declared_gaps": 0,
+        "catalog_candidates_dropped": 0,
+        "mean_jaccard_between_zones": null,
+        "compared_capabilities": 0
+      }
+    }
+  },
+  "dropped_collections": [
+    "catalog_v0_1_0_6f27d753b02b",
+    "catalog_v0_2_0_4b5f0a47b3bd",
+    "catalog_v0_3_0_e64a6788c320",
+    "catalog_v0_1_0_6f27d753b02b_title",
+    "catalog_v0_2_0_4b5f0a47b3bd_title",
+    "catalog_v0_3_0_e64a6788c320_title",
+    "catalog_v0_4_0_80982ba7e2f8_title"
+  ]
+}
