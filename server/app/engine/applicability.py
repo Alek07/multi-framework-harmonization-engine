@@ -39,9 +39,9 @@ to the organizational layer". When a gating rule also matched, its id is kept in
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 
-from app.catalog.schemas import FrameworkControl, Sector
+from app.catalog.schemas import Framework, FrameworkControl, Sector
 from app.core.wording import say_all
 from app.engine.schemas import GatingDecision, GatingOutcome, ZoneContext
 
@@ -113,3 +113,55 @@ def _evidence(control: FrameworkControl, sectors: list[Sector]) -> list[str]:
         f"la zona opera en el/los sector(es) {say_all(sectors)}",
         f"la norma rige {say_all(control.applies_to_sectors)} y ninguno coincide",
     ]
+
+
+def framework_applies(controls: Iterable[FrameworkControl], zone: ZoneContext) -> bool:
+    """Whether a legal framework governs this zone at all (UCM-47, framework level).
+
+    True as soon as *one* of the framework's controls applies to the zone's
+    sectors — the same "any, not all" rule `control_applies` uses one control at a
+    time. A framework with a transversal control (CIRCIA) therefore always
+    applies; a purely sectoral one (TSA, NIS2) applies only where its sectors meet
+    the zone's. This is the determination the delta reports so the human can choose
+    the comparison knowing which regimes are even in play.
+    """
+    return any(control_applies(control, zone.sectors) for control in controls)
+
+
+def framework_applicability_reason(
+    framework: Framework, controls: Sequence[FrameworkControl], zone: ZoneContext
+) -> str:
+    """Why a framework does or does not govern this zone, in the operator's words."""
+    sectors = zone.sectors
+    transversal = any(control.transversal for control in controls)
+    governed = sorted(
+        {sector for control in controls for sector in control.applies_to_sectors},
+        key=lambda sector: sector.value,
+    )
+
+    if transversal:
+        return (
+            f"{framework.value} aplica a este activo: incluye obligaciones transversales que rigen "
+            "cualquier sector, así que no depende del sector de la zona. La aplicabilidad la "
+            f"determina el motor (regla {SECTOR_APPLICABILITY_RULE_ID}); qué comparar lo elige el "
+            "humano."
+        )
+    if not sectors:
+        return (
+            f"{framework.value} rige {say_all(governed)} y la zona no declara sector, así que el "
+            "motor no puede afirmar que quede fuera de ámbito: se reporta como aplicable para no "
+            "restringir en silencio. Declarar el sector de la zona lo convierte en una "
+            "determinación firme."
+        )
+    if framework_applies(controls, zone):
+        return (
+            f"{framework.value} aplica a este activo: rige {say_all(governed)} y los sectores "
+            f"efectivos de la zona son {say_all(sectors)} — la intersección no es vacía. "
+            f"Aplicabilidad determinada por ámbito sectorial (regla "
+            f"{SECTOR_APPLICABILITY_RULE_ID})."
+        )
+    return (
+        f"{framework.value} no aplica a este activo: rige {say_all(governed)} y los sectores "
+        f"efectivos de la zona son {say_all(sectors)} — la intersección es vacía. La comparación "
+        "lo sigue mostrando para que la ausencia sea visible, no un silencio."
+    )

@@ -17,6 +17,8 @@ import type {
   CandidatesResponse,
   ComposeRequest,
   ComposedBaseline,
+  DeltaMode,
+  DeltaRegime,
   Jurisdiction,
   ParseResult,
   RegionalDelta,
@@ -221,11 +223,15 @@ export function fetchDelta(body: {
   profile?: AssetProfile | null
   profileId?: string | null
   zoneId: string
+  mode?: DeltaMode
+  regime?: DeltaRegime
 }): Promise<RegionalDelta> {
   return post<RegionalDelta>('/delta', {
     regions: body.regions,
     ...profileRef(body.profile ?? null, body.profileId ?? null),
     zone_id: body.zoneId,
+    ...(body.mode ? { mode: body.mode } : {}),
+    ...(body.regime ? { regime: body.regime } : {}),
   })
 }
 

@@ -1,7 +1,8 @@
-"""UCM-15/UCM-17 - Contract of `GET /delta?regions=US,EU`: one zone, two readings.
+"""UCM-15/UCM-17/UCM-50 - Contract of `POST /delta`: one zone, N regional readings.
 
-The shape was fixed in UCM-15 before the logic existed; UCM-17 fills it in and
-enriches the response without changing what a client sends.
+The shape was fixed in UCM-15 before the logic existed; UCM-17 filled it in;
+UCM-50 makes the comparison symmetric and adds a legal-regime lens without
+changing what a client already sending the old body gets back.
 
 What the delta *is*, stated precisely, because it is easy to mistake for a
 crosswalk: it is one zone of one profile, read once per region, with the
@@ -9,29 +10,46 @@ difference between the readings made explicit. Not "what does EU call this US
 control" — that is translation — but "compose this zone for a US operator, then
 for an operator who also answers to EU obligations, and show what changes".
 
-**The `+` in "+EU" is the whole design** (UCM-3, which closed §11.3). EU is not a
-parallel catalog: it is an *overlay* on common ground. So the readings are
-cumulative — reading *i* offers everything the regions up to *i* offer, plus every
-jurisdiction that is not under comparison at all (IEC 62443 as the common OT
-standard, IMO as the maritime one). Modelling "EU alone" would produce a baseline
-in which a European operator has no CIS and no CSF, which is not what NIS2 says
-and not what anyone would compose.
+**Two axes the human chooses, and the engine obeys** (invariant: the engine never
+applies a lens on its own initiative):
 
-Three bounds are declared rather than discovered:
+* `mode` — how the readings relate.
+  * `cumulative` (the default, UCM-3): reading *i* offers everything the regions
+    up to *i* offer, so "+EU" is the US reading *plus* the European overlay, never
+    a parallel catalog in which a European operator has no CIS and no CSF. This is
+    still the right answer for an operator subject to *both* regimes.
+  * `symmetric`: each reading offers only its own region's contribution over the
+    common ground, and the difference is reported in **both** directions — what US
+    demands that EU does not, *and* what EU demands that US does not. This is the
+    half UCM-50 restored: the cumulative reading could never let the first region
+    report what it alone requires.
+* `regime` — what enters the axis of comparison.
+  * `all` (the default): jurisdiction is the axis — a control counts for a region
+    when its jurisdiction is that region.
+  * `legal`: only `legal` controls of the compared regions differentiate; the
+    common technical ground (CIS, CSF, IEC 62443) stays fixed in every reading and
+    is credited to no region. This makes the comparison law-against-law instead of
+    law-against-voluntary-guidance — the very confusion that produced the original
+    finding, since CIS/CSF carry a US jurisdiction but are voluntary guidance.
+
+Bounds declared rather than discovered:
 
 * **One zone per call.** The demo answers the question for the demo zone. N zones
   at once is declared future work, not an omission papered over with a loop.
 * **A lens sets candidates aside; it never deletes them.** Every reading reports
-  what its own lens left out (`set_aside_control_ids`) — for the US reading, the
-  NIS2 articles that "+EU" is about to add. A filter whose leftovers were
-  invisible would be exactly the silent restriction invariant 2 forbids.
+  what its own lens left out (`set_aside_control_ids`) — the controls of the other
+  region (symmetric) or of a region still to come (cumulative). A filter whose
+  leftovers were invisible would be exactly the silent restriction invariant 2
+  forbids.
 * **The delta reads authored mappings, not embedding distances.** The question
-  "what does +EU require that US does not" is answered by the versioned catalog
-  and the deterministic core, so it is reproducible with Qdrant and Ollama off. A
+  "what does EU require that US does not" is answered by the versioned catalog and
+  the deterministic core, so it is reproducible with Qdrant and Ollama off. A
   similarity score has no business answering a question about legal obligation.
 """
 
 from __future__ import annotations
+
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -39,6 +57,26 @@ from app.assets.schemas import AssetProfile
 from app.catalog.schemas import ControlStrength, Framework, Jurisdiction, MappingType
 from app.engine.schemas import CapabilityGap, ZoneContext
 from app.retrieval.schemas import PayloadFilter
+
+
+class DeltaMode(str, Enum):
+    """How the regional readings relate to one another (UCM-50)."""
+
+    # Reading i offers every region up to i: "+EU" is the US reading plus EU.
+    CUMULATIVE = "cumulative"
+    # Each reading offers only its own region over the common ground; the delta is
+    # reported in both directions.
+    SYMMETRIC = "symmetric"
+
+
+class DeltaRegime(str, Enum):
+    """What enters the axis of comparison (UCM-50)."""
+
+    # Jurisdiction is the axis. The common ground is the jurisdictions not compared.
+    ALL = "all"
+    # Only `legal` controls of the compared regions differentiate; every technical
+    # control stays fixed as common ground, whatever its jurisdiction.
+    LEGAL = "legal"
 
 
 class DeltaRequest(BaseModel):
@@ -81,6 +119,22 @@ class DeltaRequest(BaseModel):
         description=(
             "Zona del perfil sobre la que se calcula el delta. Una sola: N zonas por consulta "
             "son trabajo futuro declarado."
+        ),
+    )
+    mode: DeltaMode = Field(
+        default=DeltaMode.CUMULATIVE,
+        description=(
+            "Cómo se relacionan las lecturas. 'cumulative': «+EU» es la lectura anterior más esa "
+            "región (correcto para un operador sujeto a ambos regímenes). 'symmetric': cada "
+            "lectura ofrece solo su región y la diferencia se reporta en ambos sentidos."
+        ),
+    )
+    regime: DeltaRegime = Field(
+        default=DeltaRegime.ALL,
+        description=(
+            "Qué controles diferencian la comparación. 'all': la jurisdicción. 'legal': solo los "
+            "controles legales; el terreno técnico común (CIS/CSF/IEC 62443) queda fijo. Así la "
+            "comparación es ley-contra-ley y no mezcla marcos voluntarios con obligaciones."
         ),
     )
 
@@ -126,13 +180,15 @@ class CapabilityRegionView(BaseModel):
     # The jurisdictions this reading offers, common ground included.
     jurisdictions: list[Jurisdiction] = Field(default_factory=list)
     offered_control_ids: list[str] = Field(default_factory=list)
-    # What this reading contributes that no other one does. Always empty on the
-    # first reading — it is the starting point, and everything it offers the later
-    # readings offer too, so listing its whole offer here would read as a regional
-    # difference where there is none.
+    # What this reading contributes that no other one does. In `cumulative` mode
+    # this is always empty on the first reading — it is the starting point, and
+    # everything it offers the later readings offer too. In `symmetric` mode every
+    # reading, the first included, reports its own exclusive contribution: that is
+    # the direction the cumulative reading could not express (UCM-50).
     only_here_control_ids: list[str] = Field(default_factory=list)
-    # Candidates the catalog maps here that this reading's lens left out — always
-    # controls of a region still to come. Apartar no es descartar.
+    # Candidates the catalog maps here that this reading's lens left out — controls
+    # of the other region (symmetric) or of a region still to come (cumulative).
+    # Apartar no es descartar.
     set_aside_control_ids: list[str] = Field(default_factory=list)
     frameworks: list[Framework] = Field(default_factory=list)
     # Computed by the deterministic core over this reading's options, not here.
@@ -162,8 +218,31 @@ class CapabilityDelta(BaseModel):
     rationale: str
 
 
+class RegimeApplicability(BaseModel):
+    """Whether a legal framework governs this zone at all (UCM-50, on UCM-47).
+
+    The engine does not choose the comparison, but it *does* determine
+    applicability and say so with its reason: TSA governs the transport sector, so
+    it applies to a pipeline and not to a hospital; CIRCIA is transversal and
+    applies always. Reported for every legal framework of the compared regions,
+    applicable or not, so the human chooses the comparison already knowing which
+    regimes are even in play — and so a non-applicable regime is a visible datum,
+    not a silence.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    framework: Framework
+    jurisdiction: Jurisdiction
+    # The sectors the framework governs across its controls; empty when it carries
+    # a transversal control, which is what makes it apply regardless of sector.
+    governs_sectors: list[str] = Field(default_factory=list)
+    applicable: bool
+    rationale: str
+
+
 class RegionalDelta(BaseModel):
-    """Response of `GET /delta`: one zone, N regional readings, and their difference."""
+    """Response of `POST /delta`: one zone, N regional readings, and their difference."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -172,6 +251,10 @@ class RegionalDelta(BaseModel):
     zone: ZoneContext
     catalog_version: str
     rules_version: str
+    # How the readings related and what differentiated them — echoed back so the
+    # response is self-describing and a reading can be reproduced from it.
+    mode: DeltaMode = DeltaMode.CUMULATIVE
+    regime: DeltaRegime = DeltaRegime.ALL
     regions: list[Jurisdiction] = Field(default_factory=list)
     # Jurisdictions present in every reading because they are not under
     # comparison: the common ground the question is asked over.
@@ -194,6 +277,10 @@ class RegionalDelta(BaseModel):
     # jurisdiction never opens or closes a gap in this zone is a result, not an
     # absence of one.
     regional_gap_capability_ids: list[str] = Field(default_factory=list)
+    # Which legal regimes of the compared regions govern this zone, with the
+    # engine's reason. Determined, not chosen (UCM-47/UCM-50): reglas deciden
+    # aplicabilidad, humano elige la comparación.
+    regime_applicability: list[RegimeApplicability] = Field(default_factory=list)
     rationale: str
 
     def capability(self, capability_id: str) -> CapabilityDelta:

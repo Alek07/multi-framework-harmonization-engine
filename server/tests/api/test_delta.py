@@ -357,3 +357,222 @@ def test_regions_tolerate_spacing_and_case() -> None:
 def test_an_empty_regions_query_is_refused() -> None:
     with pytest.raises(RegionsQueryError):
         parse_regions([","])
+
+
+# --- UCM-50: the symmetric comparison, in both directions ---------------------
+
+TECHNICAL_FRAMEWORKS = {"CIS", "CSF", "IEC62443"}
+
+
+def added_by(body: dict[str, Any], region: str) -> list[dict[str, Any]]:
+    """Every requirement the delta credits to one region, across all capabilities."""
+    return [
+        requirement
+        for capability in body["capabilities"]
+        for requirement in capability["added"]
+        if requirement["added_by"] == region
+    ]
+
+
+def test_the_default_mode_is_still_cumulative(client: TestClient) -> None:
+    """No `mode`/`regime` in the body is exactly the pre-UCM-50 reading."""
+    body = ask(client)
+    assert body["mode"] == "cumulative"
+    assert body["regime"] == "all"
+    # The starting reading contributes nothing exclusive — the old contract.
+    assert all(c["regions"][0]["only_here_control_ids"] == [] for c in body["capabilities"])
+
+
+def test_symmetric_labels_drop_the_cumulative_plus(client: TestClient) -> None:
+    """`+EU` was the mark of accumulation; a symmetric reading is its own region."""
+    body = ask(client, mode="symmetric")
+    assert body["mode"] == "symmetric"
+    for capability in body["capabilities"]:
+        assert [view["label"] for view in capability["regions"]] == ["US", "EU"]
+
+
+def test_symmetric_lets_the_first_reading_report_its_own_demand(client: TestClient) -> None:
+    """The bug UCM-50 fixed: cumulatively, `only_here[0]` was empty by construction.
+
+    Now «what does the US require that the EU does not» is expressible — the US
+    reading reports its own exclusive contribution.
+    """
+    report = next(
+        c for c in ask(client, mode="symmetric")["capabilities"]
+        if c["capability_id"] == "CAP-RS-REPORT"
+    )
+    assert report["regions"][0]["only_here_control_ids"], "US must report its own demand"
+
+
+def test_symmetric_answers_in_both_directions(client: TestClient) -> None:
+    """The acceptance headline: what US adds over EU, AND what EU adds over US."""
+    body = ask(client, mode="symmetric")
+
+    assert added_by(body, "US"), "US demands the EU does not"
+    assert added_by(body, "EU"), "EU demands the US does not"
+
+    report = next(c for c in body["capabilities"] if c["capability_id"] == "CAP-RS-REPORT")
+    us_frameworks = {r["framework"] for r in report["added"] if r["added_by"] == "US"}
+    eu_frameworks = {r["framework"] for r in report["added"] if r["added_by"] == "EU"}
+    # Incident reporting is where the two regimes speak at once: CIRCIA/TSA on the
+    # US side, NIS2 Art. 23 on the EU side, each explained in its own direction.
+    assert {"CIRCIA", "TSA"} <= us_frameworks
+    assert "NIS2" in eu_frameworks
+
+
+def test_reversing_regions_reverses_who_starts_in_symmetric(client: TestClient) -> None:
+    body = ask(client, mode="symmetric", regions=["EU", "US"])
+    for capability in body["capabilities"]:
+        assert [view["label"] for view in capability["regions"]] == ["EU", "US"]
+
+
+# --- UCM-50: the legal regime, law against law --------------------------------
+
+
+def test_legal_regime_never_credits_a_voluntary_framework_to_a_region(
+    client: TestClient,
+) -> None:
+    """The original error: comparing a US voluntary guide against an EU obligation.
+
+    In `legal` regime only legal controls differentiate; CIS/CSF/IEC 62443 stay
+    fixed as common ground and are credited to no region.
+    """
+    body = ask(client, mode="symmetric", regime="legal")
+    assert body["regime"] == "legal"
+
+    for requirement in body["capabilities"]:
+        for added in requirement["added"]:
+            assert added["framework"] not in TECHNICAL_FRAMEWORKS, added
+
+
+def test_legal_regime_keeps_the_technical_ground_common(client: TestClient) -> None:
+    """The frozen technical ground is offered by both readings, so it is common."""
+    report = next(
+        c for c in ask(client, mode="symmetric", regime="legal")["capabilities"]
+        if c["capability_id"] == "CAP-RS-REPORT"
+    )
+    # CSF RS.CO-02 is the practice both operators already meet; only the legal
+    # obligation over it differs by region.
+    assert "CTL-CSF-RSCO02" in report["common_control_ids"]
+
+
+def test_legal_regime_is_law_against_law_in_both_directions(client: TestClient) -> None:
+    body = ask(client, mode="symmetric", regime="legal")
+
+    us_frameworks = {r["framework"] for r in added_by(body, "US")}
+    eu_frameworks = {r["framework"] for r in added_by(body, "EU")}
+    assert us_frameworks <= {"CIRCIA", "TSA"} and us_frameworks
+    assert eu_frameworks == {"NIS2"}
+
+
+def test_legal_regime_distinguishes_exigencia_from_mecanismo(client: TestClient) -> None:
+    """The acceptance's second point: a requirement difference is not a mechanism one.
+
+    A statutory reporting deadline (NIS2 Art. 23, CIRCIA) adds *exigencia* over a
+    capability the common ground already covers — coverage does not move. A TSA
+    directive that prescribes segmentation or MFA adds a *mechanism* — coverage
+    does move. `RegionalRequirement.changes_coverage` carries the difference, and
+    both occur in this comparison.
+    """
+    added = added_by(ask(client, mode="symmetric", regime="legal"), "US") + added_by(
+        ask(client, mode="symmetric", regime="legal"), "EU"
+    )
+    exigencia = [r for r in added if r["changes_coverage"] is False]
+    mecanismo = [r for r in added if r["changes_coverage"] is True]
+    assert exigencia, "a statutory obligation over covered ground moves no coverage"
+    assert mecanismo, "a prescribed mechanism does move coverage"
+
+    report = next(
+        c for c in ask(client, mode="symmetric", regime="legal")["capabilities"]
+        if c["capability_id"] == "CAP-RS-REPORT"
+    )
+    art23 = next(r for r in report["added"] if r["official_id"] == "Art. 23")
+    assert art23["changes_coverage"] is False
+
+
+# --- UCM-50: the engine reports which regimes are applicable (on UCM-47) -------
+
+
+def regime(body: dict[str, Any], framework: str) -> dict[str, Any]:
+    return next(r for r in body["regime_applicability"] if r["framework"] == framework)
+
+
+def test_the_delta_reports_the_applicable_regimes(client: TestClient) -> None:
+    """Determined, not chosen: the engine says which regimes govern the asset."""
+    body = ask(client)
+    frameworks = {r["framework"] for r in body["regime_applicability"]}
+    # The legal regimes of the compared regions: US (CIRCIA, TSA) and EU (NIS2).
+    assert frameworks == {"CIRCIA", "TSA", "NIS2"}
+
+
+def test_a_transversal_regime_applies_regardless_of_sector(client: TestClient) -> None:
+    """CIRCIA declares no sector, so it governs any asset."""
+    circia = regime(ask(client), "CIRCIA")
+    assert circia["applicable"] is True
+    assert circia["governs_sectors"] == []
+    assert "transversal" in circia["rationale"]
+
+
+def test_a_sectoral_regime_applies_when_the_sector_matches(client: TestClient) -> None:
+    """TSA governs transport; PROFILE-B is an energy/transport asset."""
+    tsa = regime(ask(client), "TSA")
+    assert tsa["applicable"] is True
+    assert tsa["governs_sectors"] == ["transport"]
+
+
+def test_a_sectoral_regime_out_of_scope_is_reported_and_left_out(client: TestClient) -> None:
+    """An asset outside TSA's sector: TSA is not compared, only reported (UCM-50/UCM-47).
+
+    The delta is about the laws that govern *this* asset, so a regime out of the
+    zone's sector does not enter the comparison at all — not added, not set aside.
+    That is not a silent drop: `regime_applicability` states TSA does not govern the
+    asset, with the engine's reason. This is what makes the delta asset-specific.
+    """
+    health = get_profile("PROFILE-B").model_dump(mode="json")
+    health |= {"id": "ASSET-HOSPITAL", "name": "Hospital", "sectors": ["health"]}
+    for zone in health["zones"]:
+        zone["sectors"] = ["health"]
+    body = ask(client, profile=health, profile_id=None, mode="symmetric", regime="legal")
+
+    tsa = regime(body, "TSA")
+    assert tsa["applicable"] is False
+    assert "no aplica" in tsa["rationale"]
+    # NIS2 governs health, so it still applies; the regime is not dropped either way.
+    assert regime(body, "NIS2")["applicable"] is True
+    assert regime(body, "CIRCIA")["applicable"] is True
+
+    # TSA governs transport, not health: it is nowhere in the comparison — neither a
+    # difference the asset must answer nor a candidate set aside.
+    for capability in body["capabilities"]:
+        assert all(r["framework"] != "TSA" for r in capability["added"]), capability
+        for view in capability["regions"]:
+            assert all(not cid.startswith("CTL-TSA") for cid in view["offered_control_ids"])
+            assert all(not cid.startswith("CTL-TSA") for cid in view["set_aside_control_ids"])
+    # A transport asset does answer to TSA — same catalog, different asset, different delta.
+    transport = ask(client, mode="symmetric", regime="legal")
+    assert any(
+        r["framework"] == "TSA"
+        for capability in transport["capabilities"]
+        for r in capability["added"]
+    )
+
+
+# --- UCM-50: the new axes are validated -------------------------------------
+
+
+def test_an_unknown_mode_is_refused(client: TestClient) -> None:
+    response = client.post(URL, json={**DEMO, "mode": "diagonal"})
+    assert response.status_code == 422
+
+
+def test_an_unknown_regime_is_refused(client: TestClient) -> None:
+    response = client.post(URL, json={**DEMO, "regime": "voluntary"})
+    assert response.status_code == 422
+
+
+async def test_a_symmetric_legal_delta_still_writes_nothing(
+    client: TestClient, db: AsyncSession
+) -> None:
+    """Every mode is a view: none of them touches the ledger."""
+    ask(client, mode="symmetric", regime="legal")
+    assert await AuditRepository(db).count() == 0

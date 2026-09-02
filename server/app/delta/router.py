@@ -84,16 +84,21 @@ def parse_regions(raw: list[str]) -> list[Jurisdiction]:
     responses={422: {"model": Message, "description": "Regiones, perfil o zona inválidos."}},
 )
 async def regional_delta(request: DeltaRequest, service: DeltaDep) -> RegionalDelta:
-    """Read one zone under each region's cumulative lens and report what changes.
+    """Read one zone under each region and report what changes between the readings.
 
-    The zone is checked by the service — it is the one that knows what a zone has
-    to be to be read — so the route only turns the request into the engine's own
-    types and gets out of the way. A delta writes nothing: it decides nothing,
-    changes no baseline and belongs to no run, so there is no audit dependency
-    here and the call is safe to repeat.
+    How the readings relate (`mode`: cumulative or symmetric) and what
+    differentiates them (`regime`: all jurisdictions or law-against-law) are the
+    human's choice, validated as typed enums by the request model. The zone is
+    checked by the service — it is the one that knows what a zone has to be to be
+    read — so the route only turns the request into the engine's own types and gets
+    out of the way. A delta writes nothing: it decides nothing, changes no baseline
+    and belongs to no run, so there is no audit dependency here and the call is safe
+    to repeat.
     """
     return service.delta(
         requested_profile(request.profile, request.profile_id),
         request.zone_id,
         parse_regions(request.regions),
+        request.mode,
+        request.regime,
     )
