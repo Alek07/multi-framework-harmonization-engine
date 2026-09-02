@@ -1,32 +1,3 @@
-"""UCM-15 - Contract of `POST /candidates`: everything the human chooses from.
-
-This is the endpoint the sovereign composition is built on (UCM-16), so the shape
-below is chosen to make one property checkable at the boundary rather than merely
-intended inside the engine: **what the operator is shown is the union of every
-source, and nothing leaves without saying so.**
-
-Three decisions carry that.
-
-* **Nothing is reshaped.** A capability arrives carrying the core's own
-  `CapabilityResolution` (options, conflicts, coverage), its `CapabilityGating`
-  (which mechanisms were ruled out and why), its `CapabilityPriority` (tier,
-  mandates, phase) and — when the RAG pass ran — its `CapabilityRetrieval`. The
-  API does not summarise those into a friendlier shape: a summary is a place where
-  a candidate can quietly stop being mentioned.
-* **`offered_control_ids` is validated, not asserted.** It must contain every
-  option the deterministic core produced, and a capability that offers nothing at
-  all must carry a declared gap. A response that dropped a candidate, or that left
-  a capability empty without declaring it, fails to instantiate — the
-  0-silent-omissions invariant enforced by the type, the same way
-  `CapabilityRetrieval` enforces it one layer down.
-* **A degraded pass is a declared state, never a shorter list in silence.**
-  Retrieval needs Qdrant and a 1.1 GB embedding model; the explanation layer needs
-  Ollama. Either can be down on the operator's machine. When that happens the
-  deterministic result is still served — it is the P0 — and `retrieval.status` /
-  `explanations_notice` say what was missing. The alternative, failing the whole
-  request, would hide a complete baseline behind an optional convenience.
-"""
-
 from __future__ import annotations
 
 from enum import Enum
@@ -126,6 +97,8 @@ class RetrievalReport(BaseModel):
     status: RetrievalStatus
     suggestions: int = 0
     set_aside: int = 0
+    below_cut: int = 0
+    displaced: int = 0
     provenance: RetrievalProvenance | None = None
     notice: str | None = None
 

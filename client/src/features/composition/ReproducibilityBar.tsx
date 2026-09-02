@@ -1,19 +1,3 @@
-/**
- * What governed this run, on screen at all times.
- *
- * Every value here is read from a response — catalog and rule versions from the
- * candidates run, model and decoding parameters from the parse's provenance, the
- * catalog digest from the retrieval's. Nothing is a constant typed into the
- * client: a bar that said "temp 0 · seed 42" from a literal would keep saying it
- * after somebody changed the setting, which is the opposite of what it is for.
- *
- * What changed for the operator is only the wording. The bar used to read like a
- * debug console (`temp 0 · top_p 1 · sha256:…`); those values are still on
- * screen, but as tooltips behind sentences that say what they *mean* — that two
- * runs on the same asset give the same result, and which edition of the
- * regulatory catalog was used.
- */
-
 import { Link } from '@tanstack/react-router'
 
 import { useComposition } from './composition'
@@ -30,6 +14,7 @@ export function ReproducibilityBar() {
   const isFallback = model?.includes(':3b') ?? false
   const retrieval = candidates?.retrieval.provenance
   const digest = retrieval?.catalog_digest
+  const cut = retrieval?.cut_policy
 
   return (
     <div
@@ -113,6 +98,21 @@ export function ReproducibilityBar() {
           title={`Huella del catálogo usado en la búsqueda (${retrieval?.collection}): ${digest}`}
         >
           huella {digest.slice(0, 4)}…{digest.slice(-4)}
+        </span>
+      ) : null}
+
+      {cut ? (
+        <span
+          className="ml-2.5 flex-none text-bar-muted"
+          title={[
+            `Regla del corte de la búsqueda ${cut.version}`,
+            `se evalúan ${cut.depth} candidatos por requisito`,
+            `se muestran ${cut.floor} y hasta ${cut.ceiling} mientras empaten a ${cut.tie_epsilon}`,
+            `como máximo ${cut.framework_cap} por marco`,
+            'lo que queda fuera se cuenta en cada requisito',
+          ].join(' · ')}
+        >
+          corte {cut.version}
         </span>
       ) : null}
 

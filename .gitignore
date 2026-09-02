@@ -6,3 +6,6 @@
 
 # Playwright MCP
 .playwright-mcp/
+
+# Derived measurement output (server/scripts/retrieval_cut.py)
+docs/corte-del-recuperador.json
