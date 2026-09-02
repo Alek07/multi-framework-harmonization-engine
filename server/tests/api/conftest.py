@@ -32,7 +32,7 @@ from app.api.deps import candidates_service, parse_service
 from app.candidates.service import CandidatesService
 from app.catalog.schemas import Catalog
 from app.core.config import settings
-from app.engine.schemas import ProfileResolution
+from app.engine.schemas import ProfileGating, ProfileResolution
 from app.explain import service as explain_service_module
 from app.explain.agent import explain_agent
 from app.explain.evidence import facts_for
@@ -149,7 +149,7 @@ def candidates_without_index(catalog: Catalog) -> CandidatesService:
 
 
 def _first_explainable(
-    catalog: Catalog, resolution: ProfileResolution
+    catalog: Catalog, resolution: ProfileResolution, gating: ProfileGating
 ) -> tuple[str, str, list[str], str]:
     """A capability with both kinds of candidate, and the reply that explains them.
 
@@ -157,8 +157,16 @@ def _first_explainable(
     core's resolution plus the RAG pass over it — because `CapabilityExplanations`
     refuses to be built unless the explanations are exactly the offered candidates,
     in order. Scripting anything else would test the validator, not the wiring.
+
+    Which is why the gating goes in too, exactly as `CandidatesService` passes it:
+    it is what marks a suggestion the zone already ruled out (UCM-52), and the
+    declared ordering rule reads that mark to put those suggestions last (UCM-53).
+    A retrieval run without it would produce a different order here than the one
+    the endpoint answers with, and the test would be measuring the fixture.
     """
-    profile_retrieval = RetrievalService(index=FakeIndex(catalog)).retrieve_profile(resolution)
+    profile_retrieval = RetrievalService(index=FakeIndex(catalog)).retrieve_profile(
+        resolution, gating=gating
+    )
 
     for zone in resolution.zones:
         retrieved = profile_retrieval.zone(zone.zone.zone_id)
@@ -197,10 +205,13 @@ def engine_run(client: TestClient, offline_candidates: CandidatesService) -> dic
 
 @pytest.fixture
 def explainable(
-    catalog: Catalog, resolution_a: ProfileResolution, overrides: ExitStack
+    catalog: Catalog,
+    resolution_a: ProfileResolution,
+    gating_a: ProfileGating,
+    overrides: ExitStack,
 ) -> dict[str, Any]:
     """A capability of profile A whose candidates the scripted model explains in full."""
-    zone_id, capability_id, offered, reply = _first_explainable(catalog, resolution_a)
+    zone_id, capability_id, offered, reply = _first_explainable(catalog, resolution_a, gating_a)
 
     agent = explain_agent()
     overrides.enter_context(agent.override(model=scripted_model(reply)))

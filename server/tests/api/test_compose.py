@@ -304,11 +304,19 @@ async def test_the_ledger_tells_a_ratification_from_a_choice(
     accepted = [e for e in human if e.event_type is AuditEventType.GAP_ACCEPTED]
     signed = [e for e in human if e.event_type is AuditEventType.BASELINE_SIGNED]
 
-    # 11 open mandates across the two zones of PROFILE-A (5 in the corridor, 6 in
-    # the crown jewel, which admits less) and 49 mandates the core already closed
+    # 13 open mandates across the two zones of PROFILE-A (6 in the corridor, 7 in
+    # the crown jewel, which admits less) and 47 mandates the core already closed
     # and the signature ratifies without asking the operator to re-justify them.
-    assert len(accepted) == 11
-    assert len(ratified) == 49
+    #
+    # It was 11 and 49 before catalog v0.5.0. `CAP-PR-SESSION` opened in *both*
+    # zones because SR 2.5 and SR 2.6 now declare that they presuppose interactive
+    # users, and neither OT zone has any: with nobody logged in there is no
+    # session to lock or to terminate. The mechanism leaves and the mandate stays
+    # open — which is the golden rule of gating, visible in the ledger: the
+    # requirement did not disappear with its mechanism, it landed on the human,
+    # who must compensate it or accept the gap in writing.
+    assert len(accepted) == 13
+    assert len(ratified) == 47
     assert len(signed) == 1
     assert baseline["audit_events"] == len(human) == 61
     assert all(e.baseline_id == UUID(baseline["baseline_id"]) for e in human)

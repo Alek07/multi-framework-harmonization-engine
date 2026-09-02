@@ -97,6 +97,48 @@ def reach() -> None:
     print(f"   reglas sin condición sobre el activo: {len(unconditional)} {unconditional}")
 
 
+def premises() -> None:
+    """UCM-53 - what the catalog itself declares, beside what the rules name.
+
+    Two different things end up excluding a mechanism, and the report has to
+    keep them apart: a rule someone wrote naming the control, and a premise the
+    control declares about the zone it needs. The number that matters for
+    UCM-55 is the last one printed — controls that *neither* looks at, which
+    are the ones still retained identically for every asset.
+    """
+    catalog = get_catalog()
+    rules = get_gating_rules()
+    named = {control_id for rule in rules.rules for control_id in rule.control_ids}
+    declaring = {c.id for c in catalog.controls if c.presupposes}
+    total = len(catalog.controls)
+
+    print()
+    print(f"== Premisas declaradas en el catálogo v{catalog.catalog_version}")
+    print(
+        f"   controles que declaran alguna premisa: {len(declaring)}/{total} "
+        f"({100 * len(declaring) / total:.0f}%)"
+    )
+
+    by_premise = Counter(p.premise.value for c in catalog.controls for p in c.presupposes)
+    if by_premise:
+        print(
+            "   premisas por tipo: "
+            + ", ".join(f"{k}={v}" for k, v in by_premise.most_common())
+        )
+        by_framework = Counter(c.framework.value for c in catalog.controls if c.presupposes)
+        print(
+            "   controles con premisa por marco: "
+            + ", ".join(f"{k}={v}" for k, v in by_framework.most_common())
+        )
+    else:
+        print("   (ninguna: el catálogo todavía no ha sido etiquetado)")
+
+    print(f"   controles que solo la premisa mira:      {len(declaring - named)}")
+    print(
+        "   controles que ni regla ni premisa miran: "
+        f"{len(catalog.control_ids - named - declaring)}"
+    )
+
 def discrimination() -> None:
     per_zone = outcomes_by_zone()
     total = len(next(iter(per_zone.values())))
@@ -116,4 +158,5 @@ def discrimination() -> None:
 
 if __name__ == "__main__":
     reach()
+    premises()
     discrimination()

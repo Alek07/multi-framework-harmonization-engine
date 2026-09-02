@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from app.catalog.schemas import Catalog, Jurisdiction, MappingType
 from app.core.config import settings
+from app.engine.presuppositions import PREMISE_RULE_ID
 from app.engine.schemas import (
     CapabilityResolution,
     GapKind,
@@ -379,6 +380,39 @@ def test_a_gated_suggestion_is_annotated_not_hidden(
     assert hit.gated_out == annotation
     assert target in marked.offered_control_ids  # annotated, never removed from the list
     assert "gating" in hit.rationale.lower()
+
+
+def test_a_gated_suggestion_sinks_to_the_end_of_the_tail(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """UCM-53: the declared order, applied where the list is built.
+
+    The annotated suggestion was first by similarity. It stays offered, keeps its
+    mark, and reads last — ordering is not removing, so the set is untouched.
+    """
+    zone = resolution_a.zones[0]
+    capability = zone.capabilities[0]
+
+    plain = service.retrieve_capability(capability)
+    tail = [hit.control_id for hit in plain.widening]
+    assert len(tail) > 1, "the fake ranker should surface more than one widening"
+    target = tail[0]
+
+    annotation = GatingAnnotation(
+        zone_id=zone.zone.zone_id,
+        outcome=GatingOutcome.NOT_APPLICABLE,
+        rule_id=PREMISE_RULE_ID,
+        rationale="presupone una premisa que la zona no cumple",
+        evidence=["premisa observada"],
+    )
+    marked = service.retrieve_capability(capability, gated={target: annotation})
+    marked_tail = [hit.control_id for hit in marked.widening]
+
+    assert marked_tail[-1] == target
+    assert marked_tail[:-1] == [c for c in tail if c != target]
+    # Same suggestions, different reading order. Nothing left the list.
+    assert sorted(marked_tail) == sorted(tail)
+    assert set(marked.offered_control_ids) == set(plain.offered_control_ids)
 
 
 # --- gaps ---------------------------------------------------------------------

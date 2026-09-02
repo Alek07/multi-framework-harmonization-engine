@@ -19,6 +19,7 @@ import type {
 import {
   CANDIDATE_STATUS,
   FRAMEWORK,
+  GATING_OUTCOME,
   FRAMEWORK_NOTE,
   JURISDICTION_SHORT,
   MAPPING_TYPE,
@@ -302,6 +303,17 @@ export function RetrievedOption({
           {hit.mapped_capability_ids.length > 0 ? (
             <span className="text-[11px] text-ink-3">
               ya asociado a: {hit.mapped_capability_ids.join(', ')}
+            </span>
+          ) : null}
+          {/* Why this suggestion reads last: the zone's gating already ruled the
+              control out here. Shown marked rather than hidden — the operator may
+              still adopt it, and the reason is on the card when they do. */}
+          {hit.gated_out ? (
+            <span
+              title={hit.gated_out.rationale}
+              className={`cursor-help rounded-sm px-1.5 py-px text-[10px] font-semibold ${GATING_OUTCOME[hit.gated_out.outcome].className}`}
+            >
+              {GATING_OUTCOME[hit.gated_out.outcome].label}
             </span>
           ) : null}
         </>

@@ -165,6 +165,27 @@ export const GATING_OUTCOME: Record<GatingOutcome, Chip & { note: string }> = {
 }
 
 /**
+ * Where an exclusion's rule came from.
+ *
+ * Most exclusions cite a rule someone wrote by hand in the gating file. Two do
+ * not, and saying so matters to whoever audits the baseline: the sectoral one
+ * (UCM-47) and the premise one (UCM-53) are read off the *control's own*
+ * declaration in the catalog, so what backs them is a fact about the control
+ * rather than a judgement about this asset. Anything not listed here is a
+ * hand-written rule.
+ */
+export const RULE_ORIGIN: Record<string, { label: string; note: string }> = {
+  'GATE-PREMISE-UNMET': {
+    label: 'premisa del control',
+    note: 'El catálogo declara lo que este control necesita de la zona, y esta zona declara lo contrario. La premisa está en el control; la decisión de excluirlo, en la regla.',
+  },
+  'APPLIC-SECTOR': {
+    label: 'ámbito sectorial',
+    note: 'La norma no gobierna ninguno de los sectores en los que opera esta zona.',
+  },
+}
+
+/**
  * What became of each mechanism in the declaration of applicability (UCM-46).
  *
  * The three gating outcomes keep the wording of `GATING_OUTCOME` above: they are

@@ -20,6 +20,7 @@ import {
   MAPPING_TYPE,
   PROVENANCE,
   RETRIEVAL_STATUS,
+  RULE_ORIGIN,
   TIER,
   ZONE_DOMAIN,
 } from '../../../lib/labels'
@@ -119,6 +120,11 @@ function GatingPanel() {
         <div className="flex flex-col gap-1.5">
           {page.slice.map((decision, index) => {
             const outcome = GATING_OUTCOME[decision.outcome]
+            // A hand-written rule unless the catalog itself carried the premise.
+            const origin = RULE_ORIGIN[decision.rule_id] ?? {
+              label: 'regla documentada',
+              note: 'Regla escrita a mano en el fichero de gating',
+            }
             return (
               <div
                 key={`${decision.control_id}-${decision.capability_id}-${page.from + index}`}
@@ -144,7 +150,11 @@ function GatingPanel() {
                     ({decision.evidence.join(' · ')})
                   </span>
                 ) : null}
-                <Tag title={`Regla aplicada: ${decision.rule_id}`}>regla documentada</Tag>
+                <Tag
+                  title={`${origin.note} (regla ${decision.rule_id})`}
+                >
+                  {origin.label}
+                </Tag>
               </div>
             )
           })}

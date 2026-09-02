@@ -121,9 +121,16 @@ _WORDS: dict[str, str] = {
     "candidate_status": "lo que el núcleo dijo del candidato",
     "zone_context": "la lectura de la zona",
     # --- the asset premises a gating rule reads (TechNature) ---
+    #
+    # Every one of these is read inside the sentence "la zona (no) tiene ...",
+    # both by a gating rule's evidence and by a control's declared premise
+    # (UCM-53), so they have to be nouns that survive it. Two did not until
+    # v0.5.0 and nobody saw it: `networked` and `hybrid_it_ot` conditioned no
+    # hand-written rule at all (UCM-55), so "la zona tiene conectado en red"
+    # never actually rendered. The premises use both, and it did.
     "general_purpose_os": "sistema operativo de propósito general",
-    "networked": "conectado en red",
-    "hybrid_it_ot": "mezcla IT y OT",
+    "networked": "conexión de red",
+    "hybrid_it_ot": "mezcla de IT y OT",
     "interactive_users": "usuarios que inician sesión",
     "office_it_surface": "superficie ofimática",
 }

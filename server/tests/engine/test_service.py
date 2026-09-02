@@ -13,7 +13,7 @@ def test_both_profiles_resolve_against_the_versioned_inputs(
     assert resolution_a.profile_id == "PROFILE-A"
     assert resolution_b.profile_id == "PROFILE-B"
     for resolution in (resolution_a, resolution_b):
-        assert resolution.catalog_version == "0.4.0"
+        assert resolution.catalog_version == "0.5.0"
         assert resolution.rules_version == "0.1.0"
 
 

@@ -82,6 +82,16 @@ the 2 hand-written profiles (no AI) and be validated before starting M2.
   (compensatory control), *wrong-scope* (deferred to organizational layer). Golden rule: gating
   removes **mechanisms**, never required **capabilities**, and never silently. Same catalog +
   per-zone gating ⇒ different baselines.
+  - Two exclusions are read off the **control's own declaration** in the catalog rather than from a
+    hand-written rule: sectoral scope (`applies_to_sectors`, `APPLIC-SECTOR`, UCM-47) and declared
+    premises (`presupposes`, `GATE-PREMISE-UNMET`, UCM-53, from catalog v0.5.0). Both still emit an
+    ordinary `GatingDecision`. **Absence never excludes** — an empty list means no premise has been
+    declared, never that the control is universal — and a hand-written rule naming the control
+    always wins, with the derived one kept in `also_matched_rule_ids`.
+  - `presupposes` is authored **offline** by `scripts/tag_presuppositions.py`: the model proposes, a
+    deterministic guard screens (the quote must appear in the control's own text), the human
+    authorises by merging into the catalog sources, and only then does the rule decide. No LLM is
+    ever on the request path for this.
 - **Prioritization** (`UCM-10`) — never rank everything together:
   - **Tier 0**: mandatory by the zone's SL-target — not prioritized, must be complete.
   - **Tier 1**: discretionary — coverage/leverage + dependencies (partial order) + ordinal cost.

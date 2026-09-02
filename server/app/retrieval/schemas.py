@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -260,6 +261,26 @@ class RetrievedControl(BaseModel):
         return self.control.jurisdiction
 
 
+# UCM-53 - How the suggestion tail is ordered once the cut has decided *which*
+# suggestions there are. Versioned for the same reason `CUT_POLICY_VERSION` is:
+# the operator reads the list top down, so the order is part of what the engine
+# says, and a rule that changes without saying so is a rule nobody can audit.
+#
+# It sorts; it never removes. A suggestion the zone's gating already ruled out
+# reads last and reads marked (`gated_out`), because burying it would be the
+# quiet drop UCM-54 exists to prevent, and hiding it would be worse. Applied
+# *after* the cut, never before: ordering before it would change which
+# suggestions survive, and that is the cut's decision, not this one's.
+ORDERING_VERSION = "v1"
+
+
+def sink_gated[R: RetrievedControl](retrieved: Sequence[R]) -> list[R]:
+    """Gated-out suggestions last, everything else in the rank it arrived with."""
+    return [r for r in retrieved if r.gated_out is None] + [
+        r for r in retrieved if r.gated_out is not None
+    ]
+
+
 class CapabilityRetrieval(BaseModel):
     """Retrieval for one capability in one zone. Additive by construction."""
 
@@ -286,7 +307,13 @@ class CapabilityRetrieval(BaseModel):
 
     @property
     def offered_control_ids(self) -> list[str]:
-        """Catalog candidates plus retrieved ones, in a stable order."""
+        """Catalog candidates first, then the suggestions in reading order.
+
+        The catalog half keeps the core's own order, untouched: those are the
+        binding options and nothing here may reshuffle them. The suggestion half
+        arrives already ordered by `sink_gated` (applied in the service, so every
+        reader of `retrieved` sees the same order this returns).
+        """
         offered = list(self.catalog_control_ids)
         offered.extend(r.control_id for r in self.widening)
         return offered
@@ -355,6 +382,10 @@ class RetrievalProvenance(BaseModel):
     text_template_version: str
     top_k: int
     cut_policy: CutPolicy
+    # The rule that ordered the suggestion tail (UCM-53), declared beside the one
+    # that bounded it. A constant of the code, recorded so a stored answer says
+    # which reading order produced it.
+    ordering_version: str = ORDERING_VERSION
     payload_filter: PayloadFilter
 
 
