@@ -1,0 +1,108 @@
+{
+  "framework": "CIRCIA",
+  "note": "Cyber Incident Reporting for Critical Infrastructure Act of 2022 (CISA), 6 USC 681b(a). Capa legal estadounidense transversal: obliga a las entidades cubiertas de los sectores de infraestructura crítica, sin acotarse a un sector, así que su applies_to_sectors queda vacío (transversal) — es lo que garantiza que el delta regional no colapse para ningún activo. Se desglosa obligación a obligación, siguiendo el mismo criterio que la NIS2 (donde el art. 21(2) viaja medida a medida): un control por deber distinto, para que el delta le diga al operador qué le falta y no solo 'CIRCIA aplica'. El estatuto impone cuatro deberes: reporte del incidente cubierto (a)(1), reporte del pago de rescate (a)(2), reporte suplementario cuando aparece información nueva o distinta (a)(3), y preservación de datos y registros del incidente (a)(4). Los tres primeros son reporte y viajan sobre CAP-RS-REPORT; el cuarto no es reporte sino preservación de la evidencia, y por eso toca CAP-RS-ANALYSIS — meterlo bajo reporte lo escondería. Como la NIS2, es obligación que exige, no implementa, y nunca es el mecanismo, por eso los mapeos son contextuales y de peso bajo. Matiz valioso y verificado a 2026-09-02: la ley está en vigor desde 2022 y el NPRM se publicó en abril de 2024, pero la regla final sigue pendiente (lapsos de financiación de CISA), de modo que la obligación existe pero todavía no es exigible — un caso limpio de 'exigencia' que precede al 'mecanismo'. Reverificar el estado de la regla final al redactar la memoria (CISA.gov/CIRCIA).",
+  "controls": [
+    {
+      "id": "CTL-CIRCIA-INCIDENT",
+      "framework": "CIRCIA",
+      "official_id": "CIRCIA 6 USC 681b(a)(1)",
+      "title": "CIRCIA — Covered cyber incident reporting",
+      "paraphrased_description": "Obliga a la entidad cubierta a notificar a CISA un incidente cibernético cubierto dentro de las 72 horas desde que razonablemente concluye que ha ocurrido.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "reporte del incidente en 72 h; regla final aún pendiente (verificado 2026-09-02): obligación existente todavía no exigible"
+      },
+      "type": "legal",
+      "applies_to_sectors": []
+    },
+    {
+      "id": "CTL-CIRCIA-RANSOM",
+      "framework": "CIRCIA",
+      "official_id": "CIRCIA 6 USC 681b(a)(2)",
+      "title": "CIRCIA — Ransom payment reporting",
+      "paraphrased_description": "Obliga a la entidad cubierta a notificar a CISA cualquier pago hecho en respuesta a un ataque de ransomware dentro de las 24 horas.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "reporte del pago de rescate en 24 h; regla final aún pendiente (verificado 2026-09-02): obligación existente todavía no exigible"
+      },
+      "type": "legal",
+      "applies_to_sectors": []
+    },
+    {
+      "id": "CTL-CIRCIA-SUPPLEMENT",
+      "framework": "CIRCIA",
+      "official_id": "CIRCIA 6 USC 681b(a)(3)",
+      "title": "CIRCIA — Supplemental reporting",
+      "paraphrased_description": "Obliga a la entidad cubierta a remitir reportes suplementarios cuando descubre información sustancialmente nueva o distinta sobre un reporte ya enviado, hasta que el incidente queda resuelto.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "actualización del reporte mientras el incidente sigue abierto; regla final aún pendiente (verificado 2026-09-02): obligación existente todavía no exigible"
+      },
+      "type": "legal",
+      "applies_to_sectors": []
+    },
+    {
+      "id": "CTL-CIRCIA-PRESERVE",
+      "framework": "CIRCIA",
+      "official_id": "CIRCIA 6 USC 681b(a)(4)",
+      "title": "CIRCIA — Data and records preservation",
+      "paraphrased_description": "Obliga a la entidad cubierta a preservar los datos y registros relevantes del incidente durante el periodo prescrito, para sostener el análisis de cómo se produjo y por quién.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "preservación de datos y registros del incidente; regla final aún pendiente (verificado 2026-09-02): obligación existente todavía no exigible"
+      },
+      "type": "legal",
+      "applies_to_sectors": []
+    }
+  ],
+  "mappings": [
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-CIRCIA-INCIDENT",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "plazo de 72 h para el incidente cubierto: el lado legal estadounidense del delta regional"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-CIRCIA-RANSOM",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "plazo de 24 h para el pago de rescate: deber distinto, con su propio disparador"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-CIRCIA-SUPPLEMENT",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "reporte suplementario ante información nueva: prolonga el deber de notificar mientras el incidente sigue abierto"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-ANALYSIS",
+      "control_id": "CTL-CIRCIA-PRESERVE",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "preservar datos y registros del incidente es exigencia legal sobre la capacidad forense, no un deber de reporte"
+      }
+    }
+  ]
+}

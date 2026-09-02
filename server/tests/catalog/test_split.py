@@ -79,6 +79,8 @@ def test_the_shipped_catalog_is_a_split_one_and_loads(tmp_path: Path) -> None:
         "CIS",
         "NIS2",
         "IMO",
+        "CIRCIA",
+        "TSA",
     }
 
 

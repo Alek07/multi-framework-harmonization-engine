@@ -149,7 +149,7 @@ def test_every_mandatory_capability_is_in_the_baseline(
 
     for zone in baseline["zones"]:
         tier_0 = [c for c in zone["capabilities"] if c["tier"] == "tier_0"]
-        assert len(tier_0) == 30
+        assert len(tier_0) == 31
         assert zone["tier_0_complete"] is True
         assert all(c["required"] is True for c in tier_0)
 
@@ -305,20 +305,18 @@ async def test_the_ledger_tells_a_ratification_from_a_choice(
     signed = [e for e in human if e.event_type is AuditEventType.BASELINE_SIGNED]
 
     # 13 open mandates across the two zones of PROFILE-A (6 in the corridor, 7 in
-    # the crown jewel, which admits less) and 47 mandates the core already closed
+    # the crown jewel, which admits less) and 49 mandates the core already closed
     # and the signature ratifies without asking the operator to re-justify them.
     #
-    # It was 11 and 49 before catalog v0.5.0. `CAP-PR-SESSION` opened in *both*
-    # zones because SR 2.5 and SR 2.6 now declare that they presuppose interactive
-    # users, and neither OT zone has any: with nobody logged in there is no
-    # session to lock or to terminate. The mechanism leaves and the mandate stays
-    # open — which is the golden rule of gating, visible in the ledger: the
-    # requirement did not disappear with its mechanism, it landed on the human,
-    # who must compensate it or accept the gap in writing.
+    # It was 13 and 47 before catalog v0.6.0. The US legal corpus (UCM-48) makes
+    # the TSA gap assessment (CAP-ID-RISK) a legal mandate in *both* zones — the
+    # asset is a designated pipeline (transport) — and the core already had a
+    # mechanism for it, so each zone ratifies it rather than opening a gap: +2
+    # ratified, the accepted count unchanged.
     assert len(accepted) == 13
-    assert len(ratified) == 47
+    assert len(ratified) == 49
     assert len(signed) == 1
-    assert baseline["audit_events"] == len(human) == 61
+    assert baseline["audit_events"] == len(human) == 63
     assert all(e.baseline_id == UUID(baseline["baseline_id"]) for e in human)
     assert all("Ratificación, no selección" in e.rationale for e in ratified)
 

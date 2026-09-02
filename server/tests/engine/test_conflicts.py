@@ -71,7 +71,16 @@ def test_residual_coverage_becomes_an_explicit_gap(resolution_a: ProfileResoluti
 def test_contextual_overlays_do_not_count_as_coverage(resolution_a: ProfileResolution) -> None:
     report = _capability(resolution_a, ZONE_OT, REPORT)
     contextual = [o for o in report.options if o.mapping_type.value == "contextual"]
-    assert {o.control_id for o in contextual} == {"CTL-NIS2-A23", "CTL-IMO-42898"}
+    # Resolution offers every mapped control (sector gating comes later); the US
+    # legal reporting overlays (UCM-48) join the EU and maritime ones.
+    assert {o.control_id for o in contextual} == {
+        "CTL-NIS2-A23",
+        "CTL-IMO-42898",
+        "CTL-CIRCIA-INCIDENT",
+        "CTL-CIRCIA-RANSOM",
+        "CTL-CIRCIA-SUPPLEMENT",
+        "CTL-TSA-SD01-REPORT",
+    }
     # They stay visible (they feed the regional delta) but are not a mechanism.
     assert all(o.status is CandidateStatus.ELIGIBLE for o in contextual)
     assert all(o.status_reason for o in contextual)

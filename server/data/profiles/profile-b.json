@@ -2,7 +2,7 @@
   "id": "PROFILE-B",
   "name": "Pipeline engineering workstation",
   "case": "HYBRID_IT_OT",
-  "sectors": ["energy"],
+  "sectors": ["energy", "transport"],
   "zones": [
     {
       "id": "Z-ENG-STATION",
