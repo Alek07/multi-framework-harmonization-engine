@@ -1,13 +1,6 @@
-"""UCM-13 - The measured invariant: the RAG widens, and never restricts in silence.
-
-Everything here is a check on that one sentence. The stand-in ranker
-(`conftest.FakeIndex`) is irrelevant to what is being asserted: whichever controls
-come back, the catalog's own candidates have to survive untouched, a suggestion
-has to be labelled as a suggestion, a declared lens has to hand back what it set
-aside, and a capability with nothing at all has to end as an explicit gap.
-"""
-
 from __future__ import annotations
+
+from collections import Counter
 
 import pytest
 from pydantic import ValidationError
@@ -202,14 +195,100 @@ def test_a_zone_without_declared_sectors_is_not_filtered(
 def test_the_query_reserves_room_for_the_extra_candidates(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    """`RAG_TOP_K` is a floor on suggestions, not a budget the catalog eats into."""
+    """The depth is asked on top of the catalog's own candidates, not out of them."""
     service.retrieve_profile(resolution_a)
 
     zone = resolution_a.zones[0]
     by_capability = {c.capability.id: len(c.options) for c in zone.capabilities}
     asked = {limit for _, limit, _ in service.index.queries}  # type: ignore[attr-defined]
 
-    assert asked == {settings.RAG_TOP_K + count for count in by_capability.values()}
+    assert asked == {
+        settings.RAG_RETRIEVAL_DEPTH + count for count in by_capability.values()
+    }
+
+
+def test_every_answered_capability_declares_the_cut_that_bounded_it(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """Acceptance (UCM-54): the retriever stops being the one stage with no rule."""
+    retrieval = service.retrieve_profile(resolution_a)
+
+    for zone in retrieval.zones:
+        for capability in zone.capabilities:
+            if not capability.retrieved:
+                continue
+            cut = capability.cut
+            assert cut is not None, f"{capability.capability_id} shows candidates with no cut"
+            assert cut.policy.version
+            assert cut.retained + cut.dropped == cut.evaluated
+            assert cut.retained >= min(cut.policy.floor, cut.evaluated)
+            assert cut.retained <= cut.policy.ceiling
+            if cut.dropped:
+                assert cut.first_dropped is not None
+                assert cut.first_dropped.rationale.strip()
+
+
+def test_the_cut_never_reaches_the_catalogs_own_candidates(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """The rule bounds suggestions. A confirmation is never handed to it."""
+    retrieval = service.retrieve_profile(resolution_a)
+
+    for zone in retrieval.zones:
+        for capability in zone.capabilities:
+            offered = set(capability.offered_control_ids)
+            assert set(capability.catalog_control_ids) <= offered
+            cut = capability.cut
+            if cut is None:
+                continue
+            dropped_ids = {d.control_id for d in cut.displaced}
+            assert not (dropped_ids & set(capability.catalog_control_ids))
+
+
+def test_no_framework_holds_more_than_its_share_of_the_suggestions(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """The cap is the half of the rule that changes *which* candidates are shown."""
+    retrieval = service.retrieve_profile(resolution_a)
+
+    for zone in retrieval.zones:
+        for capability in zone.capabilities:
+            cut = capability.cut
+            if cut is None:
+                continue
+            held = Counter(hit.framework for hit in capability.widening)
+            over = {f: n for f, n in held.items() if n > settings.RAG_FRAMEWORK_CAP}
+            # Over the cap only where it yielded to keep the floor, and the report says so.
+            assert not over or cut.cap_yielded > 0, (
+                f"{capability.capability_id} shows {held} with a cap of "
+                f"{settings.RAG_FRAMEWORK_CAP} and no yield on record"
+            )
+
+
+def test_what_the_cut_displaced_is_never_also_shown(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """Displaced means displaced: the report and the list cannot both claim it."""
+    retrieval = service.retrieve_profile(resolution_a)
+
+    for zone in retrieval.zones:
+        for capability in zone.capabilities:
+            if capability.cut is None:
+                continue
+            shown = {hit.control_id for hit in capability.retrieved}
+            assert not (shown & {d.control_id for d in capability.cut.displaced})
+
+
+def test_the_cut_cannot_turn_a_covered_capability_into_a_gap(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """Bounding a ranking may never cost coverage — the invariant, at this seam."""
+    retrieval = service.retrieve_profile(resolution_a)
+
+    for zone in retrieval.zones:
+        for capability in zone.capabilities:
+            if capability.cut is not None and capability.cut.evaluated:
+                assert capability.gap is None or not capability.catalog_control_ids
 
 
 # --- gating visible in the suggestions (UCM-52) -------------------------------

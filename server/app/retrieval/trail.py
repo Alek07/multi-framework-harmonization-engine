@@ -1,23 +1,3 @@
-"""UCM-13 - The RAG pass on the audit log, so its invariant is measurable there.
-
-`app/audit/trail.py` derives the deterministic core's entries; this does the same
-for retrieval, and for the same reason: the claim "the RAG only widens coverage,
-never restricts it in silence" has to be checkable on the record, not just in the
-return value of a function.
-
-So every capability of the catalog leaves a mark in every zone — with suggestions
-or without them — each entry carries the catalog candidates it started from next
-to the ones retrieval added, every candidate a declared lens set aside gets its
-own entry naming the axis responsible, and a capability that ends with nothing at
-all is written down as an explicit gap. Reading the log alone, one can count what
-was offered before the pass and after it, and the second number can never be
-smaller.
-
-The actor is `engine`: the retriever offers options, it does not decide (invariant
-1). The choice among them is a human entry, written when the operator composes
-(UCM-16).
-"""
-
 from __future__ import annotations
 
 from typing import Any
@@ -52,6 +32,7 @@ def _zone(
     entries: list[AuditEventCreate] = []
     for capability in zone.capabilities:
         entries.append(_candidates_retrieved(capability, retrieval, run_id, versions))
+        entries.extend(_candidates_cut(capability, retrieval, run_id, versions))
         entries.extend(_set_aside(capability, retrieval, run_id, versions))
         if capability.gap is not None:
             entries.append(_gap_declared(capability, retrieval, run_id, versions))
@@ -101,6 +82,48 @@ def _candidates_retrieved(
             "set_aside": len(capability.set_aside),
         },
     )
+
+
+def _candidates_cut(
+    capability: CapabilityRetrieval,
+    retrieval: ProfileRetrieval,
+    run_id: UUID,
+    versions: dict[str, str],
+) -> list[AuditEventCreate]:
+    """The rule that bounded the ranking, and what it left below (UCM-54).
+
+    A list only so a capability the index never answered writes nothing at all.
+    """
+    cut = capability.cut
+    if cut is None:
+        return []
+    displaced = len(cut.displaced)
+    first = cut.first_dropped
+    below = (
+        f", el primero {first.official_id} ({first.score:.3f}, "
+        f"{'+' if first.margin < 0 else '-'}{abs(first.margin):.3f} frente al último mostrado)"
+        if first is not None
+        else ""
+    )
+    return [
+        _event(
+            AuditEventType.CANDIDATES_CUT,
+            f"Corte del recuperador en «{capability.capability_name}» ({capability.zone_id}): "
+            f"{cut.retained} retenida(s) de {cut.evaluated} evaluada(s), {cut.dropped} bajo el "
+            f"corte{below}, {displaced} desplazada(s) por el tope de marco",
+            f"{cut.rationale} El corte del recuperador lleva regla, parámetros y versión, igual "
+            "que el gating y la precedencia: lo que queda fuera se cuenta, el primero se nombra "
+            "con su similitud y lo que desplaza el tope se lista uno a uno. No es un umbral de "
+            "puntuación y no toca la línea base — acota sugerencias, y los candidatos del "
+            "catálogo lo atraviesan intactos.",
+            run_id,
+            retrieval.profile_id,
+            versions,
+            zone_id=capability.zone_id,
+            capability_id=capability.capability_id,
+            payload=cut.model_dump(mode="json"),
+        )
+    ]
 
 
 def _set_aside(
@@ -164,13 +187,14 @@ def _stage_completed(
         AuditEventType.STAGE_COMPLETED,
         f"Recuperación completada en {zone.zone.zone_id}: {zone.suggestions} sugerencia(s) "
         f"sobre {len(zone.capabilities)} capacidad(es), {len(zone.set_aside)} apartada(s) por "
-        f"la lente",
+        f"la lente, {zone.dropped} bajo el corte",
         "La pasada de recuperación solo amplía: ningún candidato del catálogo se elimina ni se "
         "reordena, y las sugerencias se marcan como tales — no son mapeos, no tienen peso de "
         "cobertura y no "
         "entran en gating ni en priorización. Lo que una lente declarada deja fuera queda "
-        "registrado candidato a candidato. Las capacidades sin ningún candidato se declaran como "
-        "hueco explícito.",
+        "registrado candidato a candidato. Lo que el corte deja bajo el límite queda contado, con "
+        "su regla y con el primer descartado nombrado. Las capacidades sin ningún candidato se "
+        "declaran como hueco explícito.",
         run_id,
         retrieval.profile_id,
         versions,
@@ -181,6 +205,8 @@ def _stage_completed(
             "widened_capability_ids": zone.widened_capability_ids,
             "suggestions": zone.suggestions,
             "set_aside": len(zone.set_aside),
+            "below_cut": zone.dropped,
+            "displaced_by_framework_cap": len(zone.displaced),
             "gaps": len(zone.gaps),
             "gap_capability_ids": [gap.capability_id for gap in zone.gaps],
             "lens_active": lens.is_active,
@@ -232,4 +258,5 @@ def _versions(provenance: RetrievalProvenance) -> dict[str, str]:
         "embedding_model": provenance.embedding_model,
         "text_template": provenance.text_template_version,
         "collection": provenance.collection,
+        "cut_policy": provenance.cut_policy.version,
     }

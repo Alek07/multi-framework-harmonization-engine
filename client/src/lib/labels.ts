@@ -375,6 +375,7 @@ export const AUDIT_EVENT: Record<AuditEventType, string> = {
   run_completed: 'análisis completado',
   candidates_retrieved: 'controles similares propuestos',
   candidate_set_aside: 'control apartado por el filtro declarado',
+  candidates_cut: 'corte de la búsqueda, con su regla y lo que dejó fuera',
   option_selected: 'control elegido por la persona',
   option_rejected: 'control descartado por la persona',
   compensatory_declared: 'medida compensatoria declarada',
@@ -413,9 +414,6 @@ export function fieldLabel(path: string): string {
     const [, id, rest] = zone
     const fr = /^sl_vector\.(FR\d)$/.exec(rest)
     if (fr) return `zona ${id} · nivel exigido en ${fr[1]} (${FR_MEANING[fr[1] as FoundationalRequirement]})`
-    // The five premises are the zone's own (UCM-9), so the label names the zone:
-    // "sistema operativo corriente" on its own would be unreadable on a hybrid
-    // asset, where the next zone answers it the other way.
     const nature = /^nature\.(.+)$/.exec(rest)
     if (nature) return `zona ${id} · ${NATURE[nature[1] as NatureField]?.label ?? nature[1]}`
     return `zona ${id} · ${FIELD_WORDS[rest] ?? rest}`

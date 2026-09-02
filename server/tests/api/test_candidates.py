@@ -1,19 +1,3 @@
-"""UCM-15 - `POST /candidates`: every option, side by side, and none of them missing.
-
-The endpoint is where the central contribution becomes visible, so the assertions
-below are about the invariants rather than about the plumbing:
-
-* every capability of the catalog appears in every zone, with a candidate or with
-  a declared gap — silent omissions target zero (invariant 2);
-* the RAG pass only ever *adds* to what the catalog offered, and a machine where
-  Qdrant is down still gets the whole deterministic result, with the degradation
-  named in the response;
-* the engine's decisions are in the append-only ledger before the response leaves,
-  under the `run_id` the human's composition will chain onto (invariant 5);
-* the explanation layer, when asked for, changes what the operator *reads* and
-  nothing about which candidates are offered or in what order (UCM-14, P1).
-"""
-
 from __future__ import annotations
 
 from typing import Any
@@ -172,6 +156,74 @@ def test_a_declared_lens_reports_everything_it_set_aside(
     ]
     assert all(candidate["excluded_by"] for candidate in set_aside)
     assert all(candidate["rationale"] for candidate in set_aside)
+
+
+# --- UCM-54: the cut carries its rule -----------------------------------------
+
+
+def test_the_cut_reaches_the_boundary_with_its_rule_and_its_leftovers(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """Cortar no es descartar: the retriever's own bound, auditable at the API."""
+    body = ask(client)
+
+    policy = body["retrieval"]["provenance"]["cut_policy"]
+    assert policy["version"]
+    assert policy["floor"] >= 1 and policy["ceiling"] >= policy["floor"]
+    assert policy["framework_cap"] >= 1
+    assert body["retrieval"]["below_cut"] >= 0
+    assert body["retrieval"]["displaced"] >= 0
+
+    for capability in every_capability(body):
+        cut = capability["retrieval"]["cut"]
+        if not capability["retrieval"]["retrieved"]:
+            assert cut is None
+            continue
+        assert cut is not None
+        assert cut["retained"] + cut["dropped"] == cut["evaluated"]
+        if cut["dropped"]:
+            assert cut["first_dropped"]["official_id"]
+            assert cut["first_dropped"]["rationale"]
+
+
+def test_the_run_totals_agree_with_the_capabilities_they_summarise(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """The two run-level numbers are a rollup, not a second opinion."""
+    body = ask(client)
+
+    cuts = [
+        capability["retrieval"]["cut"]
+        for capability in every_capability(body)
+        if capability["retrieval"]["cut"] is not None
+    ]
+
+    assert body["retrieval"]["below_cut"] == sum(cut["dropped"] for cut in cuts)
+    assert body["retrieval"]["displaced"] == sum(len(cut["displaced"]) for cut in cuts)
+
+
+def test_what_the_cut_left_out_is_never_also_on_the_screen(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    body = ask(client)
+
+    for capability in every_capability(body):
+        cut = capability["retrieval"]["cut"]
+        if cut is None:
+            continue
+        shown = set(capability["offered_control_ids"])
+        assert not (shown & {d["control_id"] for d in cut["displaced"]})
+
+
+def test_bounding_the_ranking_never_costs_the_catalogs_own_candidates(
+    client: TestClient, offline_candidates: CandidatesService
+) -> None:
+    """The cut is a ranking decision. Coverage is not its to touch."""
+    body = ask(client)
+
+    for capability in every_capability(body):
+        mapped = [option["control"]["id"] for option in capability["resolution"]["options"]]
+        assert capability["offered_control_ids"][: len(mapped)] == mapped
 
 
 # --- UCM-52: asset-aware suggestions ------------------------------------------

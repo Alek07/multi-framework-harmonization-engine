@@ -1,34 +1,3 @@
-"""UCM-15 - The candidates use case: one run of everything the human chooses from.
-
-The service is an *assembly*, not a new step of the engine. It runs the
-deterministic core (UCM-8/9/10), widens with the RAG pass (UCM-13), optionally
-asks for prose (UCM-14) and records the whole thing in the append-only log
-(UCM-11). It computes no coverage of its own, resolves no conflict of its own and
-ranks nothing: if this module were deleted, every number in the response would
-still be produced somewhere else.
-
-Four decisions are worth writing down, because each of them is a place where an
-API layer could quietly break an invariant of the project.
-
-* **The core runs before anything optional, and its result is what is served.**
-  Retrieval and explanations are additive by construction; neither is allowed to
-  be a precondition for answering. A machine with Qdrant down still gets the whole
-  deterministic baseline, with `retrieval.status = unavailable` saying so.
-* **The engine's decisions are on the record before the response leaves.**
-  `record_core_run` and `record_retrieval` are awaited here, not left to the
-  caller, and the `run_id` they were filed under is returned. A decision the
-  operator can read but the ledger cannot is exactly what invariant 5 forbids.
-* **The engine applies no *exploratory* lens of its own.** `request.lens` is the
-  operator's question; absent it, the operator's axes are unfiltered. The one lens
-  the engine does build is the zone's sectoral applicability (UCM-52) — a
-  determination, like gating, whose leftovers come back set aside, never hidden.
-  Narrowing what the human sees *in silence* is the failure UCM-13 exists to
-  prevent, and reporting every exclusion is exactly how this avoids it.
-* **CPU work goes to a worker thread.** The core, the encoder and the Qdrant
-  client are synchronous and CPU-bound (69 controls to embed per query round).
-  `asyncio.to_thread` keeps the event loop free instead of pretending this is I/O.
-"""
-
 from __future__ import annotations
 
 import asyncio
@@ -204,6 +173,8 @@ class CandidatesService:
             status=RetrievalStatus.OK,
             suggestions=retrieval.suggestions,
             set_aside=len(retrieval.set_aside),
+            below_cut=retrieval.dropped,
+            displaced=len(retrieval.displaced),
             provenance=retrieval.provenance,
         )
 

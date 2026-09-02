@@ -81,11 +81,6 @@ export type SLVector = Record<FoundationalRequirement, number>
 export interface Zone {
   id: string
   target_sl: number
-  /**
-   * Per zone, never per asset (UCM-9). A hybrid asset holds zones of different
-   * natures at once — an embedded controller and a Windows workstation — and a
-   * single asset-wide reading has to be wrong about one of them.
-   */
   nature: TechNature
   purdue?: string | null
   role?: string | null
@@ -184,7 +179,6 @@ export interface AssetProfileDraft {
   conduits: ConduitDraft[]
   criticality: CriticalityDraft
   notes: ParseNote[]
-  /** Statements the schema had no place for. Reported, never dropped. */
   unmapped: string[]
 }
 
@@ -210,7 +204,6 @@ export interface ParseResult {
   draft: AssetProfileDraft
   missing_required: string[]
   provenance: ParseProvenance
-  /** A constant `true`: the model proposes, the operator decides. */
   review_required: boolean
 }
 
@@ -308,7 +301,6 @@ export interface GatingDecision {
 export interface CapabilityGating {
   capability_id: string
   zone_id: string
-  /** Never false: gating removes mechanisms, never required capabilities. */
   required: true
   status: CapabilityStatus
   retained_control_ids: string[]
@@ -347,11 +339,9 @@ export interface CapabilityPriority {
   depends_on: string[]
   benefit: OrdinalLevel
   cost: OrdinalLevel
-  /** Null on Tier 0 — what is mandatory is not ranked, it is completed. */
   priority: OrdinalLevel | null
   implementation_group: string | null
   phase: number
-  /** A mandate the engine could not close on its own: the human must. */
   outstanding: boolean
   gap: CapabilityGap | null
   rationale: string
@@ -371,8 +361,6 @@ export type RetrievalRelation = 'widens' | 'confirms_mapping'
 export type FilterAxis = 'jurisdiction' | 'zone' | 'mapping_type'
 
 export interface PayloadFilter {
-  // Null, not empty: "no lens on this axis" and "a lens that admits nothing" are
-  // different states, and the engine never applies one on its own initiative.
   jurisdictions: Jurisdiction[] | null
   frameworks: Framework[] | null
   mapping_types: MappingType[] | null
@@ -391,9 +379,50 @@ export interface SetAsideCandidate {
   rationale: string
 }
 
+/** Why a retrieved candidate is not among the ones being shown. */
+export type CutReason = 'rank' | 'framework_cap'
+
+/** The rule that bounds the ranking (UCM-54). */
+export interface CutPolicy {
+  version: string
+  depth: number
+  floor: number
+  tie_epsilon: number
+  ceiling: number
+  framework_cap: number
+}
+
+export interface DroppedCandidate {
+  control_id: string
+  official_id: string
+  framework: Framework
+  jurisdiction: Jurisdiction
+  score: number
+  relation: RetrievalRelation
+  dropped_by: CutReason
+  margin: number
+  rationale: string
+}
+
+/** What the cut left below the line (UCM-54): `retained + dropped === evaluated`. */
+export interface RetrievalCut {
+  policy: CutPolicy
+  evaluated: number
+  retained: number
+  band_width: number
+  band_extension: number
+  ceiling_reached: boolean
+  cap_yielded: number
+  dropped: number
+  near_ties_dropped: number
+  not_returned: number
+  first_dropped: DroppedCandidate | null
+  displaced: DroppedCandidate[]
+  rationale: string
+}
+
 export interface RetrievedControl {
   control: FrameworkControl
-  /** Cosine similarity. A reading order — never a coverage weight. */
   score: number
   relation: RetrievalRelation
   mapped_capability_ids: string[]
@@ -408,6 +437,7 @@ export interface CapabilityRetrieval {
   catalog_control_ids: string[]
   retrieved: RetrievedControl[]
   set_aside: SetAsideCandidate[]
+  cut: RetrievalCut | null
   gap: CapabilityGap | null
   rationale: string
 }
@@ -421,6 +451,7 @@ export interface RetrievalProvenance {
   indexed_controls: number
   text_template_version: string
   top_k: number
+  cut_policy: CutPolicy
   payload_filter: PayloadFilter
 }
 
@@ -501,6 +532,9 @@ export interface RetrievalReport {
   status: RetrievalStatus
   suggestions: number
   set_aside: number
+  /** Run-wide totals of the retriever's cut (UCM-54). */
+  below_cut: number
+  displaced: number
   provenance: RetrievalProvenance | null
   notice: string | null
 }
@@ -825,6 +859,7 @@ export type AuditEventType =
   | 'run_completed'
   | 'candidates_retrieved'
   | 'candidate_set_aside'
+  | 'candidates_cut'
   | 'option_selected'
   | 'option_rejected'
   | 'compensatory_declared'

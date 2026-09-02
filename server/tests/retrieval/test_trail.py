@@ -1,11 +1,3 @@
-"""UCM-13 - The invariant, read off the audit log rather than off the return value.
-
-If the claim is "the RAG only widens coverage, never restricts it in silence",
-then the log alone has to be enough to check it: every capability accounted for in
-every zone, the candidates before the pass next to the ones after it, and every
-candidate a lens set aside written down with the axis that set it aside.
-"""
-
 from __future__ import annotations
 
 from uuid import uuid4
@@ -99,6 +91,67 @@ def test_what_a_lens_set_aside_is_recoverable_from_the_log_alone(
         assert entry.payload["score"] is not None
 
 
+def test_the_cut_is_recoverable_from_the_log_alone(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """Acceptance (UCM-54): the one bound nobody could audit, now on the record."""
+    retrieval = service.retrieve_profile(resolution_a)
+    entries = trail_for_retrieval(retrieval, uuid4())
+    cuts = [e for e in entries if e.event_type is AuditEventType.CANDIDATES_CUT]
+
+    answered = [
+        capability
+        for zone in retrieval.zones
+        for capability in zone.capabilities
+        if capability.cut is not None
+    ]
+    assert len(cuts) == len(answered)
+
+    for entry in cuts:
+        payload = entry.payload
+        assert payload["policy"]["version"]
+        assert payload["policy"]["framework_cap"] >= 1
+        assert payload["retained"] + payload["dropped"] == payload["evaluated"]
+        if payload["dropped"]:
+            first = payload["first_dropped"]
+            assert first is not None
+            assert first["official_id"] and first["score"] is not None
+            assert first["margin"] is not None
+        for displaced in payload["displaced"]:
+            assert displaced["dropped_by"] == "framework_cap"
+            assert displaced["score"] is not None
+
+
+def test_a_capability_the_index_never_answered_writes_no_cut(
+    empty_index: FakeIndex, resolution_a: ProfileResolution
+) -> None:
+    """No ranking, no rule to declare — and nothing quietly reported as a cut."""
+    retrieval = RetrievalService(index=empty_index).retrieve_profile(resolution_a)
+    entries = trail_for_retrieval(retrieval, uuid4())
+
+    assert [e for e in entries if e.event_type is AuditEventType.CANDIDATES_CUT] == []
+    assert all(
+        capability.cut is None and not capability.retrieved
+        for zone in retrieval.zones
+        for capability in zone.capabilities
+    )
+    assert [e for e in entries if e.event_type is AuditEventType.CANDIDATES_RETRIEVED]
+
+
+def test_the_zone_entry_closes_with_what_the_cut_left_below(
+    service: RetrievalService, resolution_a: ProfileResolution
+) -> None:
+    """The zone rollup counts the cut, so the ledger's totals can be reconciled."""
+    retrieval = service.retrieve_profile(resolution_a)
+    entries = trail_for_retrieval(retrieval, uuid4())
+    completed = [e for e in entries if e.event_type is AuditEventType.STAGE_COMPLETED]
+
+    for entry in completed:
+        zone = retrieval.zone(str(entry.zone_id))
+        assert entry.payload["below_cut"] == zone.dropped
+        assert entry.payload["displaced_by_framework_cap"] == len(zone.displaced)
+
+
 def test_the_versions_say_which_vectors_answered(
     service: RetrievalService, resolution_a: ProfileResolution, catalog: Catalog
 ) -> None:
@@ -113,6 +166,7 @@ def test_the_versions_say_which_vectors_answered(
         # catalog version was configured.
         assert entry.versions["collection"] == retrieval.provenance.collection
         assert retrieval.provenance.catalog_digest in entry.versions["collection"]
+        assert entry.versions["cut_policy"] == retrieval.provenance.cut_policy.version
 
 
 def test_the_entries_all_belong_to_one_run(

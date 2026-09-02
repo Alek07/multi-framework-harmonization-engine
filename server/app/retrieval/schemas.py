@@ -1,38 +1,3 @@
-"""UCM-13 - Contract of the RAG pass: what retrieval adds, and what it may not do.
-
-Retrieval is the second AI pass of M2, and like the first one (UCM-12) it neither
-decides nor ranks nor filters the baseline (invariant 1). Its single job is to
-*widen* the set of options the human sees, and the whole contract below is shaped
-by the one invariant the ticket makes measurable:
-
-    **RAG only widens coverage. It never restricts it, and never in silence.**
-
-Three properties of these models are what make that claim checkable rather than
-merely asserted:
-
-* **The catalog's candidates are carried through verbatim.** Every
-  `CapabilityRetrieval` restates the control IDs step 1 of the core already
-  offered (`catalog_control_ids`), and `offered_control_ids` is their union with
-  whatever was retrieved. A retrieval that dropped one would fail its own
-  validator, not just a test.
-* **A retrieved control is never a mapping.** It arrives with a similarity score
-  and a `relation`, never with a `coverage_weight`: the catalog's typed mappings
-  are authored (`official_crosswalk` / `author_judgment`) and an embedding
-  distance is not evidence of equivalence. Coverage, gating and prioritisation
-  therefore keep reading the deterministic core, untouched by this module — what
-  the operator gets is *more options to choose from*, not a different arithmetic.
-* **A declared lens sets candidates aside; it does not delete them.** When a
-  payload filter is applied (jurisdiction, zone, mapping type), everything it
-  excluded comes back in `set_aside`, with the axis that excluded it. A filter
-  whose leftovers were invisible would be exactly the silent restriction the
-  invariant forbids.
-
-A capability that ends with no candidate at all — neither from the catalog nor
-from retrieval — becomes an explicit `CapabilityGap` (`NO_CANDIDATE`), the same
-type the deterministic core declares. The requirement stays; only the mechanism
-is missing.
-"""
-
 from __future__ import annotations
 
 from enum import Enum
@@ -95,13 +60,7 @@ class PayloadFilter(BaseModel):
     jurisdictions: list[Jurisdiction] | None = None
     frameworks: list[Framework] | None = None
     mapping_types: list[MappingType] | None = None
-    # The zone's effective sectors (UCM-47), used as the engine's applicability
-    # lens: a control whose declared scope is disjoint from these is set aside on
-    # the sector axis. Empty scope (transversal) is never excluded — see `filters`.
     sectors: list[Sector] | None = None
-    # Recorded for the audit trail when `frameworks` came from a zone's domain:
-    # it is the difference between "the operator asked for IEC+CSF" and "this is
-    # the OT reading of the precedence rules".
     zone_domain: ZoneDomain | None = None
     rationale: str = ""
 
@@ -184,6 +143,91 @@ class GatingAnnotation(BaseModel):
     evidence: list[str] = Field(default_factory=list)
 
 
+class CutReason(str, Enum):
+    """Why a retrieved candidate is not among the ones being shown."""
+
+    RANK = "rank"
+    FRAMEWORK_CAP = "framework_cap"
+
+
+class CutPolicy(BaseModel):
+    """The rule that decides how many suggestions are shown, and which (UCM-54)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    version: str
+    depth: int
+    floor: int
+    tie_epsilon: float
+    ceiling: int
+    framework_cap: int
+
+    def describe(self) -> str:
+        """One line, in Spanish, for the operator and the log."""
+        return (
+            f"corte {self.version}: se evalúan {self.depth} candidatos por capacidad, se "
+            f"retienen {self.floor} como mínimo y hasta {self.ceiling} mientras sigan a "
+            f"menos de {self.tie_epsilon:.2f} del último, con un máximo de "
+            f"{self.framework_cap} por marco"
+        )
+
+
+class DroppedCandidate(BaseModel):
+    """A retrieved candidate the cut did not retain. Recorded, not deleted."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    control_id: str
+    official_id: str
+    framework: Framework
+    jurisdiction: Jurisdiction
+    score: float
+    relation: RetrievalRelation
+    dropped_by: CutReason
+    margin: float
+    rationale: str
+
+
+class RetrievalCut(BaseModel):
+    """What the cut left below the line (UCM-54): `retained + dropped == evaluated`."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    policy: CutPolicy
+    evaluated: int
+    retained: int
+    band_width: int
+    band_extension: int
+    ceiling_reached: bool
+    cap_yielded: int = 0
+    dropped: int
+    near_ties_dropped: int
+    not_returned: int
+    first_dropped: DroppedCandidate | None = None
+    displaced: list[DroppedCandidate] = Field(default_factory=list)
+    rationale: str
+
+    @model_validator(mode="after")
+    def _the_counts_close(self) -> RetrievalCut:
+        """A report whose arithmetic does not close is not evidence of anything."""
+        if self.retained + self.dropped != self.evaluated:
+            raise ValueError(
+                f"the cut reports {self.retained} retained + {self.dropped} dropped, which is "
+                f"not the {self.evaluated} candidates it says it evaluated"
+            )
+        if self.dropped and self.first_dropped is None:
+            raise ValueError(
+                f"the cut dropped {self.dropped} candidate(s) and names none of them: that is "
+                "the silent omission UCM-54 exists to prevent"
+            )
+        if self.retained > self.band_width:
+            raise ValueError(
+                f"the cut retained {self.retained} candidates from a band {self.band_width} "
+                "wide: the cap fills the band's slots, it cannot add any"
+            )
+        return self
+
+
 class RetrievedControl(BaseModel):
     """A control the index returned for a capability, with why it is being shown.
 
@@ -198,14 +242,8 @@ class RetrievedControl(BaseModel):
     control: FrameworkControl
     score: float
     relation: RetrievalRelation
-    # Where this control does its declared work in the catalog. A widening
-    # suggestion is far easier to judge when the operator can see that the control
-    # is, say, the CIS action already mapped to a neighbouring capability.
     mapped_capability_ids: list[str] = Field(default_factory=list)
     mapping_types: list[MappingType] = Field(default_factory=list)
-    # Set when gating rules this control out of the zone (UCM-52). The suggestion
-    # stays visible — annotating, not hiding — but says so, so it cannot silently
-    # contradict the engine's own exclusion.
     gated_out: GatingAnnotation | None = None
     rationale: str
 
@@ -230,11 +268,10 @@ class CapabilityRetrieval(BaseModel):
     capability_id: str
     capability_name: str
     zone_id: str
-    # What step 1 of the deterministic core already offered here, carried through
-    # untouched. Retrieval adds to this list; it can never shorten it.
     catalog_control_ids: list[str] = Field(default_factory=list)
     retrieved: list[RetrievedControl] = Field(default_factory=list)
     set_aside: list[SetAsideCandidate] = Field(default_factory=list)
+    cut: RetrievalCut | None = None
     gap: CapabilityGap | None = None
     rationale: str
 
@@ -273,6 +310,17 @@ class CapabilityRetrieval(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def _a_bounded_ranking_declares_its_rule(self) -> CapabilityRetrieval:
+        """If the index answered, the cut that bounded the answer must be on record."""
+        if self.retrieved and self.cut is None:
+            raise ValueError(
+                f"{self.capability_id} in {self.zone_id} shows {len(self.retrieved)} retrieved "
+                "candidate(s) without declaring the cut that bounded them: a cut without a rule "
+                "is a silent omission (invariant 2)"
+            )
+        return self
+
+    @model_validator(mode="after")
     def _a_gap_means_no_candidate_at_all(self) -> CapabilityRetrieval:
         """The gap flag and the candidate lists cannot tell different stories."""
         if self.gap is not None and self.offered_control_ids:
@@ -306,6 +354,7 @@ class RetrievalProvenance(BaseModel):
     indexed_controls: int
     text_template_version: str
     top_k: int
+    cut_policy: CutPolicy
     payload_filter: PayloadFilter
 
 
@@ -328,6 +377,14 @@ class ZoneRetrieval(BaseModel):
     @property
     def set_aside(self) -> list[SetAsideCandidate]:
         return [s for c in self.capabilities for s in c.set_aside]
+
+    @property
+    def displaced(self) -> list[DroppedCandidate]:
+        return [d for c in self.capabilities if c.cut is not None for d in c.cut.displaced]
+
+    @property
+    def dropped(self) -> int:
+        return sum(c.cut.dropped for c in self.capabilities if c.cut is not None)
 
     @property
     def gaps(self) -> list[CapabilityGap]:
@@ -363,6 +420,14 @@ class ProfileRetrieval(BaseModel):
     @property
     def set_aside(self) -> list[SetAsideCandidate]:
         return [s for z in self.zones for s in z.set_aside]
+
+    @property
+    def displaced(self) -> list[DroppedCandidate]:
+        return [d for z in self.zones for d in z.displaced]
+
+    @property
+    def dropped(self) -> int:
+        return sum(z.dropped for z in self.zones)
 
     @property
     def gaps(self) -> list[CapabilityGap]:

@@ -1,34 +1,6 @@
-/**
- * One capability of one zone: every option the human may choose from, plus
- * everything the engine wants them to know before choosing.
- *
- * Order is the core's own — `mapping_type` first (total → partial →
- * compensatory → contextual), then framework in the catalog's fixed order — and
- * this component preserves it exactly. Nothing is sorted by "best" and nothing
- * is dropped: long lists are folded behind a count that says how many are
- * folded, a candidate the core superseded keeps its rule next to it, and a
- * capability with no candidate at all shows the gap the engine declared instead
- * of an empty box.
- *
- * Folding is a reading aid and stops there. It happens after the response, over
- * a list the engine already computed in full: `/candidates` returns every
- * option, the audit trail records every option, and the counts on screen are of
- * the whole list, not of the visible part. The engine may not discard a
- * candidate — there is not even a similarity threshold in the retriever, for
- * exactly that reason (`RAG_TOP_K` in `server/app/core/config.py`) — so neither
- * may this component pretend the folded ones are not there.
- *
- * The card itself folds for the same reason and under the same rule. A zone with
- * a dozen capabilities is a dozen screens of options, and the operator works
- * through them one at a time; the first is open and the rest are headers. What a
- * closed header may not do is look decided when it is not, so it carries the
- * whole state of the capability — conflicts, gap, whether the decision has its
- * written reason yet — and a card the signature blockers point at opens itself.
- */
-
 import { useState, type ReactNode } from 'react'
 
-import type { CapabilityCandidates, Conflict } from '../../../api/types'
+import type { CapabilityCandidates, Conflict, RetrievalCut } from '../../../api/types'
 import {
   CAPABILITY_STATUS,
   CONFLICT_TYPE,
@@ -42,24 +14,10 @@ import { declaredGap, pickedCoverage, useComposition } from '../composition'
 import { Caps, Checkbox, Fold, Hint, Meter, Tag } from '../../../components/ui'
 import { CatalogOption, RetrievedOption } from './OptionCard'
 
-/** How many options stay open before the tail folds. */
 const CATALOG_SHOWN = 6
 const SUGGESTIONS_SHOWN = 5
+const DISPLACED_SHOWN = 6
 
-/**
- * The first `limit` options, plus the first option of any framework that those
- * would have left off screen.
- *
- * The exception is the whole point. The core orders candidates by mapping type,
- * so a plain "first six" front-loads the `total` mappings and pushes the
- * `contextual` ones — which is where NIS2 and IMO always are, by design, since a
- * legal obligation is an exigency and never a mechanism — off the end. On
- * `CAP-PR-CRYPTO` that cut would leave six IEC and CIS options on screen and
- * fold away both CSF readings *and* the European obligation, on the one screen
- * built to show the same requirement answered by different frameworks and
- * jurisdictions. The fold may shorten the list; it may not quietly turn a
- * multi-framework choice into a single-framework one.
- */
 function foldTail<T>(
   options: T[],
   limit: number,
@@ -545,6 +503,20 @@ export function CapabilityCard({
             </Fold>
           ) : null}
 
+          {capability.retrieval?.cut && capability.retrieval.cut.dropped > 0 ? (
+            <Fold
+              className="mt-1"
+              summary={`Bajo el corte del recuperador (${capability.retrieval.cut.dropped})`}
+            >
+              <div
+                className="mt-1.5 rounded-[5px] border border-line-2 bg-surface-2 px-2.5 py-2 text-[11px] leading-normal text-ink-3"
+                title="La búsqueda evalúa más candidatos de los que muestra. La regla que decide cuántos y cuáles está declarada, y lo que deja fuera se cuenta aquí en vez de desaparecer."
+              >
+                <CutReport cut={capability.retrieval.cut} />
+              </div>
+            </Fold>
+          ) : null}
+
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -621,4 +593,66 @@ function reasonLabel(
   if (picked.some((id) => supersededIds(capability).has(id)))
     return 'Has elegido una opción que el sistema había apartado. Explica por qué la prefieres (obligatorio):'
   return 'Explica por qué eliges este control (obligatorio: no se registra una decisión sin su razón):'
+}
+
+
+/** What the retriever's cut left below the line, read off the server's report (UCM-54). */
+function CutReport({ cut }: { cut: RetrievalCut }) {
+  const first = cut.first_dropped
+  return (
+    <>
+      Se evaluaron {cut.evaluated} y se muestran {cut.retained}
+      {cut.band_extension > 0
+        ? ` (${cut.policy.floor} por regla y ${cut.band_extension} más por empate)`
+        : ''}
+      . El resto no se descarta en silencio: queda contado aquí, con la regla que lo dejó fuera.
+      {first ? (
+        <>
+          {' '}
+          El primero que no entra es <b className="text-ink-2">{first.official_id}</b> ({first.framework}),
+          con similitud {first.score.toFixed(3)}
+          {first.margin < 0
+            ? `, por encima del último mostrado y desplazado por el tope de marco`
+            : ` y a ${first.margin.toFixed(3)} del último mostrado`}
+          .
+        </>
+      ) : null}
+      {cut.near_ties_dropped > 0 ? (
+        <>
+          {' '}
+          {cut.near_ties_dropped} de los descartados están a menos de {cut.policy.tie_epsilon.toFixed(2)}{' '}
+          del último mostrado: la búsqueda no los distingue de él.
+        </>
+      ) : null}
+      {cut.displaced.length > 0 ? (
+        <>
+          {' '}
+          El tope de {cut.policy.framework_cap} por marco desplazó {cut.displaced.length}, para que un
+          solo marco no ocupe la lista entera:{' '}
+          {cut.displaced
+            .slice(0, DISPLACED_SHOWN)
+            .map((candidate) => `${candidate.official_id} (${candidate.score.toFixed(3)})`)
+            .join(' · ')}
+          {cut.displaced.length > DISPLACED_SHOWN
+            ? ` y ${cut.displaced.length - DISPLACED_SHOWN} más`
+            : ''}
+          .
+        </>
+      ) : null}
+      {cut.cap_yielded > 0 ? (
+        <>
+          {' '}
+          El tope cedió {cut.cap_yielded} hueco(s) para no mostrar menos de {cut.policy.floor}: no había
+          candidatos de otros marcos con los que ocuparlos.
+        </>
+      ) : null}
+      {cut.not_returned > 0 ? (
+        <>
+          {' '}
+          Quedan {cut.not_returned} controles del catálogo que la búsqueda no llegó a traer a esta
+          profundidad.
+        </>
+      ) : null}
+    </>
+  )
 }

@@ -1,37 +1,3 @@
-"""UCM-13 - The RAG pass: more options for the human, never fewer.
-
-The service takes the deterministic core's own output (steps 1-2, `UCM-8`) and
-returns what retrieval *adds* to it. It deliberately does not return a new
-resolution: coverage, conflicts, gating and prioritisation stay exactly as the
-core computed them, because an embedding distance is not evidence that two
-controls are equivalent, and letting a similarity score reach the arithmetic of
-the baseline would be the LLM layer deciding (invariant 1).
-
-What it does, per capability and per zone:
-
-1. asks the index for the nearest controls to the capability's own text;
-2. labels each hit against the catalog — `confirms_mapping` if the author already
-   mapped it here, `widens` if not;
-3. when a lens is active, re-runs the same query unfiltered and reports everything
-   the lens set aside, with the axis responsible;
-4. declares an explicit gap when *neither* source offers a single candidate.
-
-Step 4 is the measured invariant. A capability that reaches the end of this pass
-with nothing is not dropped and not quietly left out of the result — it comes back
-as a `NO_CANDIDATE` gap, the same one the deterministic core uses, and the
-requirement itself remains. Silent omissions target: zero.
-
-One consequence of having no score threshold is worth declaring rather than
-discovering later. e5 similarities sit in a narrow band — on this catalog the
-nearest control scores ~0.90 and the tenth ~0.83 — so `RAG_TOP_K` is filled for
-essentially every capability, and the tail of that list is weak. That is the
-intended trade: a threshold would drop candidates without saying so, and the
-operator can ignore a weak suggestion but cannot ask for one that was never
-shown. Ranking is what separates the good suggestions from the rest, and how
-often the tail is actually accepted is a number for the evaluation to report
-(UCM-18), not one to pre-empt with a cut-off chosen by feel.
-"""
-
 from __future__ import annotations
 
 from app.core.config import settings
@@ -46,6 +12,7 @@ from app.engine.schemas import (
     ZoneGating,
     ZoneResolution,
 )
+from app.retrieval.cut import apply_cut, current_policy
 from app.retrieval.embeddings import TEXT_TEMPLATE_VERSION, capability_text
 from app.retrieval.filters import excluded_axes, to_qdrant
 from app.retrieval.index import CatalogIndex, IndexHit
@@ -54,6 +21,7 @@ from app.retrieval.schemas import (
     GatingAnnotation,
     PayloadFilter,
     ProfileRetrieval,
+    RetrievalCut,
     RetrievalProvenance,
     RetrievalRelation,
     RetrievedControl,
@@ -144,18 +112,29 @@ class RetrievalService:
         catalog_control_ids = [option.control_id for option in capability.options]
 
         query = capability_text(capability.capability)
-        # Enough room for `RAG_TOP_K` genuinely new candidates even in the case
-        # where every catalog candidate comes back as a confirmation.
-        limit = settings.RAG_TOP_K + len(catalog_control_ids)
+        # Wider than the cut keeps: a candidate the index never returned cannot be reported.
+        depth = settings.RAG_RETRIEVAL_DEPTH + len(catalog_control_ids)
         query_filter = to_qdrant(lens)
 
-        hits = self.index.search(query, limit, query_filter)
+        hits = self.index.search(query, depth, query_filter)
+        confirmations = {h.control_id for h in hits if h.control_id in set(catalog_control_ids)}
+        kept, cut = apply_cut(
+            [hit for hit in hits if hit.control_id not in confirmations],
+            capability_name=capability.capability.name,
+            indexed_controls=self.index.indexed_controls,
+            policy=current_policy(depth),
+        )
+
+        # Rebuilt from `hits` so confirmations and suggestions keep one shared ranking.
+        shown = confirmations | {hit.control_id for hit in kept}
         retrieved = [
-            self._as_candidate(hit, capability, catalog_control_ids, gated) for hit in hits
+            self._as_candidate(hit, capability, catalog_control_ids, gated)
+            for hit in hits
+            if hit.control_id in shown
         ]
 
         set_aside = (
-            self._set_aside(query, limit, lens, capability, catalog_control_ids)
+            self._set_aside(query, depth, lens, capability, catalog_control_ids)
             if lens.is_active
             else []
         )
@@ -174,8 +153,11 @@ class RetrievalService:
             catalog_control_ids=catalog_control_ids,
             retrieved=retrieved,
             set_aside=set_aside,
+            cut=cut if retrieved else None,
             gap=gap,
-            rationale=self._rationale(capability, catalog_control_ids, widening, set_aside, lens),
+            rationale=self._rationale(
+                capability, catalog_control_ids, widening, set_aside, lens, cut
+            ),
         )
 
     # --- provenance -----------------------------------------------------------
@@ -191,6 +173,8 @@ class RetrievalService:
             indexed_controls=self.index.indexed_controls,
             text_template_version=TEXT_TEMPLATE_VERSION,
             top_k=settings.RAG_TOP_K,
+            # The base depth; each capability's `cut.policy` carries its effective one.
+            cut_policy=current_policy(),
             payload_filter=payload_filter if payload_filter is not None else PayloadFilter(),
         )
 
@@ -354,6 +338,7 @@ class RetrievalService:
         widening: list[RetrievedControl],
         set_aside: list[SetAsideCandidate],
         lens: PayloadFilter,
+        cut: RetrievalCut,
     ) -> str:
         name = capability.capability.name
         head = (
@@ -376,6 +361,13 @@ class RetrievalService:
         if set_aside:
             tail += (
                 f" {len(set_aside)} candidato(s) apartado(s) por la lente, listados y trazables."
+            )
+        if cut.dropped:
+            tail += (
+                f" Corte: {cut.dropped} candidato(s) bajo el límite, {cut.near_ties_dropped} de "
+                f"ellos indistinguibles del último mostrado y "
+                f"{len(cut.displaced)} desplazado(s) por el tope de marco; todos contados, y el "
+                "primero nombrado con su similitud."
             )
         return head + body + tail
 
