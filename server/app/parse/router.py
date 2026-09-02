@@ -36,7 +36,12 @@ router = APIRouter(tags=["asset"])
     responses={
         422: {"model": Message, "description": "La descripción está vacía."},
         502: {"model": Message, "description": "El modelo no devolvió un borrador válido."},
-        503: {"model": Message, "description": "Ollama no está disponible o sirve otro modelo."},
+        503: {
+            "model": Message,
+            "description": (
+                "Ollama no está disponible, sirve otro modelo, o no respondió a tiempo."
+            ),
+        },
     },
 )
 async def parse_asset(request: AssetParseRequest, service: ParseDep) -> ParseResult:

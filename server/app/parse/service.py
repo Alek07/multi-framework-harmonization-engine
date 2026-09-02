@@ -23,8 +23,10 @@ often the retry loop was needed instead of guessing.
 from __future__ import annotations
 
 import hashlib
+import logging
 
 from pydantic_ai import UnexpectedModelBehavior
+from pydantic_ai.exceptions import ModelAPIError
 from pydantic_ai.messages import ModelResponse
 
 from app.core.config import settings
@@ -48,6 +50,32 @@ class ParseFailedError(AppException):
     status_code = 502
 
 
+class ParseUnavailableError(AppException):
+    """The model was asked and did not answer: a timeout, or the provider refusing.
+
+    Distinct from `ParseFailedError` on purpose, and the distinction is the
+    operator's, not ours: a model that answered badly is a reason to review the
+    draft, and a model that did not answer at all is a reason to try again. They
+    also have different fixes, so they get different status codes.
+    """
+
+    status_code = 503
+
+
+logger = logging.getLogger(__name__)
+
+# Reached most often on the first parse after a cold start: the weights are on
+# disk, not in memory, and loading ~4.7 GB takes longer than the request budget
+# (measured: 77 s warm, 262 s cold, against `LLM_TIMEOUT_SECONDS` of 180). Before
+# v0.5.0 that surfaced as an unhandled 500 with a Python traceback -- the one path
+# in this project where the operator got a stack trace instead of a sentence.
+UNAVAILABLE_NOTICE = (
+    "El modelo no respondió a tiempo. El primer análisis después de arrancar el sistema "
+    "carga el modelo en memoria y tarda bastante más que los siguientes, así que volver a "
+    "intentarlo suele bastar. Si se repite, comprueba que Ollama sigue en pie."
+)
+
+
 class AssetParseService:
     """Free text -> `ParseResult`. The agent is injectable so tests never need Ollama."""
 
@@ -68,6 +96,18 @@ class AssetParseService:
                 f"El modelo no devolvió un perfil válido tras {settings.LLM_MAX_RETRIES} "
                 f"reintentos: {exc}"
             ) from exc
+        except ModelAPIError as exc:
+            # A timeout, a refused connection, a provider error: the model never
+            # answered, so there is nothing to review and nothing to report about
+            # it beyond that it did not answer.
+            logger.warning("parse: the model did not answer (%s)", exc)
+            raise ParseUnavailableError(UNAVAILABLE_NOTICE) from exc
+        except Exception as exc:  # noqa: BLE001 - the operator never reads a traceback
+            # The house rule, applied here too: whatever went wrong, what reaches
+            # the screen is a sentence written for the person in front of it. The
+            # Python message goes to the log, where a developer will look for it.
+            logger.exception("parse failed on a %d-character description", len(description))
+            raise ParseUnavailableError(UNAVAILABLE_NOTICE) from exc
 
         draft = run.output
         attempts = sum(1 for message in run.all_messages() if isinstance(message, ModelResponse))
