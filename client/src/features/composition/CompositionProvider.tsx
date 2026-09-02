@@ -143,6 +143,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     useSession.getState().startManual({
       name: null,
       case: null,
+      sectors: [],
       zones: [emptyZone('Z-1')],
       conduits: [],
       criticality: {

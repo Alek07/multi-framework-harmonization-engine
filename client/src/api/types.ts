@@ -15,8 +15,30 @@
 
 // --- catalog (server/app/catalog/schemas.py) ---------------------------------
 
-export type Framework = 'CSF' | 'IEC62443' | 'CIS' | 'NIS2' | 'IMO'
+export type Framework = 'CSF' | 'IEC62443' | 'CIS' | 'NIS2' | 'IMO' | 'CIRCIA' | 'TSA'
 export type Jurisdiction = 'US' | 'EU' | 'INTL' | 'INTL-MARITIME'
+
+/**
+ * The sector an asset operates in and a norm governs (server `Sector`, UCM-47).
+ *
+ * A neutral taxonomy both sides draw from, so the engine can intersect them: a
+ * control names the sectors it governs (empty = transversal), an asset the ones
+ * it operates in, and a zone may narrow the asset's. The order is the server's.
+ */
+export const SECTOR_FIELDS = [
+  'energy',
+  'water',
+  'maritime',
+  'transport',
+  'health',
+  'digital_infrastructure',
+  'banking_finance',
+  'public_administration',
+  'manufacturing',
+  'chemical',
+  'food',
+] as const
+export type Sector = (typeof SECTOR_FIELDS)[number]
 export type MappingType = 'total' | 'partial' | 'compensatory' | 'contextual'
 export type ProvenanceSource = 'official_crosswalk' | 'author_judgment'
 export type ControlType = 'technical' | 'legal'
@@ -111,6 +133,8 @@ export interface Zone {
   sl_vector?: SLVector | null
   safety_out_of_scope: boolean
   reference?: string | null
+  /** Sectors this zone narrows the asset's to. Empty = inherits the asset's. */
+  sectors: Sector[]
 }
 
 export interface TechNature {
@@ -148,6 +172,8 @@ export interface AssetProfile {
   id: string
   name: string
   case: CaseType
+  /** Critical-infrastructure sectors the asset operates in. Empty = transversal. */
+  sectors: Sector[]
   zones: Zone[]
   conduits: Conduit[]
   criticality: Criticality
@@ -177,6 +203,8 @@ export interface ZoneDraft {
   sl_vector: SLVectorDraft | null
   safety_out_of_scope: boolean | null
   reference: string | null
+  /** Empty unless the text distinguishes this zone's sectors from the asset's. */
+  sectors: Sector[]
 }
 
 export type TechNatureDraft = Record<NatureField, boolean | null>
@@ -198,6 +226,8 @@ export interface CriticalityDraft {
 export interface AssetProfileDraft {
   name: string | null
   case: CaseType | null
+  /** Empty unless the text names them; never guessed — the operator completes it. */
+  sectors: Sector[]
   zones: ZoneDraft[]
   conduits: ConduitDraft[]
   criticality: CriticalityDraft

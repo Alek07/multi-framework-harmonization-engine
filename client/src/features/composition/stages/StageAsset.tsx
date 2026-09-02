@@ -26,14 +26,23 @@
 
 import {
   FR_FIELDS,
+  SECTOR_FIELDS,
   type AssetProfileDraft,
   type CaseType,
   type ConsequenceScale,
   type NatureField,
   type ParseNote,
+  type Sector,
 } from '../../../api/types'
 import { emptyZone } from '../../../lib/draft'
-import { CASE_TYPE, CONSEQUENCE_SCALE, FR_MEANING, NATURE, fieldLabel } from '../../../lib/labels'
+import {
+  CASE_TYPE,
+  CONSEQUENCE_SCALE,
+  FR_MEANING,
+  NATURE,
+  SECTOR,
+  fieldLabel,
+} from '../../../lib/labels'
 import { useComposition } from '../composition'
 import { Caps, Hint, Notice, PrimaryButton, Section, Tag } from '../../../components/ui'
 import { Working } from '../Working'
@@ -167,6 +176,102 @@ function Identity({ draft }: { draft: AssetProfileDraft }) {
         </div>
         <Hint className="mt-1.5">Determina qué marcos se consideran aplicables al activo.</Hint>
       </div>
+    </div>
+  )
+}
+
+/** The sectors of a list toggled by `sector`, always in the catalog's order. */
+function toggledSectors(current: Sector[], sector: Sector): Sector[] {
+  const set = new Set(current)
+  if (set.has(sector)) set.delete(sector)
+  else set.add(sector)
+  return SECTOR_FIELDS.filter((s) => set.has(s))
+}
+
+/** The eleven sectors as toggles. Presentational; the engine intersects them. */
+function SectorChips({
+  selected,
+  disabled,
+  onToggle,
+  size = 'md',
+}: {
+  selected: Sector[]
+  disabled: boolean
+  onToggle: (sector: Sector) => void
+  size?: 'md' | 'sm'
+}) {
+  const pad = size === 'sm' ? 'px-2 py-1 text-[11px]' : 'px-2.5 py-1.5 text-xs'
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {SECTOR_FIELDS.map((sector) => {
+        const on = selected.includes(sector)
+        return (
+          <button
+            key={sector}
+            type="button"
+            disabled={disabled}
+            title={SECTOR[sector].note}
+            onClick={() => onToggle(sector)}
+            className={`cursor-pointer rounded-[5px] border font-semibold ${pad} ${
+              on ? 'border-accent bg-accent-tint text-accent' : 'border-line bg-surface-2 text-ink-3'
+            }`}
+          >
+            {SECTOR[sector].label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
+ * Sectors of the asset — what turns a sectoral norm on or off (UCM-47).
+ *
+ * Not in `missing_required` on purpose: an empty list is a valid answer (the
+ * asset is treated as transversal), never a gap. But it is the field that lets
+ * the engine tell TSA (transport) or IMO (maritime) apart from a transversal
+ * obligation like CIRCIA, so an empty one is worth a word to the operator.
+ */
+function AssetSectors({ draft }: { draft: AssetProfileDraft }) {
+  const { patchDraft, parseResult, corrections, signed } = useComposition()
+  const model = parseResult?.draft
+  const corrected = corrections.some((c) => c.path === 'sectors')
+
+  const toggle = (sector: Sector) => {
+    const next = toggledSectors(draft.sectors, sector)
+    patchDraft(
+      (draftNext) => {
+        draftNext.sectors = next
+      },
+      {
+        path: 'sectors',
+        from: (model?.sectors ?? []).join(', ') || '—',
+        to: next.join(', ') || '—',
+      },
+    )
+  }
+
+  return (
+    <div className="mb-4">
+      <Caps className="mb-1 flex items-center gap-2">
+        Sectores en los que opera el activo
+        {corrected ? (
+          <span className="text-[11px] font-semibold text-accent">◆ corregido por ti</span>
+        ) : null}
+      </Caps>
+      <Hint className="mb-2">
+        Deciden qué normas sectoriales aplican: TSA solo al transporte, IMO solo a lo marítimo,
+        mientras otras (como CIRCIA) rigen todos los sectores. Un oleoducto opera en energía y
+        transporte. Marca los que correspondan; puede haber varios.
+      </Hint>
+      <SectorChips selected={draft.sectors} disabled={signed} onToggle={toggle} />
+      {draft.sectors.length === 0 ? (
+        <Hint className="mt-1.5">
+          Sin ningún sector, el motor trata el activo como transversal y no podrá excluir por ámbito
+          ninguna norma sectorial. No es obligatorio, pero un activo de infraestructura crítica suele
+          operar al menos en uno.
+        </Hint>
+      ) : null}
     </div>
   )
 }
@@ -494,7 +599,25 @@ function Conduits({ draft }: { draft: AssetProfileDraft }) {
 }
 
 function Review({ draft }: { draft: AssetProfileDraft }) {
-  const { correctNature, corrections, missing, signed, source } = useComposition()
+  const { correctNature, patchDraft, parseResult, corrections, missing, signed, source } =
+    useComposition()
+  const model = parseResult?.draft
+
+  const toggleZoneSector = (zoneIndex: number, sector: Sector) => {
+    const zone = draft.zones[zoneIndex]
+    if (!zone) return
+    const next = toggledSectors(zone.sectors, sector)
+    patchDraft(
+      (draftNext) => {
+        draftNext.zones[zoneIndex].sectors = next
+      },
+      {
+        path: `zones[${zone.id}].sectors`,
+        from: (model?.zones[zoneIndex]?.sectors ?? []).join(', ') || '—',
+        to: next.join(', ') || '—',
+      },
+    )
+  }
 
   return (
     <>
@@ -505,6 +628,7 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
       </p>
 
       <Identity draft={draft} />
+      <AssetSectors draft={draft} />
       <SLGrid draft={draft} />
 
       <div className="grid grid-cols-2 gap-5 max-mid:grid-cols-1">
@@ -556,6 +680,23 @@ function Review({ draft }: { draft: AssetProfileDraft }) {
                     </button>
                   )
                 })}
+              </div>
+              <div className="mt-1.5">
+                <div
+                  title="Solo si esta zona opera en sectores distintos de los del activo (p. ej. un pantalán marítimo en un activo de energía). Vacío: la zona hereda los sectores del activo."
+                  className="mb-1 flex items-center gap-1.5 text-[10.5px] font-semibold text-ink-5"
+                >
+                  Sectores propios de la zona (opcional)
+                  {corrections.some((c) => c.path === `zones[${zone.id}].sectors`) ? (
+                    <span className="text-accent">◆</span>
+                  ) : null}
+                </div>
+                <SectorChips
+                  selected={zone.sectors}
+                  disabled={signed}
+                  onToggle={(sector) => toggleZoneSector(zoneIndex, sector)}
+                  size="sm"
+                />
               </div>
             </div>
           ))}

@@ -35,6 +35,7 @@ import type {
   ProvenanceSource,
   ResolutionMethod,
   RetrievalStatus,
+  Sector,
   StrengthKind,
   ZoneDomain,
 } from '../api/types'
@@ -45,13 +46,15 @@ interface Chip {
   className: string
 }
 
-/** The five frameworks of the catalog, each with the design's own chip colour. */
+/** The frameworks of the catalog, each with the design's own chip colour. */
 export const FRAMEWORK: Record<Framework, Chip> = {
   IEC62443: { label: 'IEC 62443', className: 'bg-[#e4ecfa] text-[#1d4c9e]' },
   CSF: { label: 'CSF 2.0', className: 'bg-[#ece6f8] text-[#5b3ea8]' },
   CIS: { label: 'CIS v8', className: 'bg-[#e2f2ea] text-[#1d6f4c]' },
   NIS2: { label: 'NIS2', className: 'bg-[#fdeee2] text-[#a35415]' },
   IMO: { label: 'IMO', className: 'bg-[#e3f1f5] text-[#186a80]' },
+  CIRCIA: { label: 'CIRCIA', className: 'bg-[#fdeaea] text-[#a3252b]' },
+  TSA: { label: 'TSA', className: 'bg-[#e7ecf0] text-[#2c4a63]' },
 }
 
 /** Which standard each framework chip stands for, for the legend and tooltips. */
@@ -61,6 +64,8 @@ export const FRAMEWORK_NOTE: Record<Framework, string> = {
   CIS: 'Controles CIS v8, prácticas concretas de TI.',
   NIS2: 'Directiva europea: obligación legal, no práctica recomendada.',
   IMO: 'Resolución marítima de la OMI para la gestión del riesgo cibernético a bordo.',
+  CIRCIA: 'Ley federal de EE. UU.: obliga a notificar incidentes a CISA. Transversal a los sectores.',
+  TSA: 'Directiva de seguridad de la TSA (EE. UU.) para tuberías: obligación del sector transporte.',
 }
 
 /**
@@ -131,6 +136,61 @@ export const CASE_TYPE: Record<CaseType, { label: string; note: string }> = {
   HYBRID_IT_OT: {
     label: 'Mixto IT / OT',
     note: 'El activo mezcla control industrial y sistemas de propósito general en el mismo perímetro.',
+  },
+}
+
+/**
+ * The sectors an asset operates in, in the operator's words (UCM-47).
+ *
+ * Presentational only: the engine intersects these with the sectors each norm
+ * governs to decide applicability (TSA gobierna `transport`, IMO `maritime`,
+ * CIRCIA es transversal). The `note` says what the sector covers, not which norm
+ * reaches it — that is the engine's to decide, not the label's to promise.
+ */
+export const SECTOR: Record<Sector, { label: string; note: string }> = {
+  energy: {
+    label: 'Energía',
+    note: 'Electricidad, gas, petróleo: generación, transporte y distribución. Un gasoducto opera aquí.',
+  },
+  water: {
+    label: 'Agua',
+    note: 'Abastecimiento de agua potable y saneamiento.',
+  },
+  maritime: {
+    label: 'Marítimo',
+    note: 'Buques, puertos y terminales portuarias.',
+  },
+  transport: {
+    label: 'Transporte',
+    note: 'Transporte por tubería, ferroviario, por carretera y aéreo. Un oleoducto o gasoducto opera también aquí.',
+  },
+  health: {
+    label: 'Salud',
+    note: 'Prestación de asistencia sanitaria y sus sistemas.',
+  },
+  digital_infrastructure: {
+    label: 'Infraestructura digital',
+    note: 'Centros de datos, redes de comunicaciones y servicios en la nube.',
+  },
+  banking_finance: {
+    label: 'Banca y finanzas',
+    note: 'Entidades de crédito e infraestructuras del mercado financiero.',
+  },
+  public_administration: {
+    label: 'Administración pública',
+    note: 'Servicios y sistemas de las administraciones públicas.',
+  },
+  manufacturing: {
+    label: 'Fabricación',
+    note: 'Producción industrial y manufactura.',
+  },
+  chemical: {
+    label: 'Química',
+    note: 'Fabricación, manipulación y almacenamiento de sustancias químicas.',
+  },
+  food: {
+    label: 'Alimentación',
+    note: 'Producción, transformación y distribución de alimentos.',
   },
 }
 
@@ -416,6 +476,7 @@ export const CHOICE_KIND: Record<string, string> = {
 const FIELD_WORDS: Record<string, string> = {
   name: 'nombre del activo',
   case: 'tipo de activo (solo OT o mixto IT/OT)',
+  sectors: 'sectores en los que opera',
   zones: 'al menos una zona',
   target_sl: 'nivel de seguridad objetivo',
   endpoints: 'extremos que conecta',
