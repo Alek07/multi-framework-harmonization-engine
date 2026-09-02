@@ -21,6 +21,8 @@ import type {
   ComposedBaseline,
   CompositionChoice,
   ConsequenceScale,
+  DeltaMode,
+  DeltaRegime,
   FoundationalRequirement,
   Jurisdiction,
   NatureField,
@@ -82,7 +84,7 @@ export function stepLocksFor(input: {
  */
 export type ProfileSource = 'parse' | 'manual'
 
-/** The two cumulative readings of UCM-17. The order asks a different question. */
+/** The region pair, in each order. The order asks a different question (UCM-17). */
 export const DELTA_ORDERS: { label: string; regions: Jurisdiction[] }[] = [
   { label: 'US → +EU', regions: ['US', 'EU'] },
   { label: 'EU → +US', regions: ['EU', 'US'] },
@@ -203,6 +205,11 @@ export interface CompositionApi {
   deltaError: string | null
   deltaOrder: number
   setDeltaOrder: (index: number) => void
+  /** How the readings relate and what differentiates them — the human's question. */
+  deltaMode: DeltaMode
+  setDeltaMode: (mode: DeltaMode) => void
+  deltaRegime: DeltaRegime
+  setDeltaRegime: (regime: DeltaRegime) => void
   loadDelta: () => Promise<void>
 
   // --- stages 4 and 5: signature and trail -----------------------------------

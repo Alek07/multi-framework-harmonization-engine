@@ -32,6 +32,8 @@ import type {
   ComposedBaseline,
   CompositionChoice,
   ConsequenceScale,
+  DeltaMode,
+  DeltaRegime,
   FoundationalRequirement,
   NatureField,
   RegionalDelta,
@@ -91,6 +93,11 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const [deltaLoading, setDeltaLoading] = useState(false)
   const [deltaError, setDeltaError] = useState<string | null>(null)
   const [deltaOrder, setDeltaOrder] = useState(0)
+  // The delta screen answers one question — the difference between the legal
+  // regimes that govern this asset — so it opens symmetric (both directions) and
+  // legal (law against law), and does not offer to be anything else (UCM-50).
+  const [deltaMode, setDeltaMode] = useState<DeltaMode>('symmetric')
+  const [deltaRegime, setDeltaRegime] = useState<DeltaRegime>('legal')
 
   const [signing, setSigning] = useState(false)
   const [signError, setSignError] = useState<string | null>(null)
@@ -533,6 +540,8 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
           regions: DELTA_ORDERS[deltaOrder].regions,
           profile,
           zoneId,
+          mode: deltaMode,
+          regime: deltaRegime,
         }),
       )
     } catch (error) {
@@ -541,7 +550,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     } finally {
       setDeltaLoading(false)
     }
-  }, [deltaOrder, profile, zoneId])
+  }, [deltaOrder, deltaMode, deltaRegime, profile, zoneId])
 
   // --- stages 4 and 5 --------------------------------------------------------
 
@@ -677,6 +686,10 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
     deltaError,
     deltaOrder,
     setDeltaOrder,
+    deltaMode,
+    setDeltaMode,
+    deltaRegime,
+    setDeltaRegime,
     loadDelta,
 
     signing,

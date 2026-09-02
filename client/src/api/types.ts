@@ -976,7 +976,13 @@ export interface BaselineAuditLog {
   rationale: string
 }
 
-// --- GET /delta (server/app/delta/schemas.py) --------------------------------
+// --- POST /delta (server/app/delta/schemas.py) -------------------------------
+
+/** How the regional readings relate (UCM-50). */
+export type DeltaMode = 'cumulative' | 'symmetric'
+
+/** What enters the axis of comparison (UCM-50). */
+export type DeltaRegime = 'all' | 'legal'
 
 export interface RegionalRequirement {
   control_id: string
@@ -994,7 +1000,7 @@ export interface RegionalRequirement {
 
 export interface CapabilityRegionView {
   region: Jurisdiction
-  /** "US", "+EU": the `+` says the reading is cumulative. */
+  /** "US", "+EU" (cumulative) or plain "US"/"EU" (symmetric). */
   label: string
   jurisdictions: Jurisdiction[]
   offered_control_ids: string[]
@@ -1020,12 +1026,23 @@ export interface CapabilityDelta {
   rationale: string
 }
 
+/** Whether a legal regime of the compared regions governs this asset (UCM-50). */
+export interface RegimeApplicability {
+  framework: Framework
+  jurisdiction: Jurisdiction
+  governs_sectors: string[]
+  applicable: boolean
+  rationale: string
+}
+
 export interface RegionalDelta {
   profile_id: string
   profile_name: string
   zone: ZoneContext
   catalog_version: string
   rules_version: string
+  mode: DeltaMode
+  regime: DeltaRegime
   regions: Jurisdiction[]
   common_jurisdictions: Jurisdiction[]
   lenses: PayloadFilter[]
@@ -1033,6 +1050,7 @@ export interface RegionalDelta {
   changed_capability_ids: string[]
   unchanged_capability_ids: string[]
   regional_gap_capability_ids: string[]
+  regime_applicability: RegimeApplicability[]
   rationale: string
 }
 
