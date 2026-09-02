@@ -119,9 +119,11 @@ def test_a_legal_obligation_is_mandatory_whatever_the_sl_target_says(
     assert report.tier is PriorityTier.TIER_0
     legal = [m for m in report.mandates if m.source is MandateSource.LEGAL_OBLIGATION]
     # The jurisdiction travels with the mandate — it is the matter of the regional
-    # delta. Only the European obligation applies to this onshore pipeline: the
-    # maritime one does not govern its sector (UCM-47), so it creates no mandate.
-    assert {m.jurisdiction for m in legal} == {Jurisdiction.EU}
+    # delta. This onshore pipeline is governed on both sides now (UCM-48): the
+    # European obligation (NIS2) and the US one (CIRCIA transversal + TSA SD-01,
+    # since the asset is 'transport'). The maritime obligation does not govern its
+    # sector (UCM-47), so it creates no mandate.
+    assert {m.jurisdiction for m in legal} == {Jurisdiction.EU, Jurisdiction.US}
     # Gating deferred it to the organizational layer; the obligation did not disappear.
     assert report.layer is ImplementationLayer.ORGANIZATIONAL
 
@@ -319,19 +321,36 @@ def test_a_mandate_is_never_deferred_by_a_discretionary_prerequisite(
     gating_rules: GatingRules,
     prioritization_rules: PrioritizationRules,
 ) -> None:
-    """Vulnerability management is a mandate; the risk assessment it presupposes is not."""
-    zone = _prioritize(
-        profile_a, catalog, rules, gating_rules, prioritization_rules
-    ).zone(ZONE_OT)
-    risk, patch = zone.capability(IDRISK), zone.capability(PATCH)
+    """A Tier 0 mandate lands in phase 0 even when a Tier 1 prerequisite is not ready.
 
-    assert risk.tier is PriorityTier.TIER_1
-    assert patch.tier is PriorityTier.TIER_0
-    assert patch.phase == MANDATORY_PHASE
-    assert risk.phase > MANDATORY_PHASE
+    The prerequisite is declared by the test rather than borrowed from the shipped
+    rules on purpose: once the US legal corpus (UCM-48) made the TSA gap assessment
+    (CAP-ID-RISK) a legal mandate for this pipeline, both ends of the catalog's
+    PATCH←ID-RISK edge are Tier 0, so the ordering mechanic needs a pair that is
+    still one mandate and one discretionary capability. Patch management is Tier 0
+    (NIS2 obliges it); organizational context is discretionary here.
+    """
+    # CAP-ID-ASSET is Tier 0 here (NIS2 obliges asset management) and carries no
+    # shipped prerequisite, so the test-declared edge is the only one it has.
+    tweaked = prioritization_rules.model_copy(deep=True)
+    tweaked.dependencies.append(
+        CapabilityDependency(
+            capability_id=ASSET,
+            requires=[CONTEXT],
+            rationale="dependencia declarada por la prueba, no del catálogo",
+        )
+    )
+
+    zone = _prioritize(profile_a, catalog, rules, gating_rules, tweaked).zone(ZONE_OT)
+    context, asset = zone.capability(CONTEXT), zone.capability(ASSET)
+
+    assert context.tier is PriorityTier.TIER_1
+    assert asset.tier is PriorityTier.TIER_0
+    assert asset.phase == MANDATORY_PHASE
+    assert context.phase > MANDATORY_PHASE
     # The engine does not hide the sequencing it refused to impose.
-    assert IDRISK in patch.depends_on
-    assert PATCH in risk.unlocks
+    assert CONTEXT in asset.depends_on
+    assert ASSET in context.unlocks
 
 
 # --- The roadmap leaves nothing out ------------------------------------------
@@ -385,9 +404,9 @@ def test_the_same_catalog_produces_a_different_roadmap_per_zone(
 def test_prioritization_reports_the_versions_it_ran_with(
     priorities_a: ProfilePrioritization,
 ) -> None:
-    assert priorities_a.catalog_version == "0.5.0"
-    assert priorities_a.rules_version == "0.1.0"
-    assert priorities_a.gating_version == "0.2.0"
+    assert priorities_a.catalog_version == "0.6.0"
+    assert priorities_a.rules_version == "0.2.0"
+    assert priorities_a.gating_version == "0.3.0"
     assert priorities_a.prioritization_version == "0.2.0"
 
 

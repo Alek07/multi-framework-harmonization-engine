@@ -10,9 +10,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "local"
     DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
     CREATE_TABLES_ON_STARTUP: bool = True
-    CATALOG_PATH: str = "data/catalog/catalog.v0.5.0.json"
-    RULES_PATH: str = "data/rules/precedence.v0.1.0.json"
-    GATING_PATH: str = "data/rules/gating.v0.2.0.json"
+    CATALOG_PATH: str = "data/catalog/catalog.v0.6.0.json"
+    RULES_PATH: str = "data/rules/precedence.v0.2.0.json"
+    GATING_PATH: str = "data/rules/gating.v0.3.0.json"
     PRIORITIZATION_PATH: str = "data/rules/prioritization.v0.2.0.json"
     PROFILES_DIR: str = "data/profiles"
 

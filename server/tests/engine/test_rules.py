@@ -8,7 +8,7 @@ from app.engine.schemas import ZoneDomain
 
 
 def test_version(rules: RuleSet) -> None:
-    assert rules.rules_version == "0.1.0"
+    assert rules.rules_version == "0.2.0"
 
 
 def test_precedence_is_a_total_order_per_domain(rules: RuleSet) -> None:
@@ -26,10 +26,14 @@ def test_precedence_encodes_ics_to_ot_and_nist_to_it(rules: RuleSet) -> None:
 
 
 def test_legal_overlays_never_lead_the_precedence(rules: RuleSet) -> None:
-    # NIS2/IMO are contextual obligations, never the mechanism of choice.
+    # The legal frameworks trail the order: NIS2/IMO/CIRCIA are contextual
+    # obligations, and even the TSA — whose SD-02 prescribes a zone mechanism
+    # (UCM-48) — sits behind the technical norm that dictates *how* the zone
+    # implements it. Law demands the outcome; engineering picks the mechanism.
+    legal = {Framework.NIS2, Framework.IMO, Framework.CIRCIA, Framework.TSA}
     for domain in ZoneDomain:
         order = rules.framework_precedence[domain]
-        assert set(order[-2:]) == {Framework.NIS2, Framework.IMO}
+        assert set(order[-len(legal):]) == legal
 
 
 def test_rules_validate_against_the_catalog(rules: RuleSet, catalog: Catalog) -> None:

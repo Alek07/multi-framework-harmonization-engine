@@ -25,20 +25,25 @@ JURISDICTION_OF = {
     Framework.IEC62443: Jurisdiction.INTL,
     Framework.NIS2: Jurisdiction.EU,
     Framework.IMO: Jurisdiction.INTL_MARITIME,
+    # US legal corpus (UCM-48): CIRCIA transversal, TSA sectoral, both US.
+    Framework.CIRCIA: Jurisdiction.US,
+    Framework.TSA: Jurisdiction.US,
 }
 
 
 def test_version() -> None:
-    assert CATALOG.catalog_version == "0.5.0"
+    assert CATALOG.catalog_version == "0.6.0"
 
 
 def test_counts() -> None:
-    # Frozen for v0.5.0 (regression). Update on every version bump. v0.5.0 adds
-    # only what each control presupposes of its zone (UCM-53), so the counts are
-    # identical to v0.4.0 — a strict superset in content.
+    # Frozen for v0.6.0 (regression). Update on every version bump. v0.6.0 adds
+    # the US legal corpus (UCM-48), broken down obligation by obligation like NIS2's
+    # Art. 21(2): CIRCIA contributes its four statutory duties and the TSA eight
+    # (three for SD-01, five for SD-02), each its own control with one mapping — a
+    # strict superset of v0.5.0.
     assert len(CATALOG.capabilities) == 37
-    assert len(CATALOG.controls) == 226
-    assert len(CATALOG.mappings) == 266
+    assert len(CATALOG.controls) == 238
+    assert len(CATALOG.mappings) == 278
 
 
 def test_counts_per_framework() -> None:
@@ -53,10 +58,16 @@ def test_counts_per_framework() -> None:
         # Six functional elements since MSC-FAL.1/Circ.3/Rev.3 put Govern first,
         # plus the binding resolution MSC.428(98) itself.
         Framework.IMO: 7,
+        # US legal corpus (UCM-48), one control per distinct obligation: CIRCIA's
+        # four statutory duties (incident 72 h, ransom 24 h, supplemental, records
+        # preservation) and the TSA's eight (SD-01: report, coordinator, assessment;
+        # SD-02: segmentation, MFA, monitoring, patching, TSA-approved plan).
+        Framework.CIRCIA: 4,
+        Framework.TSA: 8,
     }
 
 
-@pytest.mark.parametrize("version", ["0.1.0", "0.2.0", "0.3.0", "0.4.0"])
+@pytest.mark.parametrize("version", ["0.1.0", "0.2.0", "0.3.0", "0.4.0", "0.5.0"])
 def test_earlier_ids_all_survive(version: str) -> None:
     """Every version is a strict superset: the rule files still name these controls.
 
@@ -102,20 +113,48 @@ def test_official_ids_are_unique_within_their_framework() -> None:
 
 
 def test_the_legal_overlay_is_never_a_mechanism() -> None:
-    """NIS2 and IMO oblige; they do not implement. Their mappings stay contextual.
+    """NIS2, IMO and CIRCIA oblige; they do not implement. Their mappings stay contextual.
 
     The distinction is load-bearing twice over: a legal obligation is Tier 0
     whatever the SL-target says, and the regional delta reports *exigencia* added
     rather than coverage added. A legal control mapped as `total` would claim the
     law itself covers the capability.
+
+    The TSA is deliberately excluded: SD-2021-02 is the one legal control that
+    *does* prescribe a zone mechanism (UCM-48), and that exception is asserted on
+    its own in `test_tsa_sd02_is_the_legal_obligation_that_prescribes_a_mechanism`.
     """
     overlay = {
-        c.id for c in CATALOG.controls if c.framework in (Framework.NIS2, Framework.IMO)
+        c.id
+        for c in CATALOG.controls
+        if c.framework in (Framework.NIS2, Framework.IMO, Framework.CIRCIA)
     }
     for mapping in CATALOG.mappings:
         if mapping.control_id in overlay:
             assert mapping.mapping_type is MappingType.CONTEXTUAL, mapping.control_id
             assert mapping.coverage_weight <= 0.4, mapping.control_id
+
+
+def test_tsa_sd02_is_the_legal_obligation_that_prescribes_a_mechanism() -> None:
+    """UCM-48: a sectoral regulator can legislate a concrete zone mechanism.
+
+    The model used to assume law only binds the organization. TSA SD-2021-02
+    disproves it — two of its duties prescribe OT/IT segmentation and MFA on
+    access — so those mappings are `partial`/`compensatory`, not contextual, and
+    move coverage. Its other duties, and every SD-2021-01 duty, stay contextual.
+    """
+    mechanism = {
+        m.control_id: (m.capability_id, m.mapping_type)
+        for m in CATALOG.mappings
+        if m.mapping_type is not MappingType.CONTEXTUAL and m.control_id.startswith("CTL-TSA-")
+    }
+    assert mechanism["CTL-TSA-SD02-SEGMENT"] == ("CAP-PR-SEGMENT", MappingType.PARTIAL)
+    assert mechanism["CTL-TSA-SD02-MFA"] == ("CAP-PR-MFA", MappingType.COMPENSATORY)
+
+    # Every SD-01 duty (reporting, coordinator, assessment) is contextual.
+    sd01 = [m for m in CATALOG.mappings if m.control_id.startswith("CTL-TSA-SD01-")]
+    assert len(sd01) == 3
+    assert all(m.mapping_type is MappingType.CONTEXTUAL for m in sd01)
 
 
 def test_only_a_binding_instrument_is_typed_legal() -> None:
@@ -124,21 +163,45 @@ def test_only_a_binding_instrument_is_typed_legal() -> None:
 
     assert legal == {"Art. 20", "Art. 21", "Art. 23", "MSC.428(98)"} | {
         f"Art. 21(2)({letter})" for letter in "abcdefghij"
+    } | {
+        # US legal corpus (UCM-48), one official id per distinct obligation.
+        "CIRCIA 6 USC 681b(a)(1)",
+        "CIRCIA 6 USC 681b(a)(2)",
+        "CIRCIA 6 USC 681b(a)(3)",
+        "CIRCIA 6 USC 681b(a)(4)",
+        "SD Pipeline-2021-01G (report to CISA)",
+        "SD Pipeline-2021-01G (cybersecurity coordinator)",
+        "SD Pipeline-2021-01G (gap assessment)",
+        "SD Pipeline-2021-02G (network segmentation)",
+        "SD Pipeline-2021-02G (multi-factor authentication)",
+        "SD Pipeline-2021-02G (continuous monitoring)",
+        "SD Pipeline-2021-02G (risk-based patching)",
+        "SD Pipeline-2021-02G (TSA-approved plan)",
     }
 
 
 def test_only_the_legal_layer_declares_a_sector_scope() -> None:
-    """UCM-47: scope is declared for the legal minority, transversal for the rest.
+    """UCM-47: scope is declared by the legal layer, transversal for the rest.
 
-    The IMO controls govern ships (the ISM Code) and NIS2 governs the sectors of
-    its Annexes; the technical frameworks are cross-sector by design and declare
-    nothing. Empty scope is what keeps a catalog bump from silently narrowing what
-    applies to an asset, and an enumerated list — however long — is never that.
+    The IMO controls govern ships (the ISM Code), NIS2 governs the sectors of its
+    Annexes and the TSA governs designated pipelines (transport); the technical
+    frameworks are cross-sector by design and declare nothing. Empty scope is what
+    keeps a catalog bump from silently narrowing what applies to an asset, and an
+    enumerated list — however long — is never that.
+
+    Being legal is necessary but not sufficient for a declared scope: CIRCIA is a
+    legal obligation and yet transversal (the 16 US critical-infrastructure
+    sectors), so it declares no scope. What the invariant pins is the converse —
+    every *scoped* control is a legal one.
     """
     scoped = {c.id for c in CATALOG.controls if not c.transversal}
-    legal_layer = {c.id for c in CATALOG.controls if c.framework in (Framework.IMO, Framework.NIS2)}
+    sectoral_legal = {
+        c.id
+        for c in CATALOG.controls
+        if c.framework in (Framework.IMO, Framework.NIS2, Framework.TSA)
+    }
 
-    assert scoped == legal_layer
+    assert scoped == sectoral_legal
     for control in CATALOG.controls:
         if control.framework is Framework.IMO:
             # IMO governs shipping alone.
@@ -148,6 +211,13 @@ def test_only_the_legal_layer_declares_a_sector_scope() -> None:
             assert not control.transversal, control.id
             assert len(control.applies_to_sectors) > 1, control.id
             assert Sector.ENERGY in control.applies_to_sectors, control.id
+        if control.framework is Framework.TSA:
+            # The TSA governs the Transportation Systems Sector: 'transport', not
+            # 'energy' — the US/EU misalignment the delta makes demonstrable.
+            assert control.applies_to_sectors == [Sector.TRANSPORT], control.id
+        if control.framework is Framework.CIRCIA:
+            # Transversal: a legal obligation that declares no sector scope.
+            assert control.transversal, control.id
 
 
 def test_regional_delta_is_seeded() -> None:

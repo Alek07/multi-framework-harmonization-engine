@@ -370,6 +370,6 @@ def test_both_zones_of_the_ot_profile_are_gated(gating_a: ProfileGating) -> None
 
 
 def test_gating_reports_the_versions_it_ran_with(gating_a: ProfileGating) -> None:
-    assert gating_a.catalog_version == "0.5.0"
-    assert gating_a.rules_version == "0.1.0"
-    assert gating_a.gating_version == "0.2.0"
+    assert gating_a.catalog_version == "0.6.0"
+    assert gating_a.rules_version == "0.2.0"
+    assert gating_a.gating_version == "0.3.0"

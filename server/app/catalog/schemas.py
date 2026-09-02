@@ -22,6 +22,8 @@ class Framework(str, Enum):
     CIS = "CIS"
     NIS2 = "NIS2"
     IMO = "IMO"
+    CIRCIA = "CIRCIA"
+    TSA = "TSA"
 
 
 class Jurisdiction(str, Enum):

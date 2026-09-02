@@ -200,13 +200,24 @@ def priorities(profile: AssetProfile, sectors: list[Sector]) -> ProfilePrioritiz
 
 
 def test_an_out_of_sector_norm_creates_no_legal_mandate(profile_a: AssetProfile) -> None:
-    """The false obligation the ticket removes: a pipeline owes no maritime law."""
+    """The false obligation the ticket removes: a pipeline owes no maritime law.
+
+    Forcing the asset to 'energy' alone is also the non-transport case of UCM-48:
+    the TSA (transport) creates no mandate, while CIRCIA (transversal) still does —
+    the US legal reading never collapses to nothing, it degrades gracefully.
+    """
     energy = priorities(profile_a, [Sector.ENERGY]).zone(ZONE_OT).capability(REPORT)
     legal = [m for m in energy.mandates if m.source is MandateSource.LEGAL_OBLIGATION]
+    control_ids = {m.control_id for m in legal}
 
-    assert all(m.control_id != IMO_RESOLUTION for m in legal)
-    # NIS2 is multisector and includes energy, so its obligation stands.
-    assert {m.jurisdiction.value for m in legal} == {"EU"}
+    assert IMO_RESOLUTION not in control_ids
+    # Out of sector: every TSA duty is transport, not energy.
+    assert not any(cid.startswith("CTL-TSA-") for cid in control_ids)
+    # Transversal: CIRCIA's reporting duties apply to any critical asset.
+    assert "CTL-CIRCIA-INCIDENT" in control_ids
+    assert "CTL-CIRCIA-RANSOM" in control_ids
+    # NIS2 (EU, multisector incl. energy) and CIRCIA (US, transversal) both stand.
+    assert {m.jurisdiction.value for m in legal} == {"EU", "US"}
 
 
 def test_the_maritime_norm_is_a_mandate_for_a_ship(profile_a: AssetProfile) -> None:
