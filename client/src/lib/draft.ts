@@ -68,6 +68,7 @@ export function emptyZone(id: string): ZoneDraft {
     sl_vector: null,
     safety_out_of_scope: null,
     reference: null,
+    sectors: [],
   }
 }
 
@@ -145,6 +146,9 @@ function zoneOf(draft: ZoneDraft): Zone {
     ...(complete ? { sl_vector: complete } : {}),
     safety_out_of_scope: draft.safety_out_of_scope ?? false,
     ...(draft.reference ? { reference: draft.reference } : {}),
+    // Carried whole, empty list and all: a zone that narrows nothing inherits the
+    // asset's sectors, and dropping the field is what lost the scope (UCM-57).
+    sectors: draft.sectors,
   }
 }
 
@@ -183,6 +187,7 @@ export function toProfile(
     id: profileIdFor(draft, profileId),
     name: draft.name as string,
     case: draft.case!,
+    sectors: draft.sectors,
     zones: draft.zones.map(zoneOf),
     conduits,
     criticality,

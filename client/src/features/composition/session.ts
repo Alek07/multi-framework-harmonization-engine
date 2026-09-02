@@ -83,6 +83,13 @@ function touched(state: SessionState): Pick<SessionState, 'startedAt' | 'updated
   return { startedAt: state.startedAt ?? now, updatedAt: now }
 }
 
+/** Fill `sectors` on a pre-v2 draft in place, so reads never hit `undefined`. */
+function backfillSectors(draft: AssetProfileDraft | null): void {
+  if (!draft) return
+  draft.sectors ??= []
+  for (const zone of draft.zones ?? []) zone.sectors ??= []
+}
+
 export const useSession = create<SessionState & SessionActions>()(
   persist(
     (set) => ({
@@ -163,7 +170,17 @@ export const useSession = create<SessionState & SessionActions>()(
     {
       name: STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
-      version: 1,
+      version: 2,
+      // v2 added `sectors` to the asset and its zones (UCM-57). A draft saved
+      // under v1 lacks the field; backfilling `[]` (transversal — the same value
+      // an empty answer carries) preserves the in-progress composition instead of
+      // discarding it, and the operator adds the sectors on screen.
+      migrate: (persisted, version) => {
+        const state = persisted as SessionState
+        if (version < 2) backfillSectors(state.draft)
+        if (version < 2) backfillSectors(state.parseResult?.draft ?? null)
+        return state
+      },
       // Everything but `generation`: it numbers the compositions of one page.
       partialize: (state): Omit<SessionState, 'generation'> => ({
         startedAt: state.startedAt,
