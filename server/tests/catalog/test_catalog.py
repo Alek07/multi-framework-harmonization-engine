@@ -1,4 +1,4 @@
-"""UCM-7/UCM-43 - The v0.4.0 catalog loads, validates and meets its invariants."""
+"""UCM-7/UCM-43 - The v0.5.0 catalog loads, validates and meets its invariants."""
 
 from collections import Counter
 
@@ -29,13 +29,13 @@ JURISDICTION_OF = {
 
 
 def test_version() -> None:
-    assert CATALOG.catalog_version == "0.4.0"
+    assert CATALOG.catalog_version == "0.5.0"
 
 
 def test_counts() -> None:
-    # Frozen for v0.4.0 (regression). Update on every version bump. v0.4.0 adds
-    # only the declared sectoral scope of the IMO controls (UCM-47), so the
-    # counts are identical to v0.3.0 — a strict superset in content.
+    # Frozen for v0.5.0 (regression). Update on every version bump. v0.5.0 adds
+    # only what each control presupposes of its zone (UCM-53), so the counts are
+    # identical to v0.4.0 — a strict superset in content.
     assert len(CATALOG.capabilities) == 37
     assert len(CATALOG.controls) == 226
     assert len(CATALOG.mappings) == 266
@@ -56,7 +56,7 @@ def test_counts_per_framework() -> None:
     }
 
 
-@pytest.mark.parametrize("version", ["0.1.0", "0.2.0", "0.3.0"])
+@pytest.mark.parametrize("version", ["0.1.0", "0.2.0", "0.3.0", "0.4.0"])
 def test_earlier_ids_all_survive(version: str) -> None:
     """Every version is a strict superset: the rule files still name these controls.
 

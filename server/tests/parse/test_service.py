@@ -11,9 +11,18 @@ from __future__ import annotations
 import hashlib
 
 import pytest
+from pydantic_ai.exceptions import ModelAPIError
+from pydantic_ai.messages import ModelMessage, ModelResponse
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 
+from app.parse.agent import parse_agent
 from app.parse.prompt import PROMPT_VERSION
-from app.parse.service import AssetParseService, EmptyDescriptionError, ParseFailedError
+from app.parse.service import (
+    AssetParseService,
+    EmptyDescriptionError,
+    ParseFailedError,
+    ParseUnavailableError,
+)
 from tests.parse.conftest import DESCRIPTION_ES, VERIFIED_DIGEST, draft_json, scripted_agent
 
 
@@ -122,3 +131,50 @@ async def test_a_model_that_never_gets_it_right_fails_loudly() -> None:
 async def test_an_empty_description_never_reaches_the_model() -> None:
     with pytest.raises(EmptyDescriptionError):
         await parse(draft_json(), description="   \n  ")
+
+
+# --- the model that does not answer at all ------------------------------------
+
+
+async def test_a_model_that_times_out_is_a_503_with_a_sentence_not_a_500() -> None:
+    """The one path that used to hand the operator a traceback.
+
+    A cold start loads ~4.7 GB before the first token and overruns the request
+    budget. `pydantic_ai` raises `ModelAPIError`, which is not
+    `UnexpectedModelBehavior`, so before v0.5.0 it fell through to an unhandled
+    500 — in a project where every other refusal is a written Spanish sentence.
+    """
+
+    def timeout(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        raise ModelAPIError(model_name="qwen2.5:7b-instruct-q4_K_M", message="Request timed out.")
+
+    agent = parse_agent()
+    with agent.override(model=FunctionModel(timeout)):
+        with pytest.raises(ParseUnavailableError) as raised:
+            await AssetParseService(agent).parse("Una descripción cualquiera del activo.")
+
+    assert raised.value.status_code == 503
+    assert "volver a intentarlo" in str(raised.value)
+    # The operator never reads the provider's own words.
+    assert "timed out" not in str(raised.value)
+
+
+async def test_any_other_failure_of_the_model_reads_the_same_way() -> None:
+    """Whatever broke, the screen gets a sentence and the log gets the traceback."""
+
+    def explode(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        raise RuntimeError("connection reset by peer")
+
+    agent = parse_agent()
+    with agent.override(model=FunctionModel(explode)):
+        with pytest.raises(ParseUnavailableError) as raised:
+            await AssetParseService(agent).parse("Una descripción cualquiera del activo.")
+
+    assert raised.value.status_code == 503
+    assert "connection reset" not in str(raised.value)
+
+
+def test_the_two_model_failures_are_told_apart() -> None:
+    """A bad answer is reviewed; no answer is retried. Different fixes, different codes."""
+    assert ParseFailedError.status_code == 502
+    assert ParseUnavailableError.status_code == 503

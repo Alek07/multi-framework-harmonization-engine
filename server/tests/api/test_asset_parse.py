@@ -12,10 +12,14 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from fastapi.testclient import TestClient
+from pydantic_ai.exceptions import ModelAPIError
+from pydantic_ai.messages import ModelMessage, ModelResponse
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.audit.repository import AuditRepository
 from app.core.config import settings
+from app.parse.agent import parse_agent
 from tests.api.conftest import PREFIX
 from tests.parse.conftest import DESCRIPTION_ES, draft_json
 
@@ -100,3 +104,23 @@ async def test_the_parse_writes_nothing_to_the_ledger(
     """The LLM is not an actor: a proposal enters the log when a human confirms it."""
     assert client.post(URL, json={"description": DESCRIPTION_ES}).status_code == 200
     assert await AuditRepository(db).count() == 0
+
+
+def test_a_model_that_never_answers_is_a_503_the_operator_can_read(client: TestClient) -> None:
+    """The cold-start path: a traceback would be the one place this project leaks one.
+
+    The override is entered and left inside this test rather than through the
+    `overrides` stack: `agent.override` is a `ContextVar`, and a stack unwound in
+    the fixture teardown would be exiting it from a different context.
+    """
+
+    def timeout(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        raise ModelAPIError(model_name="qwen2.5:7b-instruct-q4_K_M", message="Request timed out.")
+
+    with parse_agent().override(model=FunctionModel(timeout)):
+        response = client.post(f"{PREFIX}/asset/parse", json={"description": DESCRIPTION_ES})
+
+    assert response.status_code == 503
+    detail = response.json()["detail"]
+    assert "volver a intentarlo" in detail
+    assert "Traceback" not in detail and "timed out" not in detail

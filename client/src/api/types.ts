@@ -43,6 +43,27 @@ export interface ControlStrength {
   note: string
 }
 
+/** The five premises a zone answers about itself (server `Premise`). */
+export type Premise =
+  | 'general_purpose_os'
+  | 'networked'
+  | 'hybrid_it_ot'
+  | 'interactive_users'
+  | 'office_it_surface'
+
+/**
+ * What a control needs to be true of a zone for it to mean anything (UCM-53).
+ *
+ * A fact about the control, not a decision about any asset: what to do when the
+ * zone does not meet it is the gating rules' business. `note` is the sentence the
+ * operator reads when the mechanism leaves their baseline.
+ */
+export interface Presupposition {
+  premise: Premise
+  expected: boolean
+  note: string
+}
+
 export interface FrameworkControl {
   id: string
   framework: Framework
@@ -52,6 +73,8 @@ export interface FrameworkControl {
   jurisdiction: Jurisdiction
   strength: ControlStrength
   type: ControlType
+  /** Empty means no premise has been declared — never that the control is universal. */
+  presupposes: Presupposition[]
 }
 
 export interface Provenance {
@@ -421,12 +444,27 @@ export interface RetrievalCut {
   rationale: string
 }
 
+/**
+ * Why the engine's gating rules out this suggestion *in this zone* (UCM-52).
+ *
+ * A suggestion carrying this is not hidden: it is offered marked, and the
+ * declared ordering rule (UCM-53) puts it at the end of the tail.
+ */
+export interface GatingAnnotation {
+  zone_id: string
+  outcome: GatingOutcome
+  rule_id: string
+  rationale: string
+  evidence: string[]
+}
+
 export interface RetrievedControl {
   control: FrameworkControl
   score: number
   relation: RetrievalRelation
   mapped_capability_ids: string[]
   mapping_types: MappingType[]
+  gated_out: GatingAnnotation | null
   rationale: string
 }
 
@@ -452,6 +490,8 @@ export interface RetrievalProvenance {
   text_template_version: string
   top_k: number
   cut_policy: CutPolicy
+  /** The rule that ordered the suggestion tail (UCM-53). */
+  ordering_version: string
   payload_filter: PayloadFilter
 }
 

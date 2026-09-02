@@ -27,6 +27,7 @@ from app.retrieval.schemas import (
     RetrievedControl,
     SetAsideCandidate,
     ZoneRetrieval,
+    sink_gated,
 )
 
 
@@ -125,13 +126,19 @@ class RetrievalService:
             policy=current_policy(depth),
         )
 
-        # Rebuilt from `hits` so confirmations and suggestions keep one shared ranking.
+        # Rebuilt from `hits` so confirmations and suggestions keep one shared
+        # ranking, and then ordered by the declared rule (UCM-53): a suggestion
+        # the zone's gating already ruled out reads last, and reads marked. The
+        # sort happens *after* `apply_cut`, so it can move a suggestion but never
+        # decide whether it survives — that is the cut's call, not this one's.
         shown = confirmations | {hit.control_id for hit in kept}
-        retrieved = [
-            self._as_candidate(hit, capability, catalog_control_ids, gated)
-            for hit in hits
-            if hit.control_id in shown
-        ]
+        retrieved = sink_gated(
+            [
+                self._as_candidate(hit, capability, catalog_control_ids, gated)
+                for hit in hits
+                if hit.control_id in shown
+            ]
+        )
 
         set_aside = (
             self._set_aside(query, depth, lens, capability, catalog_control_ids)

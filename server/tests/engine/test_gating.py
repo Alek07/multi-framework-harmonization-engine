@@ -54,10 +54,12 @@ def test_not_applicable_excludes_the_mechanism_without_opening_a_gap(
 def test_justified_exclusions_are_a_deliverable_of_the_zone(gating_a: ProfileGating) -> None:
     """Frozen on purpose: the excluded list is what the operator signs, not a side effect.
 
-    Two kinds of `no aplica` sit here together: the technical ones a rule fires on
-    the embedded controller, and the sectoral ones (UCM-47) — the seven IMO
-    controls govern ships, not an onshore gas pipeline, so they are excluded by
-    scope. Both are deliverables, not gaps.
+    Three kinds of `no aplica` sit here together, and they come from three
+    different places: the technical ones a hand-written rule fires on the embedded
+    controller; the sectoral ones (UCM-47) — the seven IMO controls govern ships,
+    not an onshore gas pipeline; and the ones the *control itself* declares
+    (UCM-53) — a premise it needs that this zone answers the other way. All three
+    are deliverables, not gaps.
     """
     exclusions = gating_a.zone(ZONE_OT).justified_exclusions
     assert {d.control_id for d in exclusions} == {
@@ -76,6 +78,19 @@ def test_justified_exclusions_are_a_deliverable_of_the_zone(gating_a: ProfileGat
         "CTL-IEC-SR112",
         "CTL-IEC-SR27",
         "CTL-IEC-SR53",
+        # Premise exclusions (UCM-53): the control declares what it needs of the
+        # zone, and this zone has no general-purpose OS and nobody logged in. The
+        # split inside FR1 is the one worth reading: SR 1.7 grades *passwords*,
+        # which only humans type, so it leaves on the premise — while SR 1.9,
+        # which grades public-key authentication and is how a device
+        # authenticates, leaves on the cryptography rule instead.
+        "CTL-CIS-0205",
+        "CTL-CIS-0504",
+        "CTL-IEC-SR11",
+        "CTL-IEC-SR15",
+        "CTL-IEC-SR17",
+        "CTL-IEC-SR25",
+        "CTL-IEC-SR26",
         # Sectoral exclusions: the maritime norm does not govern this pipeline.
         "CTL-IMO-42898",
         "CTL-IMO-FAL3GOV",
@@ -106,11 +121,17 @@ def test_gating_reveals_the_coverage_it_costs_instead_of_hiding_it(
     mfa = gating_a.zone(ZONE_OT).capability(MFA)
     # The only total mechanism (CIS 6.5) cannot live on an embedded controller:
     # what remains are partial pieces, and the engine says so.
+    #
+    # 0.5 rather than 0.6 since catalog v0.5.0: SR 1.7 (strength of *password*
+    # based authentication, weight 0.6) now declares that it presupposes
+    # interactive users, and this zone has none. The cost is real and the engine
+    # reports it instead of absorbing it — which is the whole point of keeping
+    # `coverage_before_gating` beside `coverage`.
     assert mfa.coverage_before_gating == 0.9
-    assert mfa.coverage == 0.6
+    assert mfa.coverage == 0.5
     assert mfa.gap is not None
     assert mfa.gap.kind.value == "partial_only"
-    assert mfa.gap.residual == 0.4
+    assert mfa.gap.residual == 0.5
 
 
 def test_a_capability_left_without_a_direct_mechanism_falls_back_to_compensation(
@@ -349,6 +370,6 @@ def test_both_zones_of_the_ot_profile_are_gated(gating_a: ProfileGating) -> None
 
 
 def test_gating_reports_the_versions_it_ran_with(gating_a: ProfileGating) -> None:
-    assert gating_a.catalog_version == "0.4.0"
+    assert gating_a.catalog_version == "0.5.0"
     assert gating_a.rules_version == "0.1.0"
     assert gating_a.gating_version == "0.2.0"

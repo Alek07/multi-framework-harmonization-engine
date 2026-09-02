@@ -178,6 +178,48 @@ class ControlStrength(BaseModel):
         return strength_words(self.kind.value, self.level, self.note)
 
 
+class Premise(str, Enum):
+    """A condition of the zone that a control may presuppose (UCM-53).
+
+    The values are the field names of `TechNature` (`app/assets/schemas.py`): the
+    premises the operator already answers, zone by zone, when reviewing the
+    parsed profile. They are spelled out here rather than imported because the
+    asset schemas import *this* module, and `tests/catalog/test_presuppositions.py`
+    asserts the two stay in step — so the vocabulary is closed by a test instead
+    of by a comment.
+    """
+
+    GENERAL_PURPOSE_OS = "general_purpose_os"
+    NETWORKED = "networked"
+    HYBRID_IT_OT = "hybrid_it_ot"
+    INTERACTIVE_USERS = "interactive_users"
+    OFFICE_IT_SURFACE = "office_it_surface"
+
+
+class Presupposition(BaseModel):
+    """What a control needs to be true of a zone for it to mean anything (UCM-53).
+
+    A control that says "deploy an anti-malware agent on workstations"
+    presupposes a general-purpose OS. Nothing in the catalog used to say so, so a
+    zone that had declared it hosts none had nothing to compare against and the
+    control was retained for every asset alike. This is that missing half: the
+    *fact*, declared on the control. What to do about it is a gating rule's
+    business, not this model's — the catalog states, the rules decide.
+
+    `expected` is the value the zone must carry for the control to make sense:
+    almost always `True`, and `False` for the rarer control that exists only
+    because a zone is *not* something. `note` is the sentence the operator reads
+    when the mechanism leaves their baseline, so it is required — a premise
+    nobody can explain is not a premise, it is a filter.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    premise: Premise
+    expected: bool = True
+    note: str = Field(min_length=1)
+
+
 class Capability(BaseModel):
     """Neutral capability: a security outcome decoupled from any framework."""
 
@@ -216,6 +258,24 @@ class FrameworkControl(BaseModel):
     # exclusion the baseline is meant to deliver. Absent in every catalog before
     # v0.4.0, so it defaults to empty and those catalogs keep loading unchanged.
     applies_to_sectors: list[Sector] = Field(default_factory=list)
+
+    # What this control needs the zone to be, for it to mean anything (UCM-53).
+    #
+    # Empty is the default and says only that no premise has been declared for
+    # this control — not that it is universal. **Absence never excludes**: a
+    # control with no presupposition is retained in every zone, exactly as it was
+    # before the field existed, which is what lets every catalog up to v0.4.0
+    # keep loading unchanged.
+    presupposes: list[Presupposition] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _each_premise_is_declared_once(self) -> FrameworkControl:
+        """One control cannot hold two readings of the same premise."""
+        declared = [p.premise.value for p in self.presupposes]
+        twice = sorted({name for name in declared if declared.count(name) > 1})
+        if twice:
+            raise ValueError(f"{self.id}: premise declared more than once: {', '.join(twice)}")
+        return self
 
     @property
     def transversal(self) -> bool:

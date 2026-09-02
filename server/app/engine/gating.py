@@ -32,6 +32,7 @@ from __future__ import annotations
 from app.catalog.schemas import MappingType
 from app.engine.applicability import applicability_decision
 from app.engine.gating_rules import GatingRule, GatingRules
+from app.engine.presuppositions import PREMISE_RULE_ID, presupposition_decision
 from app.engine.schemas import (
     CandidateOption,
     CandidateStatus,
@@ -142,15 +143,24 @@ def _decision(
     """
     matched = rules.rules_for(option.control_id, zone)
 
+    # A premise the control declares and the zone does not meet (UCM-53). Computed
+    # up front so that whichever determination decides, the other is still on the
+    # record in `also_matched_rule_ids`.
+    from_premise = presupposition_decision(option.control, capability_id, zone)
+    derived = [PREMISE_RULE_ID] if from_premise is not None else []
+
     # Sectoral applicability (UCM-47) is prior to every rule; a matched rule is kept as context.
     outside_scope = applicability_decision(
-        option.control, capability_id, zone, [r.id for r in matched]
+        option.control, capability_id, zone, [r.id for r in matched] + derived
     )
     if outside_scope is not None:
         return outside_scope
 
+    # An authored rule outranks a derived premise: whoever wrote a rule naming
+    # this control knew more than its description does. What the premise saw is
+    # kept beside it rather than dropped.
     if not matched:
-        return None
+        return from_premise
 
     rule, *rest = matched
     return GatingDecision(
@@ -163,7 +173,7 @@ def _decision(
         evidence=rule.applies_when.evidence(zone),
         compensation=rule.compensation,
         deferred_to=rule.deferred_to,
-        also_matched_rule_ids=[r.id for r in rest],
+        also_matched_rule_ids=[r.id for r in rest] + derived,
     )
 
 
