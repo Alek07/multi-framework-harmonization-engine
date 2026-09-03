@@ -41,7 +41,7 @@ def test_every_entry_says_who_what_and_why(
             assert entry.versions == {
                 "catalog": "0.6.0",
                 "rules": "0.2.0",
-                "gating": "0.3.0",
+                "gating": "0.4.0",
                 "prioritization": "0.2.0",
             }
 

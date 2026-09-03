@@ -78,6 +78,17 @@ def test_justified_exclusions_are_a_deliverable_of_the_zone(gating_a: ProfileGat
         "CTL-IEC-SR112",
         "CTL-IEC-SR27",
         "CTL-IEC-SR53",
+        # Technical `no aplica` added in gating v0.4.0 (UCM-55): mechanisms an
+        # embedded, non-hybrid OT zone does not host. Mobile code needs a
+        # general-purpose runtime; data ACLs, secure disposal, data-flow
+        # documentation and sensitivity segmentation presuppose business data;
+        # personnel-activity monitoring presupposes interactive users.
+        "CTL-IEC-SR24",
+        "CTL-CIS-0303",
+        "CTL-CIS-0305",
+        "CTL-CIS-0308",
+        "CTL-CIS-0312",
+        "CTL-CSF-DECM03",
         # Premise exclusions (UCM-53): the control declares what it needs of the
         # zone, and this zone has no general-purpose OS and nobody logged in. The
         # split inside FR1 is the one worth reading: SR 1.7 grades *passwords*,
@@ -372,4 +383,4 @@ def test_both_zones_of_the_ot_profile_are_gated(gating_a: ProfileGating) -> None
 def test_gating_reports_the_versions_it_ran_with(gating_a: ProfileGating) -> None:
     assert gating_a.catalog_version == "0.6.0"
     assert gating_a.rules_version == "0.2.0"
-    assert gating_a.gating_version == "0.3.0"
+    assert gating_a.gating_version == "0.4.0"

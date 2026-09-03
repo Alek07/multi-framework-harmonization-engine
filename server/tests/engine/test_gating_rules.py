@@ -26,7 +26,7 @@ ZONE = ZoneContext(
 
 
 def test_version(gating_rules: GatingRules) -> None:
-    assert gating_rules.rules_version == "0.3.0"
+    assert gating_rules.rules_version == "0.4.0"
 
 
 def test_the_three_outcomes_of_the_ticket_are_all_seeded(gating_rules: GatingRules) -> None:

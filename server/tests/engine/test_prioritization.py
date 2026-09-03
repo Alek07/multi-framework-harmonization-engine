@@ -406,7 +406,7 @@ def test_prioritization_reports_the_versions_it_ran_with(
 ) -> None:
     assert priorities_a.catalog_version == "0.6.0"
     assert priorities_a.rules_version == "0.2.0"
-    assert priorities_a.gating_version == "0.3.0"
+    assert priorities_a.gating_version == "0.4.0"
     assert priorities_a.prioritization_version == "0.2.0"
 
 
