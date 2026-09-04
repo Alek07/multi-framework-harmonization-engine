@@ -1,9 +1,11 @@
 # Guion de la demo — escenarios de prueba
 
-Cinco descripciones de activo, de cinco sectores distintos, listas para recorrer el motor de
-principio a fin. La primera es el caso de referencia (un gasoducto de transporte, el activo alrededor
-del cual se escribió el catálogo); las otras cuatro están para poner a prueba la afirmación de que el
-motor lee **premisas declaradas**, no el vocabulario de una industria.
+Tres descripciones de activo listas para recorrer el motor de principio a fin. La primera es el caso
+de referencia (un gasoducto de transporte, el activo alrededor del cual se escribió el catálogo). La
+segunda vuelve al sector de referencia a propósito, para aislar la divergencia entre **tres zonas de
+un mismo activo**. La tercera es un activo de un sector **por completo distinto** —una terminal de
+contenedores marítima—, para ver la variación: el motor lee **premisas declaradas**, no el
+vocabulario de una industria.
 
 ## Cómo usarlas en la aplicación
 
@@ -49,35 +51,57 @@ que espera al modelo es el paso 1, y también puede rellenarse a mano.
 
 ---
 
-## Escenario 2 — Subestación eléctrica · transporte de electricidad
+## Escenario 2 — Estación de compresión y regasificación de gas · energía (tres zonas)
 
-**Qué demuestra:** un activo híbrido IT/OT y el **delta regional** en vivo (US → +EU). Al voltear una
-premisa en el paso 2 se ve el "mismo catálogo, distinta respuesta": el dominio se relee, el override
-de seguridad OT se activa y aparece una contradicción que el motor escala en vez de zanjar.
+**Qué demuestra:** la divergencia más ancha dentro de **un solo activo**. Tres zonas cuyas premisas
+declaradas están tan separadas que producen tres líneas base que casi no se solapan, todas desde el
+mismo catálogo:
 
-> Puesto de operación e ingeniería de una subestación eléctrica de transporte de 220 kV, en el nivel
-> 3 de la red de la subestación. Es un equipo Windows desde el que se parametrizan y se cargan los
-> ajustes de las protecciones IEC 61850 de las posiciones. Trabajan personas delante de él, tiene
-> correo corporativo y navegador, está en el dominio de la empresa y se usan memorias USB para llevar
-> informes. Le exigimos nivel de seguridad objetivo 3.
+- En la zona sellada de compresión, el gating retira **por premisa** (`GATE-PREMISE-UNMET`) toda la
+  pila de identidad interactiva e higiene de endpoint ofimático —MFA, antimalware, bloqueo de
+  sesión, allowlisting, gestión de cuentas— porque cada uno de esos controles declara que presupone
+  usuarios interactivos o un sistema operativo de propósito general, y la zona no los tiene. Cada
+  retirada es un `no-aplica` justificado, con su motivo escrito, nunca un silencio.
+- La estación de ingeniería conserva esa pila entera (sí hay personas, Windows y superficie
+  ofimática) y, al ser zona **híbrida**, la ordena además por grupo de implementación (IG) de CIS.
+- El SIS añade el **refuerzo de prioridad por consecuencia física** (safety) sobre el mínimo
+  anti-TRITON.
+
+Buen input para repetir el análisis: el texto trae señales claras para las tres zonas, así que
+sirve para comprobar que la extracción del modelo es estable entre ejecuciones. El eje regional
+(NIS2 en la UE frente a TSA/CIRCIA en EE. UU.) queda disponible para el delta del paso 4.
+
+> Estación de compresión y regasificación de gas. Tiene tres zonas muy distintas entre sí.
 >
-> La carga de ajustes hacia la red de posiciones pasa mediada por una zona desmilitarizada. El
-> fabricante de las protecciones entra en remoto para mantenimiento a través de un equipo de salto
-> con doble factor y la sesión queda grabada.
+> La zona de compresión, en nivel 1: controladores PLC embebidos que gobiernan los compresores y la
+> regulación de presión de la línea. Son equipos sellados, sin sistema operativo de propósito
+> general, no hay nadie trabajando delante de ellos y no tienen correo ni navegador. Están en red con
+> el SCADA supervisorio. Le exigimos nivel de seguridad objetivo 3.
 >
-> Este puesto no maniobra directamente, pero si lo comprometen se puede llegar a las protecciones y
-> provocar la apertura indebida de interruptores y un cero de tensión en la zona. Usamos MITRE ATT&CK
-> for ICS como modelo de amenaza y el apagón de Ucrania de 2016 como referencia. Estamos sujetos a la
-> directiva NIS2 en España.
+> La estación de ingeniería, en el nivel 3 al norte de la IDMZ: un portátil Windows desde el que los
+> ingenieros parametrizan y descargan la lógica a los PLC. Trabajan personas delante de él, tiene
+> correo corporativo y navegador, está en el dominio de la empresa y se usan memorias USB. El
+> fabricante entra en remoto por un equipo de salto con doble factor y la sesión queda grabada. Nivel
+> de seguridad objetivo 3.
+>
+> Aparte, en su propia zona, el sistema instrumentado de seguridad (SIS) que ejecuta la parada de
+> emergencia de la estación. Es la joya de la corona del activo y también le exigimos nivel 3; su
+> función de seguridad no se modifica dentro de este alcance. Tomamos TRITON/TRISIS como referencia
+> de amenaza.
+>
+> No hay ruta directa entre OT e IT: todo pasa mediado por la IDMZ. Si se manipulase la presión de la
+> línea, la consecuencia sería sobrepresión, rotura y fuga de gas. Estamos en la UE y nos aplica la
+> NIS2; como operador de gasoducto también reportamos en EE. UU. bajo las directivas de la TSA y
+> CIRCIA.
 
 ---
 
 ## Escenario 3 — Terminal de contenedores · puertos y marítimo
 
-**Qué demuestra:** la genericidad ("admite ≠ sabe"). Un activo que el catálogo no contemplaba: el
-motor da candidatos donde hay cobertura y **huecos explícitos** donde no, porque condiciona sobre
-premisas declaradas, no sobre el vocabulario del sector. La capa marítima (IMO) aparece en las
-opciones, no en el gating —y el guion dice cuál es el límite.
+**Qué demuestra:** la genericidad ("admite ≠ sabe"). Un activo de un sector por completo distinto, que
+el catálogo no contemplaba: el motor da candidatos donde hay cobertura y **huecos explícitos** donde
+no, porque condiciona sobre premisas declaradas, no sobre el vocabulario del sector. La capa marítima
+(IMO) aparece en las opciones, no en el gating —y el guion dice cuál es el límite.
 
 > Terminal de contenedores. La zona de patio controla las grúas pórtico de muelle y los sistemas de
 > posicionamiento y anticolisión con PLC dedicados en nivel 1, sin sistema operativo corriente y sin
@@ -91,36 +115,3 @@ opciones, no en el gating —y el guion dice cuál es el límite.
 > Un fallo de la anticolisión con la grúa en movimiento provocaría el vuelco de la carga y
 > aplastamiento en el muelle. El terminal está en la UE y le aplica la NIS2. El código PBIP/ISPS ya
 > cubre la seguridad física del recinto.
-
----
-
-## Escenario 4 — Línea de embotellado · alimentación y bebidas
-
-**Qué demuestra:** el motor negándose a inventar. Con una descripción mínima deja **vacíos** los
-campos obligatorios (nivel de seguridad, criticidad), los lista por nombre y **bloquea** el paso 2
-hasta que la persona los decide. Un valor que nadie ha elegido produciría una línea base que nadie ha
-elegido.
-
-> Tenemos una línea de embotellado con un autómata y un panel de operador. Queremos protegerla mejor.
-
----
-
-## Escenario 5 — Planta potabilizadora · agua
-
-**Qué demuestra:** un mismo catálogo produciendo **dos líneas base distintas**. Dos zonas con sus
-propias premisas, su propio nivel objetivo y su propio lado de la IDMZ —nunca copiados de una a
-otra—; el gating retira mecanismos distintos en cada una sin tocar ninguna capacidad.
-
-> Planta potabilizadora de agua. Tiene dos partes bien distintas.
->
-> La zona de proceso, en nivel 1: PLC embebidos que gobiernan las bombas de captación y la
-> dosificación de cloro. No llevan sistema operativo corriente, no hay nadie trabajando delante de
-> ellos y no tienen correo ni navegador. Están en red con la sala de control. Nivel de seguridad
-> objetivo 3.
->
-> La sala de control, en nivel 2: un servidor Windows con el histórico y dos puestos de operador donde
-> el personal de turno entra con su usuario del dominio de la empresa, consulta el correo y saca
-> informes en memorias USB. Nivel de seguridad objetivo 2.
->
-> Si la dosificación de cloro se altera se contamina el agua de abastecimiento de la ciudad. La sala
-> de control tiene salida a la red corporativa a través de una zona desmilitarizada.
