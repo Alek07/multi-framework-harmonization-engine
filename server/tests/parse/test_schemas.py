@@ -1,16 +1,10 @@
-"""UCM-12 - The draft schema is a grammar, and the grammar must ask about everything.
+"""The draft schema is a grammar, and the grammar must ask about everything.
 
-Ollama compiles the schema into GBNF: it constrains what the model may emit and it
-never reaches the prompt, so `description=` is documentation for us and `required`
-is the only instruction the model actually receives from this module.
-
-That distinction was found the hard way. Every field carries a default, so the
-schema said `required: []`, and the model answered with `zones`, `conduits` and
-`notes` **absent** — not empty. Pydantic applied the defaults and nothing failed:
-the operator got a profile with no zones and the log said nothing. A key the model
-was never asked about is a silent omission (invariant 2).
-
-These tests need no Ollama. They hold the shape of the question.
+Ollama compiles the schema into GBNF, so `required` is the only instruction the
+model receives from this module. Every field carrying a default once meant
+`required: []`, and the model omitted `zones`, `conduits` and `notes` entirely;
+Pydantic applied the defaults and nothing failed — a key the model was never asked
+about is a silent omission (invariant 2). These tests hold the shape of the question.
 """
 
 from __future__ import annotations

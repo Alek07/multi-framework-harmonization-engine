@@ -28,26 +28,10 @@ import type {
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 
 /**
- * Timeouts sized by what the call actually does on the reference machine.
- *
- * `fast` is for the calls that are pure arithmetic over the versioned catalog —
- * composing, reading a trail, the regional delta — which answer in
- * milliseconds.
- *
- * `candidates` is not one of them, and the reason is measured rather than
- * guessed: the *first* run of a freshly started backend has to load the
- * ~1.1 GB embedding model before its first retrieval query, which took over a
- * minute here and made the UI give up on a request the engine was still
- * honouring. Every later run answers in seconds. The screen says what is
- * happening while it waits, and the request is retryable — but the client has
- * no business being less patient than the process it is talking to.
- *
- * `parse` is measured too: 77 s with the weights in memory, 262 s with them only
- * on disk, same answer. The stack preloads at startup, so the cold path is rare
- * rather than impossible — 420 s covers it with room for a slower machine.
- *
- * One explanation batch is ~12 paragraphs of the same model, which is why the
- * server gives that path its own 600 s budget (`EXPLAIN_TIMEOUT_SECONDS`).
+ * Timeouts sized by measured cost on the reference machine, not guessed.
+ * `fast` covers pure catalog arithmetic (compose, trail, delta). `candidates`,
+ * `parse` and `explain` are generous because the first backend run loads the
+ * ~1.1 GB embedding model / LLM weights before answering; later runs are fast.
  */
 const TIMEOUTS = {
   fast: 60_000,
@@ -82,11 +66,10 @@ interface ValidationIssue {
 }
 
 /**
- * FastAPI answers with `{detail: "..."}` for the engine's own refusals and with
- * `{detail: [{loc, msg}, ...]}` for a body that does not validate. Both are
- * shown to the operator verbatim: the server's refusals are written for them —
- * they name the mandate that is open, the version that moved — and rewriting
- * them here would replace a precise sentence with a vague one.
+ * FastAPI refusals (`{detail: "..."}`) and validation errors
+ * (`{detail: [{loc, msg}]}`) are both surfaced verbatim: the server's sentences
+ * are precise (which mandate is open, which version moved) and rewriting them here
+ * would only make them vaguer.
  */
 function detailOf(status: number, body: unknown): string {
   if (typeof body === 'object' && body !== null && 'detail' in body) {
@@ -112,10 +95,9 @@ const http: AxiosInstance = axios.create({
 })
 
 /**
- * One place where a transport failure becomes one of two kinds of error: the
- * engine refused (`ApiError`, with the server's own sentence in it) or the
- * engine was not there (`OfflineError`, which is what the Plan B screen reads).
- * Anything else would leave the UI guessing which of the two happened.
+ * Turns every transport failure into one of two kinds: the engine refused
+ * (`ApiError`, carrying the server's sentence) or the engine was unreachable
+ * (`OfflineError`, which the Plan B screen reads).
  */
 http.interceptors.response.use(
   (response) => response,
@@ -168,8 +150,8 @@ export function parseAsset(body: AssetParseRequest): Promise<ParseResult> {
 
 /** 2/5 — profile in, side-by-side options per capability out. */
 export function fetchCandidates(body: CandidatesRequest): Promise<CandidatesResponse> {
-  // An `explain` scope puts the LLM on the path (UCM-14, P1): minutes, not
-  // milliseconds. Everything else is the deterministic core plus retrieval.
+  // An `explain` scope puts the LLM on the path (P1): minutes, not milliseconds.
+  // Everything else is the deterministic core plus retrieval.
   return post<CandidatesResponse>(
     '/candidates',
     body,
@@ -182,23 +164,20 @@ export function composeBaseline(body: ComposeRequest): Promise<ComposedBaseline>
   return post<ComposedBaseline>('/baseline/compose', body)
 }
 
-/** 6/7 — every baseline signed in this ledger, newest first (UCM-21). */
+/** 6/7 — every baseline signed in this ledger, newest first. */
 export function fetchBaselines(): Promise<BaselineList> {
   return get<BaselineList>('/baselines')
 }
 
-/** 7/7 — the signed baseline as a declaration of applicability (UCM-46). */
+/** 7/7 — the signed baseline as a declaration of applicability. */
 export function fetchStatement(baselineId: string): Promise<BaselineStatement> {
   return get<BaselineStatement>(`/baseline/${baselineId}/statement`)
 }
 
 /**
  * The same declaration in NIST's vocabulary: a partial OSCAL system-security-plan.
- *
- * Typed as `unknown` and not modelled here on purpose. It is a foreign schema
- * that this client only ever hands to the operator as a file — mirroring it in
- * TypeScript would create a second definition of OSCAL that could drift from the
- * server's without anything failing.
+ * Typed `unknown` on purpose — a foreign schema the client only hands out as a
+ * file, so mirroring it here would create a second OSCAL definition that could drift.
  */
 export function fetchOscalStatement(baselineId: string): Promise<unknown> {
   return get<unknown>(`/baseline/${baselineId}/statement`, { params: { format: 'oscal' } })
@@ -212,11 +191,8 @@ export function fetchAuditLog(baselineId: string): Promise<BaselineAuditLog> {
 /**
  * 5/5 — the regional delta for one zone of the asset being composed.
  *
- * It carries the reviewed profile inline, exactly like `/candidates` and
- * `/baseline/compose`. That is the whole point of the endpoint taking a body:
- * the asset the operator described and composed has no id in the repository, and
- * "what changes if I also answer to EU obligations" is the same question for it
- * as for a frozen profile.
+ * Carries the reviewed profile inline, like `/candidates` and `/baseline/compose`:
+ * the composed asset has no id in the repository, so the endpoint takes a body.
  */
 export function fetchDelta(body: {
   regions: Jurisdiction[]

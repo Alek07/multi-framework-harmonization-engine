@@ -1,10 +1,7 @@
 /**
- * What wraps both routes: the composition session, and the screen shown when
- * the engine is not there.
- *
- * The provider sits above the outlet, so walking back to the list does not
- * unmount the composition the operator is in the middle of. Discarding one does:
- * it is keyed by `generation`, which `reset` bumps.
+ * Wraps both routes with the composition session and the engine-down screen. The
+ * provider sits above the outlet, so returning to the list does not unmount the
+ * in-progress composition; discarding one does, via the `generation` key `reset` bumps.
  */
 
 import { Outlet } from '@tanstack/react-router'

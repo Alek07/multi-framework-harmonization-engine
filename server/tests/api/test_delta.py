@@ -1,10 +1,9 @@
-"""UCM-15/UCM-17 - `POST /delta`: one zone, two readings, and what changes between them.
+"""`POST /delta`: one zone, two readings, and what changes between them.
 
-The request validation was written with the contract in UCM-15 and still stands;
-what moved (UCM-21) is that the asset is named in a body, inline or by id, like
-every other engine endpoint — so the delta can be asked about the asset the
-operator just composed and not only about the profiles frozen in the repo. The
-rest asserts the reading itself, and it is written about the claims the demo makes:
+The asset is named in a body, inline or by id, like every other engine endpoint,
+so the delta can be asked about the asset the operator just composed and not only
+about the profiles frozen in the repo. The rest asserts the reading itself,
+written about the claims the demo makes:
 
 * **The `+` is cumulative.** "+EU" is the US reading *plus* the European obligation
   overlay — never a parallel catalog in which a European operator has no CIS and no
@@ -35,19 +34,18 @@ from app.delta.router import RegionsQueryError, parse_regions
 from tests.api.conftest import PREFIX
 
 URL = f"{PREFIX}/delta"
-# The demo zone and region pair fixed in UCM-3: the engineering station is where
-# the US<->EU divergence is real and legible, not the pure OT corridor.
+# The demo zone and region pair: the engineering station is where the US<->EU
+# divergence is real and legible, not the pure OT corridor.
 DEMO: dict[str, Any] = {
     "regions": ["US", "EU"],
     "profile_id": "PROFILE-B",
     "zone_id": "Z-ENG-STATION",
 }
 
-# The capabilities that carry the delta. UCM-3 named five, against a catalog that
-# held NIS2 as three whole articles; v0.2.0 breaks art. 21(2) into its ten measures
-# (UCM-43), so the European overlay now lands on sixteen. That widening *is* the
-# regional delta getting sharper — "el art. 21 aplica" told the operator nothing
-# about which obligation was missing.
+# The capabilities that carry the delta. Originally five, against a catalog that
+# held NIS2 as three whole articles; catalog v0.2.0 breaks art. 21(2) into its ten
+# measures, so the European overlay now lands on sixteen — the delta getting
+# sharper, since "el art. 21 aplica" said nothing about which obligation was missing.
 NIS2_CAPABILITIES = {
     "CAP-GOV-OVERSIGHT",
     "CAP-GOV-POLICY",
@@ -262,12 +260,10 @@ def test_reversing_the_regions_asks_a_different_question(client: TestClient) -> 
 def test_the_delta_answers_about_an_asset_that_is_in_no_repository(
     client: TestClient,
 ) -> None:
-    """The reason the endpoint takes a body at all (UCM-21).
+    """The reason the endpoint takes a body at all.
 
-    An operator describes an asset, reviews the drafted profile and composes its
-    baseline; the asset has no id in `data/profiles` and never will. Asking what
-    changes under EU obligation is the same question for that asset as for a
-    frozen one, and the engine has to be able to answer it.
+    An operator's composed asset has no id in `data/profiles`, yet asking what
+    changes under EU obligation is the same question as for a frozen profile.
     """
     frozen = get_profile("PROFILE-B")
     composed = frozen.model_copy(update={"id": "ASSET-PUENTE-DE-MANDO", "name": "Puente"})
@@ -296,11 +292,11 @@ def test_naming_no_profile_at_all_is_refused(client: TestClient) -> None:
     assert "Falta el perfil" in response.json()["detail"]
 
 
-# --- the request contract (UCM-15) --------------------------------------------
+# --- the request contract -----------------------------------------------------
 
 
 def test_the_comma_form_of_the_prd_is_read_the_same_way(client: TestClient) -> None:
-    """`regions: ["US,EU"]` is the spelling the PRD and the ticket use."""
+    """`regions: ["US,EU"]` is the spelling the PRD uses."""
     response = client.post(URL, json={**DEMO, "regions": ["US,EU"]})
     assert response.status_code == 200
     assert response.json()["regions"] == ["US", "EU"]
@@ -359,7 +355,7 @@ def test_an_empty_regions_query_is_refused() -> None:
         parse_regions([","])
 
 
-# --- UCM-50: the symmetric comparison, in both directions ---------------------
+# --- the symmetric comparison, in both directions -----------------------------
 
 TECHNICAL_FRAMEWORKS = {"CIS", "CSF", "IEC62443"}
 
@@ -375,7 +371,7 @@ def added_by(body: dict[str, Any], region: str) -> list[dict[str, Any]]:
 
 
 def test_the_default_mode_is_still_cumulative(client: TestClient) -> None:
-    """No `mode`/`regime` in the body is exactly the pre-UCM-50 reading."""
+    """No `mode`/`regime` in the body is exactly the original cumulative reading."""
     body = ask(client)
     assert body["mode"] == "cumulative"
     assert body["regime"] == "all"
@@ -392,7 +388,8 @@ def test_symmetric_labels_drop_the_cumulative_plus(client: TestClient) -> None:
 
 
 def test_symmetric_lets_the_first_reading_report_its_own_demand(client: TestClient) -> None:
-    """The bug UCM-50 fixed: cumulatively, `only_here[0]` was empty by construction.
+    """The bug the symmetric mode fixed: cumulatively, `only_here[0]` was empty by
+    construction.
 
     Now «what does the US require that the EU does not» is expressible — the US
     reading reports its own exclusive contribution.
@@ -426,7 +423,7 @@ def test_reversing_regions_reverses_who_starts_in_symmetric(client: TestClient) 
         assert [view["label"] for view in capability["regions"]] == ["EU", "US"]
 
 
-# --- UCM-50: the legal regime, law against law --------------------------------
+# --- the legal regime, law against law ----------------------------------------
 
 
 def test_legal_regime_never_credits_a_voluntary_framework_to_a_region(
@@ -490,7 +487,7 @@ def test_legal_regime_distinguishes_exigencia_from_mecanismo(client: TestClient)
     assert art23["changes_coverage"] is False
 
 
-# --- UCM-50: the engine reports which regimes are applicable (on UCM-47) -------
+# --- the engine reports which regimes are applicable --------------------------
 
 
 def regime(body: dict[str, Any], framework: str) -> dict[str, Any]:
@@ -521,12 +518,11 @@ def test_a_sectoral_regime_applies_when_the_sector_matches(client: TestClient) -
 
 
 def test_a_sectoral_regime_out_of_scope_is_reported_and_left_out(client: TestClient) -> None:
-    """An asset outside TSA's sector: TSA is not compared, only reported (UCM-50/UCM-47).
+    """An asset outside TSA's sector: TSA is not compared, only reported.
 
-    The delta is about the laws that govern *this* asset, so a regime out of the
-    zone's sector does not enter the comparison at all — not added, not set aside.
-    That is not a silent drop: `regime_applicability` states TSA does not govern the
-    asset, with the engine's reason. This is what makes the delta asset-specific.
+    A regime out of the zone's sector does not enter the comparison at all — not
+    added, not set aside — but `regime_applicability` still states TSA does not
+    govern the asset, with the engine's reason, so it is not a silent drop.
     """
     health = get_profile("PROFILE-B").model_dump(mode="json")
     health |= {"id": "ASSET-HOSPITAL", "name": "Hospital", "sectors": ["health"]}
@@ -557,7 +553,7 @@ def test_a_sectoral_regime_out_of_scope_is_reported_and_left_out(client: TestCli
     )
 
 
-# --- UCM-50: the new axes are validated -------------------------------------
+# --- the new axes are validated -----------------------------------------------
 
 
 def test_an_unknown_mode_is_refused(client: TestClient) -> None:

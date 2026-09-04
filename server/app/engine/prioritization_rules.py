@@ -1,24 +1,13 @@
-"""UCM-10 - Prioritisation rules: what the SL-target mandates, what enables what, what it costs.
+"""Prioritisation rules: what the SL-target mandates, what enables what, what it costs.
 
-Kept apart from the catalog (which says *what exists*), from the precedence
-rules (which settle a *clash*) and from the gating rules (which say what the
-asset can *host*). These carry the three inputs prioritisation is not allowed to
-invent:
+The three inputs prioritisation is not allowed to invent: SL mandates (at which SL
+of which FR an SR becomes required, making a capability Tier 0 in a zone),
+dependencies (a partial order — what cannot go before what) and ordinal cost
+(three-level, no euros: comparing levels is legitimate, adding them is not).
 
-* **SL mandates** — at which SL of which foundational requirement an IEC
-  62443-3-3 SR becomes required. Compared against the zone's own `sl_vector`,
-  this is what makes a capability Tier 0 *in that zone*: the same catalog gives
-  a different mandatory block to a zone that asks for less on one FR.
-* **Dependencies** — which capability enables which. A partial order, not a
-  ranking: it says what cannot go *before* what, never on which date.
-* **Ordinal cost** — declared per capability on a three-level scale. There are
-  no euros and no ROSI here on purpose: comparing "alta" with "media" is
-  legitimate, adding them is not, and declaring that is rigour, not a shortcut.
-
-They are data, not AI, and they are validated against the catalog: a mandate can
-never name a control the catalog does not have, the dependency graph must be
-acyclic, and every capability of the catalog must carry a declared cost — an
-undeclared cost would be a silent default deciding a roadmap.
+Data, not AI, validated against the catalog: a mandate can only name existing
+controls, the dependency graph must be acyclic, and every capability must carry a
+declared cost (an undeclared cost would be a silent default deciding a roadmap).
 """
 
 from __future__ import annotations

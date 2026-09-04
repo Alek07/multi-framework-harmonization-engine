@@ -1,13 +1,12 @@
-"""UCM-53 - Ask the model what one control presupposes, and screen the answer.
+"""Ask the model what one control presupposes, and screen the answer.
 
-Fails open, per control. A control the model could not be asked about comes back
-`UNAVAILABLE` with a notice and an empty premise list, which is exactly what the
-catalog already says about every control today — so a partial run degrades into
-the status quo rather than into a wrong catalog. The script can then be re-run
-for the controls that did not land, and nothing that did is lost.
+Fails open, per control: a control that could not be asked about comes back
+`UNAVAILABLE` with an empty premise list, which is what the catalog already says
+about every control today — so a partial run degrades into the status quo, and the
+script can be re-run for the controls that did not land.
 
-This service never runs in the request path. It is imported by
-`scripts/tag_presuppositions.py` and by its tests, and by nothing else.
+This service never runs in the request path: it is imported by
+`scripts/tag_presuppositions.py` and its tests, and by nothing else.
 """
 
 from __future__ import annotations

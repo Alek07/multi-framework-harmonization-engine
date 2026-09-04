@@ -2,7 +2,7 @@
 
 `init_db` builds the schema from the models — the POC ships no Alembic revision —
 so each table has to be imported before `create_all` runs, including the
-append-only triggers `app.audit.models` registers on creation (UCM-11).
+append-only triggers `app.audit.models` registers on creation.
 
 It lives next to `base` rather than in `app.models.__init__` on purpose: the
 feature models import `app.models.base`, so a registry in the package's

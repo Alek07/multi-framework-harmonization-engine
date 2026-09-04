@@ -1,11 +1,7 @@
-"""UCM-8 - Step 1 of the core: map framework controls to neutral capabilities.
+"""Step 1 of the core: map framework controls to neutral capabilities.
 
-The neutral capability is what dissolves the origin: CSF, IEC 62443, CIS, NIS2
-and IMO stop being rival lists and become *options for the same outcome*. This
-step collects, for every capability of the catalog, all the controls mapped to
-it, in a deterministic order that does not depend on how the catalog was
-ingested. It selects nothing and discards nothing — that is the human's job
-(sovereign composition) and, for mechanisms, gating's (UCM-9).
+Collects every control mapped to each capability, in a deterministic order
+independent of catalog ingestion. Selects and discards nothing.
 """
 
 from __future__ import annotations
@@ -28,9 +24,8 @@ def build_options(
 ) -> list[CandidateOption]:
     """Every control mapped to the capability, in deterministic presentation order.
 
-    The order is a reading convenience, not a decision: it sorts by breadth of
-    the mapping, then coverage weight, then the zone's framework precedence, and
-    finally the control ID as tie-breaker so the result is stable.
+    Order is a reading convenience, not a decision: mapping breadth, coverage,
+    zone precedence, then control ID as a stable tie-breaker.
     """
     controls = {c.id: c for c in catalog.controls}
     options = [
@@ -51,10 +46,10 @@ def build_options(
 def map_zone(
     catalog: Catalog, rules: RuleSet, zone: ZoneContext
 ) -> list[tuple[Capability, list[CandidateOption]]]:
-    """Candidates for every capability of the catalog in a zone.
+    """Candidates for every catalog capability in a zone; none is dropped.
 
-    Every capability is carried through, including those with no candidate:
-    an empty list is an explicit gap downstream, never a silent omission.
+    A capability with no candidate is carried as an empty list — an explicit
+    gap downstream, never a silent omission.
     """
     return [
         (capability, build_options(catalog, capability.id, rules, zone))

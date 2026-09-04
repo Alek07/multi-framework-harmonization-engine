@@ -1,42 +1,24 @@
-"""UCM-17/UCM-50 - The regional delta: the same zone, composed under two jurisdictions.
+"""The regional delta: the same zone, composed under two jurisdictions.
 
 The service computes nothing of its own. For each reading it filters the zone's
-candidates and hands them to the *same* `resolve_capability` the deterministic
-core uses (UCM-8), so every number in the response — coverage, full mechanism,
-declared gap — is the engine's own arithmetic over a smaller set of options. What
-this module adds is the comparison between the readings, and the sentences that
-make it legible.
+candidates and hands them to the same `resolve_capability` the deterministic core
+uses, so every number — coverage, full mechanism, declared gap — is the engine's
+own arithmetic over a smaller set of options. What this module adds is the
+comparison between the readings and the sentences that make it legible.
 
 The human chooses two things and the engine obeys (it never applies a lens on its
-own initiative):
+own): `mode` (cumulative vs. symmetric) and `regime` (`all` compares by
+jurisdiction, `legal` makes only the legal controls the axis and freezes the
+common technical ground).
 
-* `mode` — `cumulative` reads each region *plus* the ones before it, so "+EU" is
-  the US reading plus the European overlay; `symmetric` reads each region on its
-  own over the common ground and reports the difference in **both** directions.
-  The symmetric direction is the one UCM-50 restored: with cumulative readings the
-  first region could never report what it alone requires (`only_here` was empty by
-  construction), so *"what does the US demand that the EU does not"* was
-  inexpressible — exactly the missing half of the delta.
-* `regime` — `all` compares by jurisdiction; `legal` makes only the `legal`
-  controls of the compared regions the axis and freezes the common technical
-  ground (CIS, CSF, IEC 62443) in every reading, so the comparison is
-  law-against-law and never mixes voluntary frameworks with obligations.
+The one thing the engine does on its own is a determination, not a choice: it
+applies sectoral applicability so the comparison is about the laws that actually
+govern this asset (TSA governs pipelines, not hospitals). That is never a silent
+drop — `regime_applicability` reports every compared regime with the reason it
+does or does not govern the asset.
 
-The engine does one thing on its own initiative here, and it is a determination
-rather than a choice: it applies sectoral applicability (UCM-47) so the comparison
-is about *the laws that actually govern this asset*. A compared region's control
-whose declared sector does not meet the zone's is not a difference this asset has
-to answer — TSA governs pipelines, not hospitals — so it does not enter the
-comparison at all. That this is not a silent drop is guaranteed by
-`regime_applicability`, which reports every compared regime with the engine's
-reason for whether it governs the asset: the exclusion is stated there, not
-swallowed. This is what makes the delta asset-specific — a pipeline and a hospital
-get different comparisons — instead of the same catalog read under two lenses.
-Reglas deciden aplicabilidad; humano elige la comparación.
-
-Nothing here is written to the audit log. A delta is a *view*: it decides nothing,
-changes no baseline and belongs to no run. The composition it informs is what gets
-recorded, with the human's name on it (UCM-16).
+Nothing here is written to the audit log: a delta is a view — it decides nothing,
+changes no baseline and belongs to no run.
 """
 
 from __future__ import annotations
@@ -173,15 +155,15 @@ class RegionalDeltaService:
     # --- the readings ---------------------------------------------------------
 
     def _sector_excluded(self, regions: list[Jurisdiction], zone: ZoneContext) -> set[str]:
-        """Compared-region controls that do not govern this asset's sectors (UCM-47).
+        """Compared-region controls that do not govern this asset's sectors.
 
-        A control of a region under comparison whose declared scope does not meet
-        the zone's sectors is not a difference this asset has to answer, so it is
-        kept out of the comparison entirely — not offered, not set aside, not added.
-        The exclusion is never silent: `regime_applicability` states, for every
-        compared regime, whether it governs the asset and why. Transversal controls
-        (CIS/CSF, CIRCIA) and multi-sector ones (NIS2) meet any or many sectors, so
-        this only removes a genuinely out-of-scope regime such as TSA on a hospital.
+        A control of a compared region whose declared scope does not meet the
+        zone's sectors is not a difference this asset has to answer, so it is kept
+        out of the comparison entirely — not offered, not set aside, not added.
+        Never silent: `regime_applicability` states, for every compared regime,
+        whether it governs the asset and why. Transversal controls (CIS/CSF,
+        CIRCIA) and multi-sector ones (NIS2) meet any or many sectors, so this only
+        removes a genuinely out-of-scope regime such as TSA on a hospital.
         """
         return {
             control.id
@@ -252,12 +234,11 @@ class RegionalDeltaService:
     ) -> PayloadFilter:
         """The reading expressed as a declared lens, for the record.
 
-        The same `PayloadFilter` the RAG pass uses (UCM-13). In `all` regime the
-        lens is a jurisdiction filter and prints its jurisdictions; in `legal`
-        regime the restriction is on control type as well as jurisdiction, which is
-        not a pure jurisdiction filter, so the structured field is left empty and
-        the prose carries the restriction — the delta is auditable through the
-        rationale either way.
+        The same `PayloadFilter` the RAG pass uses. In `all` regime the lens is a
+        jurisdiction filter and prints its jurisdictions; in `legal` regime the
+        restriction is on control type as well as jurisdiction, which is not a pure
+        jurisdiction filter, so the structured field is left empty and the prose
+        carries the restriction — auditable through the rationale either way.
         """
         label = self._label(region, index, mode)
         jurisdictions = (
@@ -375,7 +356,7 @@ class RegionalDeltaService:
         Cumulative: what it adds over the readings *before* it — so the first
         reading adds nothing, everything it offers the later ones offer too.
         Symmetric: what it offers that no *other* reading does, in either
-        direction — the half a cumulative reading cannot express (UCM-50).
+        direction — the half a cumulative reading cannot express.
         """
         if mode is DeltaMode.SYMMETRIC:
             others = {c for j, earlier in enumerate(offered) if j != index for c in earlier}
@@ -399,8 +380,8 @@ class RegionalDeltaService:
         `build_options` is called per reading rather than filtered in place because
         `resolve_capability` annotates the options it is given (status, reason): two
         readings must never share, and therefore never contaminate, the same objects.
-        Controls a compared regime cannot govern here (UCM-47) are dropped before the
-        core sees them, so a law out of the asset's sector never becomes a candidate.
+        Controls a compared regime cannot govern here are dropped before the core
+        sees them, so a law out of the asset's sector never becomes a candidate.
         """
         options = [
             option
@@ -488,7 +469,7 @@ class RegionalDeltaService:
             rationale=rationale,
         )
 
-    # --- applicability of the compared regimes (UCM-47) -----------------------
+    # --- applicability of the compared regimes ---------------------------------
 
     def _applicability(
         self, regions: list[Jurisdiction], zone: ZoneContext

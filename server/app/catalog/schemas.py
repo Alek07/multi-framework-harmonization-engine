@@ -1,4 +1,4 @@
-"""UCM-7 - Catalog data model (Pydantic <-> JSON schemas).
+"""Catalog data model (Pydantic <-> JSON schemas).
 
 These models are, at once, the schema of the versioned catalog
 (`data/catalog/*.json`), the API contract, and the LLM output type. The catalog
@@ -34,22 +34,19 @@ class Jurisdiction(str, Enum):
 
 
 class Sector(str, Enum):
-    """The sector an asset belongs to, and the sectors a norm governs (UCM-47).
+    """The sector an asset belongs to, and the sectors a norm governs.
 
-    A neutral, own taxonomy — not NIS2's Annexes nor the US 16 verbatim, because
-    those two do **not** align one to one, and a neutral enum each framework maps
-    onto is what turns that misalignment from an anecdote into something
-    demonstrable (a datum for the memoir): a gas pipeline is *Energy* under NIS2
-    but sits under *Transportation Systems* (TSA) in the US. It has to be a closed
-    set both the asset and the catalog draw from, so the engine can intersect the
-    two.
+    A neutral, own taxonomy — not NIS2's Annexes nor the US 16 verbatim, since
+    those do not align one to one; a neutral enum each framework maps onto makes
+    that misalignment demonstrable (a gas pipeline is *Energy* under NIS2 but
+    *Transportation Systems* under TSA). A closed set both the asset and the
+    catalog draw from, so the engine can intersect the two.
 
-    Both sides carry a **list**. A control names the sectors it governs
-    (`applies_to_sectors`); an asset names the sectors it operates in
-    (`AssetProfile.sectors`), and a zone may narrow that (`Zone.sectors`) — a port
-    is transport and, through its fuel terminal, energy. A norm applies to a zone
-    when their sectors intersect; an empty control list is transversal (see
-    `FrameworkControl`).
+    Both sides carry a list: a control names the sectors it governs
+    (`applies_to_sectors`), an asset the sectors it operates in
+    (`AssetProfile.sectors`), narrowable per zone (`Zone.sectors`). A norm applies
+    to a zone when their sectors intersect; an empty control list is transversal
+    (see `FrameworkControl`).
     """
 
     ENERGY = "energy"
@@ -86,9 +83,9 @@ class StrengthKind(str, Enum):
     """What kind of demand a control makes — the axis its `level` is measured on.
 
     Each framework grades its controls on its own scale, and the engine reads two
-    of them: the CIS Implementation Group as ready-made IT prioritisation
-    (UCM-10), and the SL at which an IEC SR becomes required. Naming the scale
-    keeps those two readable without parsing prose.
+    of them: the CIS Implementation Group as ready-made IT prioritisation, and the
+    SL at which an IEC SR becomes required. Naming the scale keeps those two
+    readable without parsing prose.
     """
 
     IG = "ig"
@@ -181,14 +178,13 @@ class ControlStrength(BaseModel):
 
 
 class Premise(str, Enum):
-    """A condition of the zone that a control may presuppose (UCM-53).
+    """A condition of the zone that a control may presuppose.
 
     The values are the field names of `TechNature` (`app/assets/schemas.py`): the
-    premises the operator already answers, zone by zone, when reviewing the
-    parsed profile. They are spelled out here rather than imported because the
-    asset schemas import *this* module, and `tests/catalog/test_presuppositions.py`
-    asserts the two stay in step — so the vocabulary is closed by a test instead
-    of by a comment.
+    premises the operator already answers, zone by zone, when reviewing the parsed
+    profile. Spelled out here rather than imported because the asset schemas import
+    *this* module; `tests/catalog/test_presuppositions.py` asserts the two stay in
+    step, so the vocabulary is closed by a test instead of a comment.
     """
 
     GENERAL_PURPOSE_OS = "general_purpose_os"
@@ -199,20 +195,17 @@ class Premise(str, Enum):
 
 
 class Presupposition(BaseModel):
-    """What a control needs to be true of a zone for it to mean anything (UCM-53).
+    """What a control needs to be true of a zone for it to mean anything.
 
-    A control that says "deploy an anti-malware agent on workstations"
-    presupposes a general-purpose OS. Nothing in the catalog used to say so, so a
-    zone that had declared it hosts none had nothing to compare against and the
-    control was retained for every asset alike. This is that missing half: the
-    *fact*, declared on the control. What to do about it is a gating rule's
-    business, not this model's — the catalog states, the rules decide.
+    A control that says "deploy an anti-malware agent on workstations" presupposes
+    a general-purpose OS. This is the *fact*, declared on the control; what to do
+    about it is a gating rule's business, not this model's — the catalog states,
+    the rules decide.
 
     `expected` is the value the zone must carry for the control to make sense:
     almost always `True`, and `False` for the rarer control that exists only
     because a zone is *not* something. `note` is the sentence the operator reads
-    when the mechanism leaves their baseline, so it is required — a premise
-    nobody can explain is not a premise, it is a filter.
+    when the mechanism leaves their baseline, so it is required.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -247,27 +240,19 @@ class FrameworkControl(BaseModel):
     jurisdiction: Jurisdiction
     strength: ControlStrength
     control_type: ControlType = Field(alias="type")
-    # The sectors this control governs — its declared scope of applicability
-    # (UCM-47). Plural from the name so the cardinality reads in the schema: NIS2
-    # governs the eighteen sectors of its Annexes, IMO governs shipping alone.
-    #
-    # **Empty is not the same as enumerated.** An empty list means *transversal*:
-    # the control applies to any asset, which is the case for the voluntary
-    # technical frameworks (CIS, CSF, IEC 62443) that are cross-sector by design.
-    # A non-empty list is a positive claim that the norm governs *only* those
-    # sectors, and an asset outside them becomes a justified exclusion — never a
-    # silent drop, and never abbreviated to "transversal", which would destroy the
-    # exclusion the baseline is meant to deliver. Absent in every catalog before
-    # v0.4.0, so it defaults to empty and those catalogs keep loading unchanged.
+    # The sectors this control governs — its declared scope of applicability.
+    # Empty is not the same as enumerated: an empty list means *transversal* (the
+    # cross-sector technical frameworks CIS, CSF, IEC 62443), while a non-empty
+    # list claims the norm governs *only* those sectors, so an asset outside them
+    # becomes a justified exclusion — never a silent drop. Defaults to empty, so
+    # catalogs before v0.4.0 keep loading unchanged.
     applies_to_sectors: list[Sector] = Field(default_factory=list)
 
-    # What this control needs the zone to be, for it to mean anything (UCM-53).
-    #
-    # Empty is the default and says only that no premise has been declared for
-    # this control — not that it is universal. **Absence never excludes**: a
-    # control with no presupposition is retained in every zone, exactly as it was
-    # before the field existed, which is what lets every catalog up to v0.4.0
-    # keep loading unchanged.
+    # What this control needs the zone to be, for it to mean anything. Empty is
+    # the default and says only that no premise has been declared — not that the
+    # control is universal. **Absence never excludes**: a control with no
+    # presupposition is retained in every zone, which is what lets catalogs up to
+    # v0.4.0 keep loading unchanged.
     presupposes: list[Presupposition] = Field(default_factory=list)
 
     @model_validator(mode="after")

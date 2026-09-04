@@ -1,10 +1,7 @@
 /**
- * The rail: what asset is being composed, which zones it has, and where in the
- * flow the operator is.
- *
- * The zone cards are the engine's argument made clickable — same catalog, same
- * profile, different zone, different baseline — so they carry the zone's own
- * target level and its own count of mandatory requirements, and switching zone
+ * The rail: which asset is being composed, its zones, and where in the flow the
+ * operator is. Zone cards carry each zone's own target level and mandatory count
+ * (same catalog and profile, different zone, different baseline); switching zone
  * switches what the candidates stage shows.
  */
 
@@ -174,8 +171,8 @@ export function StageRail() {
       {hasProfile ? <AssetCard /> : null}
       <ZoneCards />
       <Caps className="px-2.5 pt-1.5 pb-2">Pasos</Caps>
-      {/* Below the stack point the steps become a strip that scrolls sideways,
-          so the rail costs a row of height instead of half the screen. */}
+      {/* Below the stack point the steps scroll sideways as a strip, so the rail
+          costs a row of height instead of half the screen. */}
       <div className="contents max-mid:flex max-mid:gap-1.5 max-mid:overflow-x-auto max-mid:pb-1">
       {([1, 2, 3, 4, 5] as Step[]).map((n) => {
         const current = step === n

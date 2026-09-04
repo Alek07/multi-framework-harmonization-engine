@@ -1,35 +1,24 @@
-"""UCM-16 - Sovereign composition: the human chooses, the engine verifies, both sign.
+"""Sovereign composition: the human chooses, the engine verifies, both sign.
 
-This is the central contribution of the TFM, and the answer to "how is this
-different from a crosswalk?" is in what the module does *not* do. A crosswalk
-translates (A ≈ B). Here the engine has already laid equivalent options side by
-side (`POST /candidates`) and this endpoint takes the operator's choices, checks
-the one thing that is not negotiable, and puts the whole thing on the record with
-the operator's name and reasons on it. It never picks a control.
+The central contribution of the TFM. The engine has already laid equivalent
+options side by side (`POST /candidates`); this endpoint takes the operator's
+choices, checks the one thing that is not negotiable, and records the whole thing
+with the operator's name and reasons on it. It never picks a control.
 
-Four checks stand between a request and a signature, and each answers a way the
-signature could otherwise be worth less than it looks:
+Four checks stand between a request and a signature:
 
-1. **The run exists, and it is this profile's.** A composition quotes the `run_id`
-   `POST /candidates` returned. If the ledger has never seen it, there is nothing
-   to chain onto and the trail would start with the human — the engine's decisions
-   are what they composed *from*.
-2. **The versions have not moved.** The run's entries carry the catalog, rules,
-   gating and prioritisation versions that governed them. If the catalog has been
-   bumped since, the options on the operator's screen are not the options this
-   process would compute now, and signing would attest to something nobody saw.
-3. **The mandatory block is complete.** Every mandate the engine could not close on
-   its own (`CapabilityPriority.outstanding`) must be closed by the human — with a
-   mechanism, a compensatory control, or a written acceptance of the gap. While one
-   is open the signature is *refused*, and the refusal names each of them.
-4. **A run is signed once.** A second signature over the same run would produce two
-   baselines with the same evidence and no way to tell which one is in force.
+1. The run exists and is this profile's — the composition chains onto it.
+2. The versioned inputs have not moved since the run; otherwise the options on
+   screen are not the ones this process would compute now.
+3. The mandatory block is complete: every outstanding mandate is closed by the
+   human, and the signature is refused while any is open.
+4. A run is signed once — a second signature would produce two baselines over the
+   same evidence.
 
-Everything the composition needs is deterministic and offline: the core is re-run
-from the profile (same catalog + same rules + same profile ⇒ same result), so a
-baseline can be composed and signed on a machine with no Ollama and no Qdrant.
-That is deliberate. The AI layer widens what the operator *sees*; it must never be
-a precondition for what they can sign.
+The core is re-run offline from the profile (same catalog + rules + profile ⇒
+same result), so a baseline can be composed and signed with no Ollama and no
+Qdrant. The AI layer widens what the operator sees; it is never a precondition
+for what they can sign.
 """
 
 from __future__ import annotations

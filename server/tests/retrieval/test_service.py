@@ -145,7 +145,7 @@ def test_a_lens_narrows_the_view_and_never_the_baseline(
 def test_the_engine_applies_the_zones_sectoral_applicability(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    """UCM-52: sectoral applicability (UCM-47) is the engine's own lens.
+    """Sectoral applicability is the engine's own lens.
 
     PROFILE-A operates in energy, so an out-of-sector norm — IMO governs shipping —
     is not suggested as if it applied. That is a determination, not a silent
@@ -177,7 +177,7 @@ def test_the_engine_applies_the_zones_sectoral_applicability(
 def test_a_zone_without_declared_sectors_is_not_filtered(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    """Unknown sectors exclude nothing (UCM-47): no premise, no filter, no set_aside."""
+    """Unknown sectors exclude nothing: no premise, no filter, no set_aside."""
     sectorless = resolution_a.model_copy(
         update={
             "zones": [
@@ -211,7 +211,7 @@ def test_the_query_reserves_room_for_the_extra_candidates(
 def test_every_answered_capability_declares_the_cut_that_bounded_it(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    """Acceptance (UCM-54): the retriever stops being the one stage with no rule."""
+    """The retriever stops being the one stage with no rule."""
     retrieval = service.retrieve_profile(resolution_a)
 
     for zone in retrieval.zones:
@@ -292,17 +292,17 @@ def test_the_cut_cannot_turn_a_covered_capability_into_a_gap(
                 assert capability.gap is None or not capability.catalog_control_ids
 
 
-# --- gating visible in the suggestions (UCM-52) -------------------------------
+# --- gating visible in the suggestions ----------------------------------------
 
 
 def test_no_suggestion_contradicts_a_gating_exclusion_in_silence(
     service: RetrievalService, resolution_a: ProfileResolution, gating_a: ProfileGating
 ) -> None:
-    """Acceptance: a suggestion for a mechanism gating ruled out of the zone says so.
+    """A suggestion for a mechanism gating ruled out of the zone says so.
 
-    Before UCM-52 the engine could exclude a mechanism in a zone and suggest the
-    same control two lines below. Now every such suggestion is annotated with the
-    exclusion — shown marked, not hidden — and never contradicts the engine.
+    A control excluded in a zone could otherwise be suggested two lines below. Every
+    such suggestion is annotated with the exclusion — shown marked, not hidden — and
+    never contradicts the engine.
     """
     retrieval = service.retrieve_profile(resolution_a, gating=gating_a)
 
@@ -385,7 +385,7 @@ def test_a_gated_suggestion_is_annotated_not_hidden(
 def test_a_gated_suggestion_sinks_to_the_end_of_the_tail(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    """UCM-53: the declared order, applied where the list is built.
+    """The declared order, applied where the list is built.
 
     The annotated suggestion was first by similarity. It stays offered, keeps its
     mark, and reads last — ordering is not removing, so the set is untouched.

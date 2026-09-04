@@ -1,30 +1,18 @@
-"""UCM-14 - The Pydantic AI agent that writes the explanations, against Ollama.
+"""The Pydantic AI agent that writes the candidate explanations, against Ollama.
 
-Same model, same provider and same decoding parameters as the parse (UCM-12),
-because it is the same pinned weights doing both jobs and reproducibility is
-declared once, not per feature: `temperature`, `top_p`, `seed` and `num_predict`
-travel in the request from `Settings`; `num_ctx` is applied server-side through
-`OLLAMA_CONTEXT_LENGTH`; `top_k` and `repeat_penalty` are the Ollama server's
-defaults, pinned by the compose file's image digest. The reasoning behind each of
-those is written out in `app/parse/agent.py` and not repeated here.
+Same model, provider and decoding parameters as the parse — the reasoning is
+written out in `app/parse/agent.py` and not repeated here. Two differences worth
+naming:
 
-Two differences worth naming.
-
-**Retries are one, not three.** A malformed parse costs the operator the whole
-profile, so it is worth three attempts. A malformed explanation costs a
-paragraph, and the deterministic rationale is already on screen underneath it —
-so this agent tries once more and then gets out of the way. P1 must never spend
-the operator's time.
+**Retries are one, not three.** A malformed explanation costs a paragraph, and
+the deterministic rationale is already on screen underneath it. P1 must never
+spend the operator's time.
 
 **The output type is a batch.** One request explains every candidate of a
-capability, which bounds the number of model calls to the number of capabilities
-the operator actually opens, and gives the model the whole screen at once —
-without that context it would describe candidate 4 as if candidates 1-3 did not
-exist. It also costs real time: ~12 candidates is ~900 generated tokens, and the
-7B decodes at ~3.5 tok/s on the reference CPU machine, so the request needs
-minutes rather than seconds. That is what `EXPLAIN_TIMEOUT_SECONDS` is for, and
-why the explanations are computed for the capability the operator opened rather
-than for a whole profile.
+capability, which bounds the model calls to the capabilities the operator opens
+and gives the model the whole screen at once. It costs real time — ~12 candidates
+is ~900 tokens, and the 7B decodes at ~3.5 tok/s on the reference CPU machine —
+which is what `EXPLAIN_TIMEOUT_SECONDS` is for.
 """
 
 from __future__ import annotations

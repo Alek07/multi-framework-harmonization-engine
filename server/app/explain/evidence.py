@@ -1,29 +1,22 @@
-"""UCM-14 - What the model is allowed to know, and what is said when it says nothing.
+"""What the model is allowed to know, and what is said when it says nothing.
 
-Everything the explanation layer can be right about is assembled here, before any
-token is generated, from data that already exists: the versioned catalog, the
-core's resolution (UCM-8) and the retrieval pass (UCM-13). Three jobs, all
-deterministic:
+Everything the explanation layer can cite is assembled here before any token is
+generated, from data that already exists (versioned catalog, core resolution,
+retrieval pass). Three deterministic jobs:
 
-1. **Order the candidates** exactly as the operator will see them —
-   `offered_control_ids`, catalog first, then the retrieved suggestions. The
-   model receives them in that order and returns them in that order; it is never
-   in a position to rank.
-2. **Declare, per candidate, which facts may be cited** (`EvidenceKey`). A
-   catalog candidate has an authored mapping, a type, a weight and a provenance;
-   a retrieved one has a similarity and the capabilities it is mapped to
-   elsewhere. Handing the model that list is how "cite only what is written down"
-   becomes checkable: a citation outside it is caught by the service.
-3. **Write the fallback**. Every candidate has readable text *before* the model
-   runs — the mapping in the operator's language, or the retrieval's own
-   rationale. That text is what stays on screen when the layer is off, unreachable
-   or withheld, which is what makes a P1 feature unable to damage P0.
+1. **Order the candidates** exactly as the operator will see them
+   (`offered_control_ids`, catalog first, then retrieved suggestions); the model
+   is never in a position to rank.
+2. **Declare, per candidate, which facts may be cited** (`EvidenceKey`), so "cite
+   only what is written down" is checkable: a citation outside the list is caught
+   by the service.
+3. **Write the fallback**: every candidate has readable text before the model runs
+   (the mapping in the operator's language, or the retrieval's own rationale),
+   which is what makes a P1 feature unable to damage P0.
 
-The fact sheet is Spanish because the model writes Spanish for the operator, and
-its shape is fixed: same inputs, same sheet, so the same prompt reaches the model
-on every machine (invariant 3). It is versioned for the same reason the prompt is
-— it is an input of the prose, and two runs that read differently have to be
-explainable by something written down.
+The fact sheet is Spanish (the model writes Spanish for the operator) and its
+shape is fixed, so the same prompt reaches the model on every machine
+(invariant 3). It is versioned because it is an input of the prose.
 """
 
 from __future__ import annotations
@@ -46,15 +39,11 @@ from app.retrieval.schemas import CapabilityRetrieval, RetrievedControl
 
 # Version of the sheet, recorded in `ExplanationProvenance` next to the prompt's.
 #
-# 1.0.0 printed the catalog's enum values verbatim — `author_judgment`,
-# `official_crosswalk`, `INTL` — and left the model to render them in Spanish. It
-# rendered `author_judgment` + `INTL` as "procedente de una autorización
-# internacional", which turns the catalog author's own judgment into an official
-# international authorisation: the exact distinction the catalog is built on,
-# inverted, in prose that reads as fact. The guard cannot catch it — the citation
-# is grounded and there is no verdict in the sentence — so the fix is upstream:
-# 1.1.0 hands the model the Spanish label instead of an English identifier to
-# translate.
+# 1.0.0 printed the catalog's enum values verbatim (`author_judgment`, `INTL`) and
+# left the model to render them; it turned the author's own judgment into "una
+# autorización internacional" — the exact distinction the catalog is built on,
+# inverted, in prose that reads as fact. The guard cannot catch it (the citation is
+# grounded, no verdict), so 1.1.0 hands the model the Spanish label instead.
 SHEET_TEMPLATE_VERSION = "1.1.0"
 
 # Vocabulary the model copies rather than invents. Catalog content is Spanish by

@@ -1,15 +1,11 @@
-"""UCM-15 - `POST /candidates`: profile in, side-by-side options per capability out.
+"""`POST /candidates`: profile in, side-by-side options per capability out.
 
-This is the endpoint the central contribution runs on. A crosswalk *translates*
-(A ≈ B); what this returns is every equivalent option for a capability in a zone —
-framework, jurisdiction, strength, mapping type, coverage weight, tier — next to
-each other, with the engine's reason for each one and no recommendation attached.
-The choice, and the signature, are the human's (UCM-16).
-
-The route itself does almost nothing: it resolves which profile the request is
-about and hands the work to the service, which is also what writes the run to the
-append-only log. The `run_id` in the response is what `POST /baseline/compose`
-quotes, so the human's decisions chain onto the engine run they were made from.
+Every equivalent option for a capability in a zone (framework, jurisdiction,
+strength, mapping type, coverage weight, tier) side by side, with the engine's
+reason for each and no recommendation — the choice and signature are the human's.
+The route resolves the profile and hands off to the service, which writes the run
+to the append-only log; the response `run_id` is what `POST /baseline/compose`
+quotes so the human's decisions chain onto the run they were made from.
 """
 
 from __future__ import annotations

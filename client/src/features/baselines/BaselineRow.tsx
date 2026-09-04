@@ -1,11 +1,9 @@
 /**
- * One signed baseline in the list, what its trail says, and the documents it emits.
- *
- * The summary comes with the list; the per-capability detail is the baseline's
- * own trail, fetched when the operator asks for it. The three documents — the
- * declaration of applicability, the partial OSCAL plan and the printed version of
- * both — are the server's own responses, downloaded verbatim (UCM-46). Each is
- * fetched once and reused.
+ * One signed baseline in the list, its trail, and the documents it emits. The
+ * summary comes with the list; the per-capability detail is the baseline's own
+ * trail, fetched on demand. The three documents (declaration of applicability,
+ * partial OSCAL plan, printed version) are the server's responses downloaded
+ * verbatim, each fetched once and reused.
  */
 
 import { useState } from 'react'
@@ -234,11 +232,9 @@ export function BaselineRow({ baseline }: { baseline: BaselineSummary }) {
   }
 
   /**
-   * The three exits of the download dialog.
-   *
-   * Each closes it only when the document actually reached the operator: a
-   * dialog that shuts on a failed fetch would look like a download that
-   * happened. The reason stays on screen instead, inside the dialog.
+   * The three exits of the download dialog. Each closes it only when the document
+   * actually reached the operator: closing on a failed fetch would look like a
+   * download that happened. The reason stays inside the dialog instead.
    */
   async function print() {
     const document = await declaration()

@@ -1,4 +1,4 @@
-"""UCM-7/UCM-43 - The v0.5.0 catalog loads, validates and meets its invariants."""
+"""The v0.6.0 catalog loads, validates and meets its invariants."""
 
 from collections import Counter
 
@@ -25,7 +25,7 @@ JURISDICTION_OF = {
     Framework.IEC62443: Jurisdiction.INTL,
     Framework.NIS2: Jurisdiction.EU,
     Framework.IMO: Jurisdiction.INTL_MARITIME,
-    # US legal corpus (UCM-48): CIRCIA transversal, TSA sectoral, both US.
+    # US legal corpus: CIRCIA transversal, TSA sectoral, both US.
     Framework.CIRCIA: Jurisdiction.US,
     Framework.TSA: Jurisdiction.US,
 }
@@ -37,7 +37,7 @@ def test_version() -> None:
 
 def test_counts() -> None:
     # Frozen for v0.6.0 (regression). Update on every version bump. v0.6.0 adds
-    # the US legal corpus (UCM-48), broken down obligation by obligation like NIS2's
+    # the US legal corpus, broken down obligation by obligation like NIS2's
     # Art. 21(2): CIRCIA contributes its four statutory duties and the TSA eight
     # (three for SD-01, five for SD-02), each its own control with one mapping — a
     # strict superset of v0.5.0.
@@ -58,8 +58,8 @@ def test_counts_per_framework() -> None:
         # Six functional elements since MSC-FAL.1/Circ.3/Rev.3 put Govern first,
         # plus the binding resolution MSC.428(98) itself.
         Framework.IMO: 7,
-        # US legal corpus (UCM-48), one control per distinct obligation: CIRCIA's
-        # four statutory duties (incident 72 h, ransom 24 h, supplemental, records
+        # US legal corpus, one control per distinct obligation: CIRCIA's four
+        # statutory duties (incident 72 h, ransom 24 h, supplemental, records
         # preservation) and the TSA's eight (SD-01: report, coordinator, assessment;
         # SD-02: segmentation, MFA, monitoring, patching, TSA-approved plan).
         Framework.CIRCIA: 4,
@@ -121,8 +121,8 @@ def test_the_legal_overlay_is_never_a_mechanism() -> None:
     law itself covers the capability.
 
     The TSA is deliberately excluded: SD-2021-02 is the one legal control that
-    *does* prescribe a zone mechanism (UCM-48), and that exception is asserted on
-    its own in `test_tsa_sd02_is_the_legal_obligation_that_prescribes_a_mechanism`.
+    *does* prescribe a zone mechanism, and that exception is asserted on its own in
+    `test_tsa_sd02_is_the_legal_obligation_that_prescribes_a_mechanism`.
     """
     overlay = {
         c.id
@@ -136,12 +136,12 @@ def test_the_legal_overlay_is_never_a_mechanism() -> None:
 
 
 def test_tsa_sd02_is_the_legal_obligation_that_prescribes_a_mechanism() -> None:
-    """UCM-48: a sectoral regulator can legislate a concrete zone mechanism.
+    """A sectoral regulator can legislate a concrete zone mechanism.
 
-    The model used to assume law only binds the organization. TSA SD-2021-02
-    disproves it — two of its duties prescribe OT/IT segmentation and MFA on
-    access — so those mappings are `partial`/`compensatory`, not contextual, and
-    move coverage. Its other duties, and every SD-2021-01 duty, stay contextual.
+    Law usually binds only the organization. TSA SD-2021-02 is the exception — two
+    of its duties prescribe OT/IT segmentation and MFA on access — so those mappings
+    are `partial`/`compensatory`, not contextual, and move coverage. Its other
+    duties, and every SD-2021-01 duty, stay contextual.
     """
     mechanism = {
         m.control_id: (m.capability_id, m.mapping_type)
@@ -164,7 +164,7 @@ def test_only_a_binding_instrument_is_typed_legal() -> None:
     assert legal == {"Art. 20", "Art. 21", "Art. 23", "MSC.428(98)"} | {
         f"Art. 21(2)({letter})" for letter in "abcdefghij"
     } | {
-        # US legal corpus (UCM-48), one official id per distinct obligation.
+        # US legal corpus, one official id per distinct obligation.
         "CIRCIA 6 USC 681b(a)(1)",
         "CIRCIA 6 USC 681b(a)(2)",
         "CIRCIA 6 USC 681b(a)(3)",
@@ -181,7 +181,7 @@ def test_only_a_binding_instrument_is_typed_legal() -> None:
 
 
 def test_only_the_legal_layer_declares_a_sector_scope() -> None:
-    """UCM-47: scope is declared by the legal layer, transversal for the rest.
+    """Scope is declared by the legal layer, transversal for the rest.
 
     The IMO controls govern ships (the ISM Code), NIS2 governs the sectors of its
     Annexes and the TSA governs designated pipelines (transport); the technical

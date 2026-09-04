@@ -1,4 +1,4 @@
-"""UCM-53 - The tagger fails open, per control: a run that stumbles degrades to today."""
+"""The tagger fails open, per control: a run that stumbles degrades to today."""
 
 from __future__ import annotations
 

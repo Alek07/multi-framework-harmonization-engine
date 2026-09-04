@@ -1,4 +1,4 @@
-/** Shared shapes of the UCM-21 design: the card, its header, the small chips. */
+/** Shared shapes of the design: the card, its header, the small chips. */
 
 import { useEffect, useState, type ReactNode } from 'react'
 
@@ -83,17 +83,11 @@ export function Tag({
 }
 
 /**
- * A two-layer bar: what is on offer, and how much of it has been taken.
- *
- * `ceiling` is the engine's own figure and is drawn as a ghost segment; `value`
- * is what the operator's selection reaches and is drawn solid on top of it. The
- * ghost is what keeps the reading honest — a solid bar at 40 % would look like a
- * shortfall of the engine's, when the other 60 % is simply not chosen yet.
- *
- * The client may compute `value`, and only `value`: a provisional readout of the
- * human's own selection, over weights the server sent, with the server's own
- * formula (`pickedCoverage`). Every figure that reaches a baseline or the audit
- * trail is still the engine's, computed at compose time.
+ * A two-layer bar: `ceiling` is the engine's figure, drawn as a ghost segment;
+ * `value` is what the selection reaches, drawn solid on top. The ghost keeps the
+ * reading honest — a solid bar at 40 % would look like a shortfall when the rest
+ * is simply not chosen yet. The client computes only `value` (provisional, via
+ * `pickedCoverage`); every figure that reaches a baseline is the engine's.
  */
 export function Meter({
   value,
@@ -251,13 +245,9 @@ export function Notice({
 }
 
 /**
- * Reference material the operator opens when they want it, or a choice of what
- * to take away with them.
- *
- * Never for a decision, a warning or anything the engine declared: those stay on
- * the page, where they cannot be closed. A dialog the operator never opens must
- * not change what they know — which is why picking a download format belongs
- * here and reading a gap does not.
+ * Reference material or a take-away choice the operator opens on demand. Never for
+ * a decision, warning or anything the engine declared — those stay on the page
+ * where they cannot be closed. A dialog nobody opens must not change what they know.
  */
 export function Modal({
   open,
@@ -323,12 +313,9 @@ export function InfoButton({ children, onClick }: { children: ReactNode; onClick
 }
 
 /**
- * A block the operator opens by hand.
- *
- * The summary carries the count of what is inside, always of the whole list:
- * folding shortens the screen and may not make anything look smaller than it is.
- * The click is stopped here because these live inside cards that are themselves
- * clickable.
+ * A block the operator opens by hand. The summary count is always of the whole
+ * list: folding shortens the screen, never makes anything look smaller than it is.
+ * The click is stopped because these live inside clickable cards.
  */
 export function Fold({
   summary,

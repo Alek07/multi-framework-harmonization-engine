@@ -1,20 +1,19 @@
-"""UCM-44 - How much of the catalog the gating actually looks at, and how much the profile changes.
+"""How much of the catalog the gating looks at, and how much the profile changes.
 
-The discrimination of controls per asset rests on the gating alone: retrieval
-applies no lens of its own by design, and the parse always delivers a complete
-`nature` per zone. So if two very different assets come out with nearly the same
-baseline, the gating rule set is the ceiling — and this is the measurement that
-says so with numbers instead of impressions.
+Discrimination of controls per asset rests on the gating alone: retrieval applies
+no lens of its own and the parse always delivers a complete `nature` per zone. So
+if two very different assets come out with nearly the same baseline, the gating
+rule set is the ceiling -- and this measures that with numbers instead of
+impressions.
 
 Three readings, meant to be run before and after a gating bump:
 
-* **Reach** — how many catalog controls no rule ever names. Those are retained
-  identically in every zone of every profile, whatever the asset is.
-* **Outcome per zone** — how each control ends up in each zone: retained, or
-  excluded with one of the three declared outcomes.
-* **Discrimination** — for each pair of zones, how many controls end up with a
-  *different* outcome. That number is the engine's answer to "does the asset
-  change the baseline?", and it is the one that has to grow.
+* Reach -- how many catalog controls no rule ever names (retained identically in
+  every zone of every profile, whatever the asset is).
+* Outcome per zone -- how each control ends up in each zone: retained, or excluded
+  with one of the three declared outcomes.
+* Discrimination -- for each pair of zones, how many controls end up with a
+  different outcome; the engine's answer to "does the asset change the baseline?".
 
 Run from `server/`:
 
@@ -98,13 +97,12 @@ def reach() -> None:
 
 
 def premises() -> None:
-    """UCM-53 - what the catalog itself declares, beside what the rules name.
+    """What the catalog itself declares, beside what the rules name.
 
-    Two different things end up excluding a mechanism, and the report has to
-    keep them apart: a rule someone wrote naming the control, and a premise the
-    control declares about the zone it needs. The number that matters for
-    UCM-55 is the last one printed — controls that *neither* looks at, which
-    are the ones still retained identically for every asset.
+    Two different things exclude a mechanism and the report keeps them apart: a
+    rule naming the control, and a premise the control declares about the zone it
+    needs. The number that matters is the last printed -- controls that neither
+    looks at, still retained identically for every asset.
     """
     catalog = get_catalog()
     rules = get_gating_rules()

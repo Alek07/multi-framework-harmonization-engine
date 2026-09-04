@@ -1,30 +1,14 @@
-"""UCM-9 - Step 3 of the core: deterministic gating by asset profile.
+"""Step 3 of the core: deterministic gating by asset profile.
 
-Mapping and conflict resolution answer *which mechanisms exist* for a capability.
-Gating answers a different question: *which of them this asset can actually
-host*. A controller with no general-purpose OS cannot run a resident antimalware
-agent; an enterprise remediation cadence is not executable on equipment that
-needs an operating window to stop. Saying so is the engineering judgement the
-baseline needs — and hiding it would be the omission the TFM measures.
+Answers which mechanisms this asset can actually host. Three outcomes for a
+control without an equivalent here: *no aplica* (premise absent — a justified
+exclusion), *objetivo sin mecanismo* (objective stands, compensatory control
+owed) and *ámbito equivocado* (deferred to the organizational layer).
 
-Three outcomes, and only three, for a control without an equivalent here:
-
-* **No aplica** — the control's technical premise does not exist in this asset.
-  A justified exclusion: a *deliverable* of the baseline, not a gap.
-* **Objetivo sin mecanismo** — the objective still stands, the asset cannot host
-  the mechanism. A compensatory control is owed, and the rule names it.
-* **Ámbito equivocado** — not a zone-layer mechanism at all (governance, people,
-  legal obligation). Deferred to the organizational layer, never deleted.
-
-Golden rule, enforced here and in the schema: gating removes **mechanisms**,
-never required **capabilities**, and never silently. `CapabilityGating.required`
-cannot be False; every exclusion carries its rule, the premises read from the
-profile and a written justification; and a capability left without a mechanism
-becomes an explicit gap instead of quietly disappearing.
-
-Because applicability is read from the zone — both its domain/safety reading and
-its own `TechNature` premises — the same catalog produces different baselines for
-different zones, which is the whole point of composing one.
+Golden rule, enforced here and in the schema: gating removes mechanisms, never
+required capabilities, and never silently — every exclusion carries its rule and
+justification, and an uncovered capability becomes an explicit gap. Applicability
+is read per zone, so the same catalog yields different baselines per zone.
 """
 
 from __future__ import annotations
@@ -48,8 +32,8 @@ from app.engine.schemas import (
     ZoneResolution,
 )
 
-# What each outcome means for the mechanism that leaves — spelled out in every
-# decision, so no exclusion can ever be read as a silent drop.
+# What each outcome means for the mechanism that leaves, spelled out in every
+# decision so no exclusion reads as a silent drop.
 OUTCOME_NOTE: dict[GatingOutcome, str] = {
     GatingOutcome.NOT_APPLICABLE: (
         "Exclusión justificada: el mecanismo no tiene premisa en este activo. Es un entregable "
@@ -66,8 +50,8 @@ OUTCOME_NOTE: dict[GatingOutcome, str] = {
 }
 
 # Mechanisms that cover the capability directly. A compensatory mapping is a
-# fallback route, not a mechanism: keeping them apart is what lets the engine
-# say "objective without mechanism" instead of pretending the outcome is met.
+# fallback route, not a mechanism — kept apart so the engine can say "objective
+# without mechanism" instead of pretending the outcome is met.
 MECHANISM_TYPES = (MappingType.TOTAL, MappingType.PARTIAL)
 
 
@@ -82,8 +66,8 @@ def gate_capability(
     decisions = [d for d in excluded if d is not None]
     excluded_ids = {d.control_id for d in decisions}
 
-    # A superseded option was already set aside by precedence (UCM-8); a contextual
-    # overlay was never a mechanism. Neither is available to cover the capability.
+    # A superseded option was already set aside by precedence; a contextual
+    # overlay was never a mechanism. Neither can cover the capability.
     available = [
         o
         for o in resolution.options
@@ -116,9 +100,8 @@ def gate_capability(
 def gate_zone(resolution: ZoneResolution, rules: GatingRules) -> ZoneGating:
     """Gate every capability of the catalog in a zone — none is dropped from the list.
 
-    The premises come from `resolution.zone.nature`, which is this zone's own
-    reading: a hybrid asset gates its jetty controller and its control room off
-    different premises, which is why nature is not an asset-wide field.
+    Premises come from `resolution.zone.nature`, this zone's own reading: a hybrid
+    asset gates its jetty controller and its control room off different premises.
     """
     return ZoneGating(
         zone=resolution.zone,
@@ -137,28 +120,25 @@ def _decision(
 ) -> GatingDecision | None:
     """Apply the declared rules to one candidate. No rule fires -> it stays.
 
-    Gating is evaluated on every candidate, including one already superseded by
-    precedence: "this mechanism has no premise here" and "this mechanism does not
-    prevail here" are different answers and the human deserves both.
+    Evaluated on every candidate, including one already superseded by precedence:
+    "no premise here" and "does not prevail here" are different answers.
     """
     matched = rules.rules_for(option.control_id, zone)
 
-    # A premise the control declares and the zone does not meet (UCM-53). Computed
-    # up front so that whichever determination decides, the other is still on the
-    # record in `also_matched_rule_ids`.
+    # A premise the control declares and the zone does not meet. Computed up front
+    # so whichever determination decides, the other stays in `also_matched_rule_ids`.
     from_premise = presupposition_decision(option.control, capability_id, zone)
     derived = [PREMISE_RULE_ID] if from_premise is not None else []
 
-    # Sectoral applicability (UCM-47) is prior to every rule; a matched rule is kept as context.
+    # Sectoral applicability is prior to every rule; a matched rule is kept as context.
     outside_scope = applicability_decision(
         option.control, capability_id, zone, [r.id for r in matched] + derived
     )
     if outside_scope is not None:
         return outside_scope
 
-    # An authored rule outranks a derived premise: whoever wrote a rule naming
-    # this control knew more than its description does. What the premise saw is
-    # kept beside it rather than dropped.
+    # An authored rule outranks a derived premise; what the premise saw is kept
+    # beside it rather than dropped.
     if not matched:
         return from_premise
 

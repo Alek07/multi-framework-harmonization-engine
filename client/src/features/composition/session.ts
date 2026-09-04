@@ -1,7 +1,6 @@
 /**
- * What the operator has done, persisted across visits (UCM-21).
- *
- * Only their side of it: engine answers are re-read, never cached here.
+ * What the operator has done, persisted across visits — only their side of it:
+ * engine answers are re-read, never cached here.
  */
 
 import { create } from 'zustand'
@@ -171,10 +170,9 @@ export const useSession = create<SessionState & SessionActions>()(
       name: STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
       version: 2,
-      // v2 added `sectors` to the asset and its zones (UCM-57). A draft saved
-      // under v1 lacks the field; backfilling `[]` (transversal — the same value
-      // an empty answer carries) preserves the in-progress composition instead of
-      // discarding it, and the operator adds the sectors on screen.
+      // v2 added `sectors` to the asset and its zones. A v1 draft lacks the field;
+      // backfilling `[]` (transversal) preserves the in-progress composition, and
+      // the operator adds the sectors on screen.
       migrate: (persisted, version) => {
         const state = persisted as SessionState
         if (version < 2) backfillSectors(state.draft)

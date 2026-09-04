@@ -1,12 +1,9 @@
-"""UCM-8 - Zone reading: `AssetProfile` -> `ZoneContext`.
+"""Zone reading: `AssetProfile` -> `ZoneContext`.
 
-The zone's context (IT/OT domain and whether it is safety-relevant) is what
-decides precedence in a contradiction, so it is derived deterministically from
-the profile and carries its own written rationale — the operator must be able
-to see *why* a zone was read as OT before accepting the outcome.
-
-Purdue is an orienting pattern, not an obligation (the engine is topology
-agnostic): when a zone declares no level, the case type decides.
+The zone's context (IT/OT domain and safety relevance) decides precedence in a
+contradiction, so it is derived deterministically and carries a written rationale.
+Purdue is an orienting pattern, not an obligation: with no level declared, the
+case type decides.
 """
 
 from __future__ import annotations
@@ -50,9 +47,8 @@ def zone_domain(zone: Zone, profile: AssetProfile) -> tuple[ZoneDomain, str]:
 def is_safety_relevant(zone: Zone, profile: AssetProfile, domain: ZoneDomain) -> tuple[bool, str]:
     """Whether the OT safety override applies to the zone, with its rationale.
 
-    Safety engineering itself stays out of scope (IEC 61511/61508): what this
-    marks is that a mechanism must not stand in the way of the operator acting
-    in an emergency — a call the engine escalates instead of settling.
+    Safety engineering itself stays out of scope: this marks only that a mechanism
+    must not block the operator in an emergency — a call the engine escalates.
     """
     if zone.safety_out_of_scope:
         return (

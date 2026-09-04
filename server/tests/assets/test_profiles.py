@@ -1,4 +1,4 @@
-"""UCM-8 - The two hand-written profiles load and match their M0 definition."""
+"""The two hand-written profiles load and match their M0 definition."""
 
 from app.assets.loader import available_profiles, get_profile
 from app.assets.schemas import CaseType, ConsequenceScale

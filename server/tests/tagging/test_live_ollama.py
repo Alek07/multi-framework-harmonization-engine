@@ -1,20 +1,19 @@
-"""UCM-53 - The tagger against the real model. Opt-in: `uv run pytest -m llm -s`.
+"""The tagger against the real model. Opt-in: `uv run pytest -m llm -s`.
 
 Deselected by default, like the live parse and explain tests: it needs Ollama up
 with the pinned model. What it checks cannot be scripted, because it is about the
-model itself and about the one risk this ticket carries — a 7B asked "what does
-this control presuppose?" will find a presupposition in almost anything, and a
-catalog where every control presupposes a general-purpose OS discriminates
-exactly as badly as one where none does, while looking like progress.
+model itself and the one risk here — a 7B asked "what does this control
+presuppose?" will find a presupposition in almost anything, and a catalog where
+every control presupposes a general-purpose OS discriminates as badly as one where
+none does, while looking like progress.
 
 So the assertions are deliberately few and the *printing* is the point:
 
 * a governance control comes back with no premise (the over-tagging canary);
 * a control that plainly needs an OS comes back naming it;
 * the same control twice gives the same answer (temp 0 + fixed seed);
-* the guard's rejection rate over a real sample is printed, not asserted — that
-  number is the honest measure of how well the prompt holds, and it belongs in
-  the evaluation (UCM-18) rather than behind a green tick.
+* the guard's rejection rate over a real sample is printed, not asserted — the
+  honest measure of how well the prompt holds, which belongs in the evaluation.
 """
 
 from __future__ import annotations

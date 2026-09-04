@@ -158,7 +158,7 @@ def test_a_declared_lens_reports_everything_it_set_aside(
     assert all(candidate["rationale"] for candidate in set_aside)
 
 
-# --- UCM-54: the cut carries its rule -----------------------------------------
+# --- the cut carries its rule -------------------------------------------------
 
 
 def test_the_cut_reaches_the_boundary_with_its_rule_and_its_leftovers(
@@ -226,7 +226,7 @@ def test_bounding_the_ranking_never_costs_the_catalogs_own_candidates(
         assert capability["offered_control_ids"][: len(mapped)] == mapped
 
 
-# --- UCM-52: asset-aware suggestions ------------------------------------------
+# --- asset-aware suggestions --------------------------------------------------
 
 
 def test_out_of_sector_norms_are_set_aside_without_any_lens(
@@ -336,7 +336,7 @@ async def test_two_calls_are_two_runs(
     assert first["run_id"] != second["run_id"]
 
 
-# --- UCM-14: the explanation layer is presentational --------------------------
+# --- the explanation layer is presentational ----------------------------------
 
 
 def test_explanations_are_returned_only_for_the_capabilities_asked_about(

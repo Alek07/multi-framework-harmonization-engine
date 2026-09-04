@@ -1,12 +1,9 @@
 /**
- * One option, side by side with its equivalents.
- *
- * This card is the sovereign composition in one shape: framework, official id,
- * jurisdiction, what the mapping type and weight are, where the mapping comes
- * from (a solid border for an official crosswalk, a dotted one for the author's
- * judgment) and what the core already said about it (`superseded`, `contested`,
- * and why). What it does not carry is a recommendation, a score to sort by or a
- * "best" mark — the engine offers, the human chooses.
+ * One option, side by side with its equivalents: framework, official id,
+ * jurisdiction, mapping type and weight, provenance (solid border = official
+ * crosswalk, dotted = author judgment) and the core's verdict (`superseded`,
+ * `contested`, and why). No recommendation, score or "best" mark — the engine
+ * offers, the human chooses.
  */
 
 import type {
@@ -56,11 +53,9 @@ function Shell({
   meta: React.ReactNode
   banner?: React.ReactNode
   /**
-   * When the banner is a paragraph rather than a line, the sentence that stands
-   * in for it while it is folded. The prose blocks at the foot of the card are
-   * the longest thing in it and the operator reads them once, if at all, so they
-   * start closed — folded, never dropped: what the engine said about an option
-   * stays one click away on the option itself.
+   * The sentence standing in for a paragraph-length banner while it is folded.
+   * These prose blocks start closed to keep the card short — folded, never
+   * dropped: what the engine said stays one click away on the option itself.
    */
   bannerLabel?: string
 }) {
@@ -118,11 +113,9 @@ function Shell({
       </div>
 
       {/*
-        The paraphrase leads and the official title follows, quieter. The two are
-        in different languages on purpose: the paraphrase is the operator's
-        (Spanish, ours, CLAUDE.md §8) and the title is the standard's, verbatim
-        and untranslated so it stays citable and contrastable against the source.
-        Leading with the English made a Spanish screen read as half-translated.
+        Paraphrase leads (Spanish, ours), official title follows quieter (the
+        standard's, verbatim and untranslated so it stays citable against the
+        source). Leading with the English made a Spanish screen read half-translated.
       */}
       <div className="text-[12.5px] leading-[1.35] font-semibold">
         {control.paraphrased_description}
@@ -136,10 +129,8 @@ function Shell({
       </div>
       <div className="flex flex-wrap items-center gap-2.5 text-[11.5px] text-ink-2">{meta}</div>
       {/*
-        The scale is looked up defensively on purpose. A client talking to a
-        server one version behind sees a `kind` this table does not have, and a
-        tooltip is never worth taking the card tree down for — same reason
-        `say()` falls back to the raw value instead of raising (core/wording.py).
+        Scale looked up defensively: a client one version behind the server may see
+        a `kind` this table lacks, and a tooltip is never worth crashing the card tree.
       */}
       <div
         className="cursor-help text-[10px] text-ink-4"
@@ -261,12 +252,9 @@ export function CatalogOption({
 }
 
 /**
- * A suggestion from the RAG pass: a neighbour in embedding space, not a mapping.
- *
- * It is offered — retrieval only ever widens — and it is labelled as what it is.
- * Adopting one is a human judgement on top of the catalog, and the signed
- * baseline records it as `adopted_suggestion` rather than absorbing it into the
- * authored mappings.
+ * A RAG suggestion: a neighbour in embedding space, not a mapping. Offered
+ * (retrieval only widens) and labelled as such; adopting one is a human judgement
+ * recorded as `adopted_suggestion`, never absorbed into the authored mappings.
  */
 export function RetrievedOption({
   hit,
@@ -305,9 +293,8 @@ export function RetrievedOption({
               ya asociado a: {hit.mapped_capability_ids.join(', ')}
             </span>
           ) : null}
-          {/* Why this suggestion reads last: the zone's gating already ruled the
-              control out here. Shown marked rather than hidden — the operator may
-              still adopt it, and the reason is on the card when they do. */}
+          {/* Reads last because the zone's gating ruled it out here. Shown marked,
+              not hidden — the operator may still adopt it, with the reason on the card. */}
           {hit.gated_out ? (
             <span
               title={hit.gated_out.rationale}

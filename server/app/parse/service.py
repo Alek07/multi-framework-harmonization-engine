@@ -1,23 +1,13 @@
-"""UCM-12 - The parse use case: description in, reviewable draft out.
+"""The parse use case: description in, reviewable draft out.
 
-The service is deliberately thin, and what it refuses to do matters more than
-what it does.
-
-* **It does not write to the audit log.** The LLM is not an actor (UCM-11): it
-  neither decides nor ranks nor filters. What it produces is a proposal, and the
-  proposal enters the log when the operator confirms it — as a *human* decision,
-  with the human's justification. Logging the parse as an engine event would put
-  a model's guess on the record as an engine decision.
-* **It does not complete the draft.** Missing values are reported
-  (`missing_required`), never defaulted. The path from draft to `AssetProfile`
-  runs through `completion.to_profile`, after review.
-* **It does not run without a verified model.** `verify_model` is awaited before
-  the first token: a draft produced by unpinned weights is not reproducible, and
-  the draft itself carries no sign of it.
-
-Everything the parse depended on ends up in `ParseProvenance`, including the
-number of model requests it took, so an evaluation run (UCM-18) can report how
-often the retry loop was needed instead of guessing.
+Deliberately thin, and what it refuses to do matters most. It does not write to the
+audit log: the LLM is not an actor, and its proposal enters the log only when the
+operator confirms it, as a human decision. It does not complete the draft: missing
+values are reported (`missing_required`), never defaulted — promotion runs through
+`completion.to_profile` after review. And it does not run without a verified model:
+`verify_model` is awaited before the first token, since a draft from unpinned weights
+is not reproducible and carries no sign of it. Everything the parse depended on ends
+up in `ParseProvenance`, including the number of model requests it took.
 """
 
 from __future__ import annotations

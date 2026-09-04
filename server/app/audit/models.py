@@ -1,13 +1,13 @@
-"""UCM-11 - The `audit_events` table: the only mutable state of the system.
+"""The `audit_events` table: the only mutable state of the system.
 
 Mutable in one direction only. Three layers hold the append-only invariant:
 
-1. **The schema**: no `updated_at`, no nullable justification, `CHECK`s that
-   refuse a blank `decision` or `rationale` and a non-positive `sequence`.
+1. **The schema**: no `updated_at`, `CHECK`s that refuse a blank `decision` or
+   `rationale` and a non-positive `sequence`.
 2. **The database**: `BEFORE UPDATE` / `BEFORE DELETE` triggers that abort the
    statement, so an `UPDATE` cannot be issued even by hand through the driver.
-3. **The chain**: `prev_hash`/`event_hash` (`chain.py`) make an edit made *around*
-   the database — straight on the SQLite file — detectable.
+3. **The chain**: `prev_hash`/`event_hash` (`chain.py`) make an edit made straight
+   on the SQLite file detectable.
 
 The repository is the only writer and it has no update path (`repository.py`).
 """
@@ -114,7 +114,7 @@ def _register_append_only_guards() -> None:
         trigger = (
             f"CREATE TRIGGER IF NOT EXISTS audit_events_no_{operation.lower()} "
             f"BEFORE {operation} ON audit_events BEGIN "
-            f"SELECT RAISE(ABORT, 'audit_events is append-only (UCM-11): "
+            f"SELECT RAISE(ABORT, 'audit_events is append-only: "
             f"{operation} is not allowed'); END"
         )
         event.listen(

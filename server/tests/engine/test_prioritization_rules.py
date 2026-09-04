@@ -1,8 +1,8 @@
-"""UCM-10 - The prioritisation rules load, agree with the catalog, and cost everything.
+"""The prioritisation rules load, agree with the catalog, and cost everything.
 
 Three inputs the engine is not allowed to invent — what the SL-target mandates,
-what enables what, and what it costs — so the rule set has to prove they are
-declared, consistent with the catalog, and complete.
+what enables what, and what it costs — proven declared, catalog-consistent and
+complete.
 """
 
 import pytest

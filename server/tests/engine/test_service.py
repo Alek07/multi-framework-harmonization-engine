@@ -1,4 +1,4 @@
-"""UCM-8 - The core runs end to end with the two hand-written profiles (M1 gate, no AI)."""
+"""The core runs end to end with the two hand-written profiles (M1 gate, no AI)."""
 
 from app.assets.schemas import AssetProfile
 from app.catalog.schemas import Catalog

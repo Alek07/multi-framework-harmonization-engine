@@ -1,14 +1,8 @@
 /**
- * The three ways to take a signed baseline away, with what each one is for.
- *
- * One document in three spellings, not three documents: the printable version and
- * the JSON are the same declaration of applicability, and the OSCAL plan is that
- * declaration in NIST's vocabulary. The rows say so, because the difference that
- * matters to the operator is *who reads the file* — a person, an archive, or a
- * compliance tool — and nothing on the screen would otherwise tell them.
- *
- * Failures stay in this dialog instead of closing it: a download that silently
- * did nothing is the one outcome the operator cannot act on.
+ * The three ways to take a signed baseline away. One document in three spellings,
+ * not three documents: print and JSON are the same declaration of applicability,
+ * OSCAL is it in NIST's vocabulary. What differs is *who reads the file* — person,
+ * archive, or compliance tool. Failures stay in the dialog rather than close it.
  */
 
 import { Modal } from '../../components/ui'

@@ -1,4 +1,4 @@
-"""UCM-13 - The payload lens: what it asks Qdrant, and what it can never do."""
+"""The payload lens: what it asks Qdrant, and what it can never do."""
 
 from __future__ import annotations
 
@@ -87,7 +87,7 @@ def test_a_control_matches_a_mapping_type_it_serves_anywhere() -> None:
 
 
 def test_the_sector_lens_never_excludes_a_transversal_control() -> None:
-    """UCM-52: empty scope is transversal (UCM-47); only an enumerated, disjoint scope excludes."""
+    """Empty scope is transversal; only an enumerated, disjoint scope excludes."""
     lens = PayloadFilter(sectors=[Sector.ENERGY])
 
     assert excluded_axes(lens, payload(applies_to_sectors=[])) == []  # transversal

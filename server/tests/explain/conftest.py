@@ -1,18 +1,15 @@
-"""UCM-14 - Fixtures for the explanation tests: a scripted model, real candidates.
+"""Fixtures for the explanation tests: a scripted model, real candidates.
 
-Same rule as the parse (UCM-12) and the retrieval (UCM-13) suites: nothing here
-talks to a model or opens a connection, so the suite runs on any machine,
-offline. `FunctionModel` scripts exactly what the LLM replies — including a
-recommendation, an invented candidate and a silence — because those are the
-paths that decide whether a presentational layer is really presentational. The
-one test that needs the real 7B lives in `test_live_ollama.py`, behind the `llm`
-marker.
+Same rule as the parse and retrieval suites: nothing here talks to a model or opens
+a connection, so the suite runs on any machine, offline. `FunctionModel` scripts
+exactly what the LLM replies — a recommendation, an invented candidate, a silence —
+because those decide whether a presentational layer is really presentational. The
+one live test lives in `test_live_ollama.py`, behind the `llm` marker.
 
-The candidates the model is asked about are *not* invented for the tests: they
-come from the deterministic core's own resolution of profile A and from the RAG
-pass over it (`tests/retrieval/conftest.FakeIndex`, which replaces the vectors
-and nothing else). What is under test is the shipped agent explaining the
-candidates the operator would actually be looking at.
+The candidates the model is asked about are *not* invented for the tests: they come
+from the deterministic core's resolution of profile A and the RAG pass over it
+(`tests/retrieval/conftest.FakeIndex`, which replaces the vectors and nothing else),
+so what is under test is the shipped agent explaining real candidates.
 """
 
 from __future__ import annotations
@@ -106,7 +103,7 @@ def live_case(case: Case) -> Case:
 
 @pytest.fixture(scope="session")
 def gap_case(catalog: Catalog, resolution_a: ProfileResolution) -> Case:
-    """A capability with no candidate at all: the explicit gap of UCM-13."""
+    """A capability with no candidate at all: an explicit gap."""
     zone = resolution_a.zones[0]
     capability = CapabilityResolution(
         capability=sorted(catalog.capabilities, key=lambda c: c.id)[0],

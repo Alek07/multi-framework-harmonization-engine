@@ -1,13 +1,8 @@
 /**
- * The signature dialog.
- *
- * The summary is not editable and it is not a preview the client invented: it
- * counts the entries that are about to be sent as `CompositionChoice`s, by kind.
- * The two fields under it are the `Signature` the contract asks for — who
- * composes, and why this baseline is the right one for the asset — because a
- * signature without a written justification is exactly what UCM-11 refuses to
- * record. The declaration checkbox is the operator's acceptance that all of it
- * becomes immutable.
+ * The signature dialog. The summary is not editable and not an invented preview:
+ * it counts the `CompositionChoice`s about to be sent, by kind. The two fields are
+ * the `Signature` the contract asks for — a signature without a written
+ * justification is never recorded — and the checkbox accepts that it becomes immutable.
  */
 
 import { useState } from 'react'

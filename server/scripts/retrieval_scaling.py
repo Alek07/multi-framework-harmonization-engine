@@ -1,68 +1,28 @@
-"""UCM-51 - How the retriever behaves as the corpus grows, measured on this project's own data.
+"""How the retriever behaves as the corpus grows, measured on this project's data.
 
-The question is whether semantic retrieval starts to *discriminate* as the
-catalog grows, or whether the flat similarity band recorded at v0.1.0 (~0.90 for
-the first hit, ~0.83 for the tenth, `app/retrieval/service.py`) was a property of
-the model rather than of a small, homogeneous corpus. It is answered with real
-measurement points rather than synthetic corpora, because the repo happens to
-contain the curve already: four frozen catalog versions.
+Asks whether semantic retrieval starts to discriminate as the catalog grows, using
+the four frozen catalog versions as real measurement points -- though only
+v0.1.0 -> v0.2.0 (69 -> 225 controls) is a size change; v0.3.0 and v0.4.0 add one
+control and only vary text and payload at constant size. The comparison is
+controlled: v0.1.0's capabilities and controls are a strict subset of v0.4.0's and
+the 24 capability query texts are byte-identical across versions. One reported
+confounder: 20 of the 69 shared controls had their title or description edited
+after v0.1.0. Precision is deliberately not measured -- a hit outside the author's
+mappings is the feature (invariant 2), not an error -- nor is anything scored
+against the golden baseline (invariant 9).
 
-**Two size points, not four.** The versions are v0.1.0 (69 controls), v0.2.0
-(225), v0.3.0 (226) and v0.4.0 (226). The growth all happens once, at
-v0.1.0 -> v0.2.0; the last two add one control between them. So v0.3.0 and v0.4.0
-are not points on a *size* curve — they measure what changing the text and the
-payload does at constant size, which is a different and smaller question. Saying
-this here rather than plotting four points as if they were four sizes is the
-whole difference between a curve and a decoration.
+Three arms over the same corpora:
 
-**The comparison is controlled.** v0.1.0's 24 capabilities and 69 controls are a
-strict subset of v0.4.0's, and the 24 capability texts are byte-identical across
-every version — so the same 24 queries run against every corpus, which is what
-makes the numbers comparable. One confounder is real and is reported instead of
-hidden: 20 of the 69 shared controls had their title or description edited after
-v0.1.0, so the passages are not perfectly frozen. The report counts how often
-those 20 reach a top-k, which is the size of the doubt.
+* `plain` -- the shipped query, `capability_text`.
+* `zone`  -- the same query with the zone's context appended, to measure dilution
+  (a bi-encoder folds the whole string into one vector; negation is invisible).
+* `title` -- the passage reduced to the control's title, the description dropped,
+  to measure how much of the ranking the description carries.
 
-**What is measured, and what is deliberately not.** Measured: the opening of the
-similarity band, how hard the `top_k` cut is (what fraction of the catalog it
-keeps, and how many near-ties it slices through blind — the input UCM-54 needs),
-recall of the author's own mappings at several k, whether the retrieved set
-changes from zone to zone, cost and latency, and the silent-omission invariant at
-every size. Not measured: precision. Retrieval exists to widen (invariant 2), so
-a hit outside the author's mappings is the feature and counting it as an error
-would be measuring the opposite of the thing. Not measured either: precision and
-recall against the golden baseline. That instrument exists (UCM-5) but lives
-outside the repo by design — built blind to the catalog, held and frozen by the
-author — and invariant 9 forbids the engine from reading it. It is also frozen
-against the v0.1.0 world, which the `recall_frozen_truth` metric here happens to
-show the cost of: judging 226 controls with a 69-control yardstick reports a
-regression the engine did not commit.
-
-Three arms, all against the same corpora:
-
-* `plain` — the shipped query, `capability_text`.
-* `zone` — the same query with the zone's own context appended. Run to *measure
-  the dilution*, not because it is expected to win: a bi-encoder compresses the
-  whole string into one vector and much of a zone's context is negation, which is
-  structurally invisible to it.
-* `title` — the passage reduced to the control's title, with the paraphrased
-  description dropped. A stand-in for the "expanded descriptions" arm of the
-  ticket: expanding the catalog's prose is an authoring bump (a new catalog
-  version), while removing it measures the same thing — how much of the ranking
-  the description is carrying — at no catalog cost. The capability names a
-  control is mapped to are deliberately *not* added to any passage: that would
-  leak the author's mappings into the vector and inflate the recall metric
-  circularly.
-
-The script decides nothing and changes no shipped default. It reads the retriever
-through its own code path (`CatalogIndex`, real Qdrant, real e5) and counts.
-
-It needs Qdrant up, and it leaves it as it found it. Each point of the curve gets
-its own collection — the collection name is a fingerprint of the catalog, so the
-one the API serves is never confused with a measurement — and every collection
-built here is dropped at the end except that one, which is kept precisely so the
-next API start does not have to repopulate it. Vectors built to be measured are
-not deployment state.
+Reads the retriever through its own code path (`CatalogIndex`, real Qdrant, real
+e5) and counts; decides nothing and changes no shipped default. Needs Qdrant up
+and leaves it as it found it: every measurement collection is dropped at the end
+except the active catalog's, kept so the next API start need not repopulate it.
 
 Run from `server/`:
 
@@ -166,16 +126,10 @@ def build_index(
 ) -> tuple[CatalogIndex, float]:
     """One collection for this catalog, optionally with a different passage template.
 
-    A variant template is applied by rewriting the projected payload text before
-    the collection is populated, and by tagging the collection name so it cannot
-    collide with the shipped one. Everything else — the encoder, the filters, the
-    search — is the code the API runs.
-
-    The population is **forced**. `ensure` is idempotent and returns early when the
-    collection is already complete, which is right for the API and useless here:
-    the second run of this script would report a build cost of 0.0 s and call it a
-    measurement. Forcing it is what makes the number on the report the real price
-    of encoding this corpus on this machine.
+    A variant template rewrites the projected payload text and tags the collection
+    name so it cannot collide with the shipped one; everything else is the code the
+    API runs. Population is forced because `ensure` returns early when the collection
+    is already complete, which would report a build cost of 0.0 s on a second run.
     """
     index = CatalogIndex(catalog=catalog)
     if passage is not None:
@@ -214,10 +168,9 @@ def band(scores: list[float]) -> dict[str, float]:
 def near_ties(scores: list[float], k: int) -> int:
     """How many controls sit within `TIE_EPSILON` of the k-th score.
 
-    This is the cut's real ambiguity: `top_k` keeps k of them and drops the rest
-    without being able to tell them apart. It is the number UCM-54 needs, and it
-    is not the same as the band being narrow — a wide band can still be dense
-    exactly where the knife falls.
+    The cut's real ambiguity: `top_k` keeps k of them and drops the rest without
+    being able to tell them apart. Not the same as the band being narrow -- a wide
+    band can still be dense exactly where the knife falls.
     """
     if len(scores) <= k:
         return 0
@@ -232,7 +185,7 @@ def recall_at(ranking: list[str], truth: set[str], k: int) -> float | None:
     return len(set(ranking[:k]) & truth) / len(truth)
 
 
-# --- the sector lens as part of the measurement (UCM-47/UCM-52) -------------------
+# --- the sector lens as part of the measurement ---------------------------------
 
 
 def asset_sectors() -> list[Sector]:
@@ -250,12 +203,12 @@ def asset_sectors() -> list[Sector]:
 
 
 def sector_applicable(control: FrameworkControl, sectors: list[Sector]) -> bool:
-    """Whether the zone's sectors leave this control in scope (UCM-47's own rule).
+    """Whether the zone's sectors leave this control in scope, mirroring the engine.
 
-    An empty declared scope is transversal and always applies — the CIS/CSF/IEC
-    case. Only an *enumerated* scope disjoint from the asset's excludes, which is
-    exactly what `filters.excluded_axes` does; the rule is mirrored rather than
-    reinvented so the metric cannot disagree with the engine it measures.
+    An empty declared scope is transversal and always applies (the CIS/CSF/IEC
+    case); only an enumerated scope disjoint from the asset's excludes, exactly as
+    `filters.excluded_axes` does. Mirrored rather than reinvented so the metric
+    cannot disagree with the engine it measures.
     """
     declared = set(control.applies_to_sectors)
     return not declared or bool(declared & set(sectors))
@@ -266,17 +219,14 @@ def sector_adjusted(
 ) -> set[str]:
     """The frozen ground truth minus what does not govern this asset at all.
 
-    This exists because the yardstick and the engine disagree about a real thing.
-    The truth is frozen at v0.1.0, a catalog that declared **no** sectoral scope
-    whatsoever, so it maps IMO's maritime governance control to a gas pipeline's
-    risk-management capability. UCM-47 later declared that scope, and UCM-52 acts
-    on it. Counting that control as a retrieval miss scores the engine as failing
-    at the moment it is correct — so applicability is read from the *reference*
-    catalog (where it is declared) and applied to the frozen mapping set.
-
-    Applied identically at every point of the curve, including the ones whose own
-    catalog declares nothing, because a yardstick that changes between points
-    measures nothing.
+    The yardstick and the engine disagree about a real thing: the truth is frozen
+    at v0.1.0, a catalog that declared no sectoral scope, so it maps IMO's maritime
+    governance control to a gas pipeline's risk-management capability. The scope
+    was declared later, so counting that control as a retrieval miss scores the
+    engine as failing when it is correct -- applicability is read from the
+    reference catalog (where it is declared) and applied to the frozen mapping set.
+    Applied identically at every point of the curve, because a yardstick that
+    changes between points measures nothing.
     """
     return {
         control_id
@@ -338,10 +288,10 @@ def measure_point(
     """Band, cut and recall for one corpus under one arm.
 
     Two rankings are read, not one. The unfiltered ranking is the bi-encoder on
-    its own — the subject of the curve. The second applies the engine's own
-    sectoral lens (UCM-52) and is scored against the applicability-corrected
-    ground truth, because those two belong together: filtering the ranking while
-    still demanding a maritime control back would measure a contradiction.
+    its own -- the subject of the curve. The second applies the engine's own
+    sectoral lens and is scored against the applicability-corrected ground truth,
+    because those two belong together: filtering the ranking while still demanding
+    a maritime control back would measure a contradiction.
     """
     lens_filter = to_qdrant(sector_lens)
     per_capability: dict[str, Any] = {}
@@ -438,10 +388,10 @@ def zone_discrimination(version: str, catalog: Catalog, gating_path: str) -> dic
     """Does the retrieved set change from zone to zone? Measured through the shipped service.
 
     Run per profile, with the deterministic core's own resolution and gating, so
-    what is compared is what an operator would actually be shown — including the
-    sector lens UCM-52 builds from the zone. Two zones of one profile that come
-    back with identical sets mean the retrieval is not reading the asset yet, and
-    that is a finding, not a bug in the measurement.
+    what is compared is what an operator would actually be shown, including the
+    sector lens the engine builds from the zone. Two zones of one profile that come
+    back with identical sets mean retrieval is not reading the asset yet -- a
+    finding, not a bug in the measurement.
     """
     service = RetrievalService(index=CatalogIndex(catalog=catalog))
     gating_rules = load_gating_rules(gating_path)
@@ -734,7 +684,7 @@ def report(
         )
         print(f"   v{version:6} {cells}")
 
-    print("\n== Recall con la lente sectorial del motor aplicada (UCM-47/UCM-52)")
+    print("\n== Recall con la lente sectorial del motor aplicada")
     print("   La lente filtra el ranking; la verdad corregida además descuenta del patrón los")
     print("   controles cuyo ámbito declarado no gobierna este activo.")
     print(f"   {'versión':8} {'sin lente':>20}  {'con lente':>10}  {'+ verdad corregida':>20}")

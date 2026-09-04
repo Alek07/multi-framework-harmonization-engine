@@ -1,22 +1,21 @@
-"""UCM-11 - Derivation of the log from the deterministic core's output.
+"""Derivation of the log from the deterministic core's output.
 
 Pure and deterministic: the same core output always yields the same entries, in
-the same order, with the same texts. Only `sequence`, `recorded_at` and the
-hashes come from the ledger (`repository.py`) — everything a reader needs to
-understand *why* is computed here, from what the engine already decided.
+the same order, with the same texts. Only `sequence`, `recorded_at` and the hashes
+come from the ledger (`repository.py`) — everything a reader needs to understand
+*why* is computed here, from what the engine already decided.
 
-The trail follows the pipeline: mapping → conflict resolution → gating →
-prioritisation, and it closes the run. Two rules shape what gets written:
+The trail follows the pipeline (mapping → conflict resolution → gating →
+prioritisation) and closes the run. Two rules shape what gets written:
 
-* **Nothing silent.** Every capability of the catalog leaves a mark in every
-  zone (`capability_mapped`), whether it has candidates or is an explicit gap,
-  and each stage closes with a `stage_completed` that names the capabilities it
-  accounted for. The 0-silent-omissions invariant is therefore measurable *on the
-  log itself*, not only on the engine's return value.
+* **Nothing silent.** Every capability leaves a mark in every zone
+  (`capability_mapped`), candidates or explicit gap, and each stage closes with a
+  `stage_completed`. The 0-silent-omissions invariant is therefore measurable on
+  the log itself, not only on the engine's return value.
 * **Nothing anonymous.** Each entry carries the actor (always `engine` here — the
   human's entries come from `service.record_human_decision`), the component that
-  decided (`actor_ref`), the declared rule that fired (`rule_id`) and the versions
-  of the inputs that governed it.
+  decided (`actor_ref`), the rule that fired (`rule_id`) and the versions of the
+  inputs that governed it.
 """
 
 from __future__ import annotations
@@ -52,8 +51,8 @@ ACTOR_REFS: dict[AuditStage, str] = {
     AuditStage.CONFLICT_RESOLUTION: "engine.conflicts",
     AuditStage.GATING: "engine.gating",
     AuditStage.PRIORITIZATION: "engine.prioritization",
-    # The RAG pass (UCM-13) is engine-authored too: the retriever offers, it does
-    # not decide, so its entries are the engine's — never the model's.
+    # The RAG pass is engine-authored too: the retriever offers, it does not
+    # decide, so its entries are the engine's — never the model's.
     AuditStage.RETRIEVAL: "engine.retrieval",
 }
 
@@ -130,7 +129,7 @@ def trail_for_core_run(
     return trail.entries
 
 
-# --- steps 1-2: mapping and conflict resolution (UCM-8) -----------------------
+# --- steps 1-2: mapping and conflict resolution ------------------------------
 
 
 def _mapping(trail: _Trail, zone: ZoneResolution) -> None:
@@ -281,7 +280,7 @@ def _gap(trail: _Trail, stage: AuditStage, gap: CapabilityGap, note: str = "") -
     )
 
 
-# --- step 3: gating (UCM-9) ---------------------------------------------------
+# --- step 3: gating -----------------------------------------------------------
 
 
 def _gating(trail: _Trail, zone: ZoneGating, before: ZoneResolution) -> None:
@@ -361,7 +360,7 @@ def _capability_status(trail: _Trail, capability: CapabilityGating) -> None:
     )
 
 
-# --- step 4: prioritisation (UCM-10) ------------------------------------------
+# --- step 4: prioritisation ---------------------------------------------------
 
 
 def _prioritization(trail: _Trail, zone: ZonePrioritization) -> None:

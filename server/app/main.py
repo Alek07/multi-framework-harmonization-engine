@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 # Uvicorn configures its own loggers and leaves the root one without a handler, so
 # without this the application's own messages go nowhere. That matters here more
-# than it usually would: populating the index at startup is best-effort by design
-# (UCM-13), and a failure that is only *logged* has to actually be visible to
-# whoever ran `docker compose up`. No-op when the root logger is already set up.
+# than usual: populating the index at startup is best-effort by design, and a
+# failure that is only *logged* has to be visible to whoever ran
+# `docker compose up`. No-op when the root logger is already set up.
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:     %(name)s - %(message)s")
 # httpx logs one line per request, and loading the embedding model makes ~25 of
 # them to the model hub. They would bury the two lines that actually say whether
@@ -26,22 +26,18 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 async def _populate_catalog_index() -> None:
-    """Populate Qdrant from the catalog (UCM-13), off the event loop and off the path.
+    """Populate Qdrant from the catalog, off the event loop and off the request path.
 
-    Deliberately a background task rather than a step of startup. Building the
-    index means loading a ~1.1 GB embedding model — downloaded on first run — and
-    talking to a container that may still be coming up, and the API has to serve
-    `/health` in the meantime (the same reasoning as the lazy Ollama check in
-    UCM-12). The index is derived data: a failure here costs a rebuild, never
-    state, so it is logged and never fatal. Retrieval calls `ensure` itself before
-    its first query, so a backend that started before Qdrant did still works.
+    Deliberately a background task rather than a step of startup: building the
+    index loads a ~1.1 GB embedding model (downloaded on first run) and talks to a
+    container that may still be coming up, while the API must keep serving
+    `/health`. The index is derived data — a failure costs a rebuild, never state,
+    so it is logged and never fatal; retrieval calls `ensure` before its first
+    query, so a backend that started before Qdrant still works.
 
-    The warm-up is part of the same job and not an optimisation bolted on. When
-    the collection already exists — every start after the first — `ensure`
-    returns without touching the model, and the weights would otherwise be
-    deserialised inside the operator's first `POST /candidates`, which is the one
-    request they are watching. Loading it here moves that minute to a place where
-    nobody is waiting on it.
+    The warm-up is part of the same job: once the collection exists, `ensure`
+    returns without touching the model, so the weights are deserialised here
+    rather than inside the operator's first `POST /candidates`.
     """
     from app.retrieval.index import CatalogIndex
 
@@ -64,12 +60,12 @@ async def _populate_catalog_index() -> None:
 
 
 async def _warm_language_model() -> None:
-    """Load the 7B into Ollama's memory (UCM-12), off the event loop and off the path.
+    """Load the 7B into Ollama's memory, off the event loop and off the request path.
 
     Same contract as the index warm-up above, against a measured cost: 262 s for a
     cold parse against 77 s for a warm one, same answer. The compose entrypoint
     preloads too; this covers a backend restarted after Ollama evicted the model,
-    and the M2 setup where the backend runs natively.
+    and the setup where the backend runs natively.
     """
     from app.parse.ollama import warm_model
 
@@ -90,7 +86,7 @@ async def _warm_language_model() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Bring up the SQLite schema the audit log lives in (UCM-11).
+    """Bring up the SQLite schema the audit log lives in.
 
     The two warm-ups then run concurrently in the background. They compete for CPU
     on a small machine, which still beats paying both inside the operator's first
@@ -129,9 +125,8 @@ def create_app() -> FastAPI:
     register_middleware(app)
     register_exception_handlers(app)
 
-    # Liveness probe, not part of the API surface. The closed surface is the
-    # five endpoints of §7.4 (M3); this one exists so the compose healthcheck
-    # can tell a started container from a serving one (UCM-20).
+    # Liveness probe, not part of the closed API surface; it lets the compose
+    # healthcheck tell a started container from a serving one.
     health_router = APIRouter()
 
     @health_router.get("/health")
@@ -140,8 +135,8 @@ def create_app() -> FastAPI:
 
     root_router = APIRouter()
     root_router.include_router(health_router, tags=["health"])
-    # The five endpoints of §7.4, declared as data in `app/api/router.py` so that
-    # a sixth one cannot appear without the surface test noticing (invariant 4).
+    # The closed API surface, declared as data in `app/api/router.py` so no
+    # endpoint can appear without the surface test noticing.
     root_router.include_router(api_router())
 
     app.include_router(root_router, prefix=settings.API_V1_PREFIX)

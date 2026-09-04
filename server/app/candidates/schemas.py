@@ -23,12 +23,11 @@ from app.retrieval.schemas import (
 
 
 class ExplainScope(BaseModel):
-    """Which capabilities of which zone the operator has open (UCM-14).
+    """Which capabilities of which zone the operator has open.
 
-    Explicit and never defaulted to "all". One request explains one capability and
-    takes minutes on the reference CPU machine, so explaining a whole zone eagerly
-    would put minutes of P1 in front of a P0 result. The operator opens a
-    capability; that capability is explained.
+    Explicit, never defaulted to "all": one explanation takes minutes on the
+    reference CPU, so a whole zone eagerly would put minutes of P1 before a P0
+    result. The operator opens a capability; that capability is explained.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -174,8 +173,8 @@ class ZoneCandidates(BaseModel):
     # Real contradictions the engine must not settle: they go to the human as they
     # are, and they are the reason a "most restrictive wins" rule was refused.
     open_decisions: list[Conflict] = Field(default_factory=list)
-    # Tier 0 of this zone is complete — the pre-signature condition of UCM-16,
-    # reported here so the operator sees it while composing, not at signing time.
+    # Tier 0 of this zone is complete — the pre-signature condition, reported here
+    # so the operator sees it while composing, not at signing time.
     tier_0_complete: bool
     outstanding_capability_ids: list[str] = Field(default_factory=list)
     rationale: str
@@ -190,10 +189,9 @@ class ZoneCandidates(BaseModel):
 class CandidatesResponse(BaseModel):
     """Response of `POST /candidates`: the run, its versions, and the options per zone.
 
-    `run_id` is the handle the whole composition hangs from. The engine's decisions
-    behind this response are already in the ledger when it is returned, and
-    `POST /baseline/compose` (UCM-16) quotes this same id so the human's choices
-    chain onto the run they were made from.
+    `run_id` is the handle the whole composition hangs from: the engine's decisions
+    are already in the ledger when this returns, and `POST /baseline/compose` quotes
+    the same id so the human's choices chain onto the run they were made from.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -211,8 +209,8 @@ class CandidatesResponse(BaseModel):
     explanations_notice: str | None = None
     zones: list[ZoneCandidates] = Field(default_factory=list)
     tier_0_complete: bool
-    # How many entries this run appended to the append-only log (UCM-11). Reported
-    # so a caller can check that the decisions it is reading were recorded.
+    # How many entries this run appended to the append-only log, so a caller can
+    # check that the decisions it is reading were recorded.
     audit_events: int = 0
 
     def zone(self, zone_id: str) -> ZoneCandidates:

@@ -1,4 +1,4 @@
-"""UCM-11 - Fixtures of the traceable log: the service and the two runs' trails."""
+"""Fixtures of the traceable log: the service and the two runs' trails."""
 
 from uuid import UUID, uuid4
 

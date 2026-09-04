@@ -1,19 +1,16 @@
-"""UCM-53 - What a control presupposes of a zone: the model's proposal, and its review.
+"""What a control presupposes of a zone: the model's proposal, and its review.
 
-**Nothing in this package runs in the request path.** This is catalog authorship.
-A script (`scripts/tag_presuppositions.py`) walks the versioned catalog once,
-asks the model what each control needs to be true of a zone, screens the answers
-deterministically, and writes a *proposal* file. A human reads it, corrects it,
-and merges what survives into the catalog sources. From then on the fact is
-frozen in Git and the engine reads it with no model anywhere near a request.
+**Nothing in this package runs in the request path** — this is catalog authorship.
+A script (`scripts/tag_presuppositions.py`) walks the catalog once, asks the model
+what each control needs, screens the answers deterministically, and writes a
+proposal file; a human corrects it and merges what survives into the catalog
+sources, and from then on the engine reads a fact frozen in Git.
 
-That ordering is the point rather than an optimisation. The blindness being
-fixed is structural in a bi-encoder — "no hay workstation" and "workstation" land
-in nearly the same place in one 768-dim vector, measured at -14 to -19 points of
-recall when the zone text was folded into the query (UCM-51) — and the reading
-that fixes it is the *same* for every asset, zone and run. Doing it once, under
-review, buys a deterministic answer forever. Doing it per request would buy a
-slower and less reproducible one, and would put a 7B on the path of a baseline.
+That ordering is the point. The blindness being fixed is structural in a
+bi-encoder — "no hay workstation" and "workstation" land in nearly the same place
+in one 768-dim vector — and the reading that fixes it is the *same* for every
+asset, zone and run. Doing it once, under review, buys a deterministic answer
+forever without putting a 7B on the path of a baseline.
 
 So the chain is: **the model proposes, a deterministic guard screens, the human
 authorises, and only then does a rule decide.**

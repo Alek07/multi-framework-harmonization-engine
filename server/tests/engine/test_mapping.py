@@ -1,4 +1,4 @@
-"""UCM-8 - Step 1: every capability, every candidate, nothing dropped."""
+"""Step 1: every capability, every candidate, nothing dropped."""
 
 from app.assets.schemas import TechNature
 from app.catalog.schemas import (

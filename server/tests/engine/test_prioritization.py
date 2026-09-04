@@ -1,4 +1,4 @@
-"""UCM-10 - Step 4: two tiers that are never ranked against each other.
+"""Step 4: two tiers that are never ranked against each other.
 
 Tier 0 is what the zone's SL-target (or the law) makes obligatory: it is not
 prioritised, it is completed. Tier 1 is the only thing the engine orders, and it
@@ -119,10 +119,10 @@ def test_a_legal_obligation_is_mandatory_whatever_the_sl_target_says(
     assert report.tier is PriorityTier.TIER_0
     legal = [m for m in report.mandates if m.source is MandateSource.LEGAL_OBLIGATION]
     # The jurisdiction travels with the mandate — it is the matter of the regional
-    # delta. This onshore pipeline is governed on both sides now (UCM-48): the
-    # European obligation (NIS2) and the US one (CIRCIA transversal + TSA SD-01,
-    # since the asset is 'transport'). The maritime obligation does not govern its
-    # sector (UCM-47), so it creates no mandate.
+    # delta. This onshore pipeline is governed on both sides: the European
+    # obligation (NIS2) and the US one (CIRCIA transversal + TSA SD-01, since the
+    # asset is 'transport'). The maritime obligation does not govern its sector, so
+    # it creates no mandate.
     assert {m.jurisdiction for m in legal} == {Jurisdiction.EU, Jurisdiction.US}
     # Gating deferred it to the organizational layer; the obligation did not disappear.
     assert report.layer is ImplementationLayer.ORGANIZATIONAL
@@ -324,7 +324,7 @@ def test_a_mandate_is_never_deferred_by_a_discretionary_prerequisite(
     """A Tier 0 mandate lands in phase 0 even when a Tier 1 prerequisite is not ready.
 
     The prerequisite is declared by the test rather than borrowed from the shipped
-    rules on purpose: once the US legal corpus (UCM-48) made the TSA gap assessment
+    rules on purpose: once the US legal corpus made the TSA gap assessment
     (CAP-ID-RISK) a legal mandate for this pipeline, both ends of the catalog's
     PATCH←ID-RISK edge are Tier 0, so the ordering mechanic needs a pair that is
     still one mandate and one discretionary capability. Patch management is Tier 0

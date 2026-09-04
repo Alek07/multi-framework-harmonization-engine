@@ -1,14 +1,11 @@
-"""UCM-14 - The claim under test: this layer explains, and it changes nothing.
+"""The claim under test: this layer explains, and it changes nothing.
 
-Every test below scripts a way for the model to overstep or to fail, and asserts
-the same two things afterwards: the candidates the operator sees are exactly the
-ones the deterministic core and the RAG pass offered, in the same order, and
-whatever the model did or did not do is visible on the record rather than
-silently absorbed.
-
-The failure paths get more attention than the happy one on purpose. A P1 feature
-that works is worth a paragraph of prose; a P1 feature that breaks P0 would be
-worth the whole POC's credibility.
+Every test below scripts a way for the model to overstep or to fail, and asserts the
+same two things: the candidates the operator sees are exactly the ones the core and
+the RAG pass offered, in the same order, and whatever the model did or did not do is
+visible on the record rather than silently absorbed. The failure paths get more
+attention than the happy one on purpose — a P1 feature that breaks P0 would cost the
+whole POC's credibility.
 """
 
 from __future__ import annotations
@@ -72,7 +69,7 @@ async def test_the_same_candidates_and_the_same_reply_give_the_same_view(case: C
 
 
 async def test_a_recommendation_is_withheld_and_the_candidate_is_not(case: Case) -> None:
-    """The sentence the ticket exists to prevent, on the first candidate."""
+    """The sentence this layer exists to prevent, on the first candidate."""
     facts = case.facts
     reply = batch_json(
         [

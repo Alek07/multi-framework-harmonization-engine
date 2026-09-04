@@ -1,19 +1,9 @@
-"""UCM-8 - Step 2 of the core: conflict resolution.
+"""Step 2 of the core: conflict resolution. Never "most restrictive wins".
 
-Three situations, and never "the most restrictive wins":
-
-* **Overlap** — several frameworks reach the same outcome. The neutral
-  capability collapses them into one requirement with N equivalent options side
-  by side; no requirement is duplicated and no option is discarded.
-* **Granularity (1:N)** — the capability is only reached by pieces. Coverage
-  weights are reported and the residual is flagged as an explicit gap.
-* **Real contradiction** — declared in the rule set. It is settled by the
-  zone's context (ICS->OT, NIST->IT), and the losing mechanism is *marked*, not
-  removed. Where the OT safety override applies, the engine does not settle it
-  at all: it hands the decision to the human.
-
-Resolution is independent of catalog ingestion order: every choice is made from
-declared rules and deterministic tie-breakers, never from list position.
+Three situations: overlap (collapse into one capability, options side by side),
+granularity 1:N (report coverage weights, flag the residual), real contradiction
+(settle by zone context, mark the loser, or hand a safety override to the human).
+Resolution is independent of catalog ingestion order.
 """
 
 from __future__ import annotations
@@ -68,8 +58,8 @@ def resolve_capability(
 def _effective(options: list[CandidateOption]) -> list[CandidateOption]:
     """Options that count as coverage: not superseded and not a contextual overlay.
 
-    A contested option still counts — the safety override does not remove the
-    mechanism, it hands the choice to the human.
+    A contested option still counts: the safety override hands the choice to the
+    human, it does not remove the mechanism.
     """
     return [
         o

@@ -1,12 +1,10 @@
-"""UCM-46 - The same declaration as a partial OSCAL SSP: what it claims and what it does not.
+"""The same declaration as a partial OSCAL SSP: what it claims and what it does not.
 
-The value of this export is only as good as its honesty, so that is what is
-asserted here: the blocks OSCAL requires are present, every state comes from the
-model's own vocabulary, everything the model does not define is namespaced as an
-extension instead of being smuggled into a core field, and the one case the model
-has no state for — a gap accepted in writing — is flagged rather than smoothed
-over. Plus the property the whole POC rests on: the same baseline exports to the
-same bytes, ids included.
+The export is only as good as its honesty, so that is what is asserted: the blocks
+OSCAL requires are present, every state comes from the model's own vocabulary,
+anything the model does not define is namespaced as an extension, and the one case
+it has no state for — a gap accepted in writing — is flagged, not smoothed over.
+Plus the POC-wide property: the same baseline exports to the same bytes, ids included.
 """
 
 from __future__ import annotations

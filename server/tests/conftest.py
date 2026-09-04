@@ -1,8 +1,7 @@
 """Shared fixtures: the in-memory database and the versioned inputs of the core.
 
-The catalog, the rules and the two hand-written profiles are inputs of the whole
-POC, not only of the engine: the audit-log tests (UCM-11) record the very same
-runs the engine tests assert on, so the core fixtures live here.
+The catalog, rules and two hand-written profiles are inputs of the whole POC, so
+the core fixtures live here (the audit-log tests record the same runs).
 """
 
 from collections.abc import AsyncGenerator, Generator
@@ -32,8 +31,8 @@ PROFILE_B = "PROFILE-B"
 # The tests own their schema: it is created and dropped per test on an in-memory
 # database, so the app's startup must not touch the configured SQLite file.
 settings.CREATE_TABLES_ON_STARTUP = False
-# Nor may starting the app reach for Qdrant or load the ~1.1 GB embedding model
-# (UCM-13): the suite must run on any machine, offline, with no containers up.
+# Nor may starting the app reach for Qdrant or load the ~1.1 GB embedding model:
+# the suite must run on any machine, offline, with no containers up.
 settings.RAG_POPULATE_ON_STARTUP = False
 
 engine = create_async_engine(
@@ -73,7 +72,7 @@ def client() -> Generator[TestClient, None, None]:
         yield c
 
 
-# --- versioned inputs and core runs (UCM-8/UCM-9/UCM-10) ----------------------
+# --- versioned inputs and core runs -------------------------------------------
 
 
 @pytest.fixture(scope="session")

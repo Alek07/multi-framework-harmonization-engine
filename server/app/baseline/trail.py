@@ -1,25 +1,21 @@
-"""UCM-16 - The human's half of the ledger: what was composed, and on whose word.
+"""The human's half of the ledger: what was composed, and on whose word.
 
-`audit/trail.py` derives the engine's entries and `retrieval/trail.py` the RAG
-pass's. This derives the operator's, and it is the one place in the system where
-the actor is a person. Everything here is pure: the same composition over the same
-run always produces the same entries, in the same order, with the same texts —
-only `sequence`, `recorded_at` and the hashes come from the ledger.
+`audit/trail.py` derives the engine's entries, `retrieval/trail.py` the RAG
+pass's; this derives the operator's — the one place the actor is a person. Pure:
+the same composition over the same run always produces the same entries, in the
+same order and texts; only `sequence`, `recorded_at` and the hashes come from the
+ledger.
 
-Three properties are what make the trail worth the claim the TFM rests on.
+Three properties:
 
-* **Every mandatory capability leaves a human-authored entry.** Chosen,
-  compensated, accepted as a gap, or ratified — but never absent. A mandatory
-  mechanism cannot end up in a signed baseline with nobody's name on it.
-* **Ratifying is not choosing, and the log says which happened.**
-  `MECHANISM_RATIFIED` carries the operator's signature rationale and the engine's
-  own gating rationale, and says plainly that no selection among equivalents took
-  place. `OPTION_SELECTED` is written only when the operator actually picked.
-* **An adopted suggestion is never laundered into a mapping.** When the chosen
-  control is one the catalog does not map to that capability, the entry records
-  it as `adopted_suggestion` with that fact in the payload. An embedding distance
-  does not become authored evidence because a human agreed with it — what makes it
-  admissible is the human's written reason, and that is what is stored.
+* Every mandatory capability leaves a human-authored entry — chosen, compensated,
+  accepted as a gap, or ratified, never absent.
+* Ratifying is not choosing, and the log says which: `MECHANISM_RATIFIED` is
+  written when no selection among equivalents took place, `OPTION_SELECTED` only
+  when the operator actually picked.
+* An adopted suggestion is never laundered into a mapping: a control the catalog
+  does not map is recorded as `adopted_suggestion`, admissible on the human's
+  written reason, not on an embedding distance.
 """
 
 from __future__ import annotations

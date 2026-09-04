@@ -1,16 +1,14 @@
-"""UCM-11 - Tamper-evident chain over the append-only log.
+"""Tamper-evident chain over the append-only log.
 
-"Append-only" is easy to declare and hard to prove. The table forbids `UPDATE`
-and `DELETE` with triggers (`models.py`), but a trigger only protects the log
-while it is being used through the database: anyone with the SQLite file can
-still rewrite a row. So every event also carries the SHA-256 digest of its own
-canonical form *including the digest of the previous event*. Re-walking the chain
-(`verify_chain`) turns a silent edit into a detectable one — which is what a
-baseline signed against this log actually needs.
+Triggers forbid `UPDATE`/`DELETE` (`models.py`), but that only protects the log
+while it is used through the database — anyone with the SQLite file can still
+rewrite a row. So every event also carries the SHA-256 digest of its own canonical
+form *including the previous event's digest*; re-walking the chain (`verify_chain`)
+turns a silent edit into a detectable one.
 
 The digest is computed over the stored values, normalised (enums by value, UUIDs
-and timestamps as strings, UTC), so it can be recomputed after reading the row
-back — or by whoever receives the log through the API — and still match.
+and timestamps as strings, UTC), so it recomputes to the same value after the row
+is read back or received through the API.
 """
 
 from __future__ import annotations

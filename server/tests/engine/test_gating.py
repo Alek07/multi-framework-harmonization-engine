@@ -1,4 +1,4 @@
-"""UCM-9 - Step 3: the three gating outcomes and the golden rule that bounds them.
+"""Step 3: the three gating outcomes and the golden rule that bounds them.
 
 Gating removes *mechanisms*, never required *capabilities*, and never silently:
 every exclusion carries its rule, the premises read from the profile and a
@@ -54,12 +54,11 @@ def test_not_applicable_excludes_the_mechanism_without_opening_a_gap(
 def test_justified_exclusions_are_a_deliverable_of_the_zone(gating_a: ProfileGating) -> None:
     """Frozen on purpose: the excluded list is what the operator signs, not a side effect.
 
-    Three kinds of `no aplica` sit here together, and they come from three
-    different places: the technical ones a hand-written rule fires on the embedded
-    controller; the sectoral ones (UCM-47) — the seven IMO controls govern ships,
-    not an onshore gas pipeline; and the ones the *control itself* declares
-    (UCM-53) — a premise it needs that this zone answers the other way. All three
-    are deliverables, not gaps.
+    Three kinds of `no aplica` sit here together: the technical ones a hand-written
+    rule fires on the embedded controller; the sectoral ones (the seven IMO
+    controls govern ships, not an onshore pipeline); and the ones the *control
+    itself* declares (a premise this zone answers the other way). All are
+    deliverables, not gaps.
     """
     exclusions = gating_a.zone(ZONE_OT).justified_exclusions
     assert {d.control_id for d in exclusions} == {
@@ -78,23 +77,23 @@ def test_justified_exclusions_are_a_deliverable_of_the_zone(gating_a: ProfileGat
         "CTL-IEC-SR112",
         "CTL-IEC-SR27",
         "CTL-IEC-SR53",
-        # Technical `no aplica` added in gating v0.4.0 (UCM-55): mechanisms an
-        # embedded, non-hybrid OT zone does not host. Mobile code needs a
-        # general-purpose runtime; data ACLs, secure disposal, data-flow
-        # documentation and sensitivity segmentation presuppose business data;
-        # personnel-activity monitoring presupposes interactive users.
+        # Technical `no aplica` added in gating v0.4.0: mechanisms an embedded,
+        # non-hybrid OT zone does not host. Mobile code needs a general-purpose
+        # runtime; data ACLs, secure disposal, data-flow documentation and
+        # sensitivity segmentation presuppose business data; personnel-activity
+        # monitoring presupposes interactive users.
         "CTL-IEC-SR24",
         "CTL-CIS-0303",
         "CTL-CIS-0305",
         "CTL-CIS-0308",
         "CTL-CIS-0312",
         "CTL-CSF-DECM03",
-        # Premise exclusions (UCM-53): the control declares what it needs of the
-        # zone, and this zone has no general-purpose OS and nobody logged in. The
-        # split inside FR1 is the one worth reading: SR 1.7 grades *passwords*,
-        # which only humans type, so it leaves on the premise — while SR 1.9,
-        # which grades public-key authentication and is how a device
-        # authenticates, leaves on the cryptography rule instead.
+        # Premise exclusions: the control declares what it needs of the zone, and
+        # this zone has no general-purpose OS and nobody logged in. The split
+        # inside FR1 is worth reading: SR 1.7 grades *passwords*, which only humans
+        # type, so it leaves on the premise — while SR 1.9, which grades public-key
+        # authentication (how a device authenticates), leaves on the cryptography
+        # rule instead.
         "CTL-CIS-0205",
         "CTL-CIS-0504",
         "CTL-IEC-SR11",
@@ -191,7 +190,7 @@ def test_wrong_scope_defers_the_capability_to_the_organizational_layer(
     assert report.required is True
     assert report.deferred_to  # the layer that goes on answering for it is named
     # The organizational overlay is deferred with a named layer; the maritime
-    # obligation is not deferred at all — it does not govern this sector (UCM-47).
+    # obligation is not deferred at all — it does not govern this sector.
     deferred = [d for d in report.excluded if d.outcome is GatingOutcome.WRONG_SCOPE]
     assert deferred
     assert all(d.deferred_to for d in deferred)
@@ -204,7 +203,7 @@ def test_a_legal_obligation_is_never_a_mechanism(gating_a: ProfileGating) -> Non
 
     NIS2 governs this asset (it is transversal), so it is deferred to the
     organizational layer. IMO governs ships, not an onshore pipeline: it is not
-    deferred but excluded by sector (UCM-47) — offering it would assert a maritime
+    deferred but excluded by sector — offering it would assert a maritime
     obligation the pipeline does not have.
     """
     deferrals = {d.control_id for d in gating_a.zone(ZONE_OT).organizational_deferrals}
@@ -310,8 +309,8 @@ def test_the_technical_gating_is_what_separates_the_two_profiles(
 ) -> None:
     hybrid = gating_b.zone(ZONE_ENG)
     # The general-purpose host triggers no *technical* `no aplica`. The sectoral
-    # exclusions (UCM-47) are common to both profiles — both are energy — so they
-    # do not separate the two; the technical gating is what does.
+    # exclusions are common to both profiles — both are energy — so they do not
+    # separate the two; the technical gating is what does.
     technical_na = [
         d for d in hybrid.justified_exclusions if d.rule_id != "APPLIC-SECTOR"
     ]

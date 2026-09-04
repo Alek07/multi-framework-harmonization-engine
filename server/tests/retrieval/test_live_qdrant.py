@@ -1,9 +1,7 @@
-"""UCM-13 - The RAG against the real Qdrant and the real e5-base. `uv run pytest -m rag`.
+"""The RAG against the real Qdrant and the real e5-base. `uv run pytest -m rag`.
 
 Deselected by default because it needs the container up and the ~1.1 GB model on
-disk — the rest of the suite must stay runnable on any machine, offline. What it
-checks is what a fake ranker cannot check, because it is about the retrieval
-itself:
+disk. What it checks is what a fake ranker cannot, because it is about retrieval itself:
 
 * the collection really is built from the catalog, and rebuilding it is idempotent;
 * the same query returns the same controls in the same order, twice (invariant 3);
@@ -11,9 +9,6 @@ itself:
   whose titles are the frameworks' English;
 * a payload filter narrows the *view* and hands back everything it set aside;
 * over both hand-written profiles, no catalog candidate is ever lost.
-
-The last one is the ticket's invariant measured end to end, against the real
-index rather than a stand-in.
 """
 
 from __future__ import annotations
@@ -117,7 +112,7 @@ def test_retrieval_actually_widens_something(
 def test_a_jurisdiction_lens_narrows_the_view_and_reports_what_it_hid(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    lens = PayloadFilter(jurisdictions=[Jurisdiction.EU], rationale="lectura europea (UCM-17)")
+    lens = PayloadFilter(jurisdictions=[Jurisdiction.EU], rationale="lectura europea")
     retrieval = service.retrieve_profile(resolution_a, lens)
 
     assert retrieval.set_aside
@@ -130,7 +125,7 @@ def test_a_jurisdiction_lens_narrows_the_view_and_reports_what_it_hid(
 def test_the_sectoral_applicability_sets_out_of_scope_norms_aside(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    """UCM-52 end to end: an energy asset sets the maritime (IMO) norms aside.
+    """Sectoral applicability end to end: an energy asset sets the maritime (IMO) norms aside.
 
     Against the real index and the real nested `should`/`is_empty` filter: the
     out-of-sector norms come back on the sector axis, the transversal controls are

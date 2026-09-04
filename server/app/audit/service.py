@@ -1,21 +1,18 @@
-"""UCM-11 - The log's use cases: record, read back, verify.
+"""The log's use cases: record, read back, verify.
 
-Two authors write here and the service keeps them apart on purpose:
+Two authors write here and the service keeps them apart:
 
 * **The engine** writes a whole run at once (`record_core_run`), derived from what
   the deterministic core already decided (`trail.py`). It never recomputes the
-  core: it receives the resolution, the gating and the prioritisation of *one*
-  run and refuses to log a trail stitched from different ones.
+  core and refuses to log a trail stitched from different runs.
 * **The human** writes one decision at a time (`record_human_decision`) while
-  composing and signing the baseline (UCM-16). Every one of them demands a
-  written justification — that is the whole point of a sovereign composition:
-  not that the operator can choose, but that the choice is on the record.
+  composing and signing, each with a written justification — the point of a
+  sovereign composition is that the choice is on the record.
 
 Reading is by run (`log_for_run`), by baseline (`log_for_baseline`, what
-`GET /baseline/{id}/audit-log` serves) or across the whole ledger
-(`signed_baselines`, what `GET /baselines` serves). Verification (`verify_ledger`)
-re-walks the hash chain: the log does not only claim to be append-only, it can
-show it.
+`GET /baseline/{id}/audit-log` serves) or across the ledger (`signed_baselines`,
+what `GET /baselines` serves). `verify_ledger` re-walks the hash chain: the log
+does not only claim to be append-only, it can show it.
 """
 
 from __future__ import annotations
@@ -71,7 +68,7 @@ class AuditService:
     async def record_retrieval(
         self, retrieval: ProfileRetrieval, run_id: UUID | None = None
     ) -> list[AuditEvent]:
-        """Record the RAG pass of one run (UCM-13): what it added, and to what.
+        """Record the RAG pass of one run: what it added, and to what.
 
         Kept apart from `record_core_run` because the pass is optional — the core
         runs without it and the baseline is composable without it — but it is

@@ -1,20 +1,12 @@
-"""UCM-53 - Propose what each catalog control presupposes of a zone, for review.
+"""Propose what each catalog control presupposes of a zone, for review.
 
-This is catalog authorship, not a request path. It walks the versioned catalog
-once, asks the model what each control needs to be true of a place, screens every
-answer against the control's own text (`app/tagging/guard.py`), and writes a
-**proposal** file. It never touches the catalog: a human reads the proposal,
-corrects it, and merges what survives into `data/catalog/v<version>/*.json`.
-
-Why once and offline rather than per request: the blindness being fixed is
-structural in a bi-encoder and the reading that fixes it is the same for every
-asset, zone and run (UCM-51 measured -14 to -19 points of recall for folding the
-zone into the query). Doing it once, under review, buys a deterministic answer
-forever — and keeps the 7B off the path of a baseline.
-
-Resumable on purpose. 226 controls is a long conversation with a local model, and
-a run that died at 180 should not start over: pass `--resume` and the controls
-already carried in the output file are kept as they are.
+Catalog authorship, not a request path: walks the versioned catalog once, asks the
+model what each control needs true of a place, screens every answer against the
+control's own text (`app/tagging/guard.py`), and writes a proposal file. It never
+touches the catalog -- a human reviews it and merges what survives into
+`data/catalog/v<version>/*.json`. Runs offline and once, keeping the 7B off the
+request path. Resumable: `--resume` keeps the controls already carried in the
+output file, so a run that died partway need not start over.
 
 Run from `server/`, with Ollama up and the pinned model pulled:
 

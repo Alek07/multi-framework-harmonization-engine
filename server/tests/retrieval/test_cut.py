@@ -181,7 +181,7 @@ def test_the_band_reads_the_scores_alone() -> None:
 
 
 def test_a_dense_framework_cannot_own_the_cut() -> None:
-    """The measured failure of UCM-51, prevented: nine siblings do not take nine slots."""
+    """The measured failure, prevented: nine siblings do not take nine slots."""
     hits = [hit(f"CTL-CSF-{i}", 0.88 - 0.001 * i, "CSF") for i in range(9)]
     hits += [hit("CTL-NIS2-A21", 0.845, "NIS2"), hit("CTL-IEC-1", 0.844, "IEC62443")]
     hits += [hit(f"CTL-CIS-{i}", 0.80 - 0.001 * i, "CIS") for i in range(6)]

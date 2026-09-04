@@ -1,24 +1,22 @@
-"""UCM-14 - The explanations against the real model. Opt-in: `uv run pytest -m llm -s`.
+"""The explanations against the real model. Opt-in: `uv run pytest -m llm -s`.
 
-Deselected by default, like the live parse test (UCM-12): it needs Ollama up with
-the pinned model. What it checks cannot be scripted, because it is about the model
-itself and about the one risk this ticket carries — a 7B asked to describe several
-candidates for the same capability will, sooner or later, start comparing them.
+Deselected by default, like the live parse test: it needs Ollama up with the pinned
+model. What it checks cannot be scripted, because it is about the model itself and
+the one risk here — a 7B asked to describe several candidates for the same capability
+will, sooner or later, start comparing them.
 
 * the model returns one explanation per candidate, in the offered order;
 * the same candidates produce the same prose twice (temp 0 + fixed seed);
 * whatever it writes, the candidate list is untouched and every candidate has
   text — generated, withheld or fallen back;
-* how often the guard had to withhold is *printed*, not hidden behind a pass:
-  that number is the honest measure of how well the prompt holds, and it belongs
-  in the evaluation (UCM-18), not in a green tick.
+* how often the guard had to withhold is *printed*, not hidden behind a pass: the
+  honest measure of how well the prompt holds, which belongs in the evaluation.
 
-The tests here run over the stand-in ranker's candidates, which is enough for
-everything above — the prose is the model's, whatever produced the list. The last
-test is marked `rag` as well and runs the whole chain against Qdrant and e5-base
-(`uv run pytest -m "llm and rag" -s`), because one claim does need it: the
-similarity figures the model repeats are only worth reading if they are the ones
-the shipped retriever would put in front of the operator.
+These tests run over the stand-in ranker's candidates, which is enough for the above
+— the prose is the model's, whatever produced the list. The last test is marked
+`rag` as well and runs the whole chain against Qdrant and e5-base
+(`uv run pytest -m "llm and rag" -s`), because the similarity figures the model
+repeats are only worth reading if they are the ones the shipped retriever would show.
 """
 
 from __future__ import annotations

@@ -1,43 +1,31 @@
-"""UCM-15 - The declared surface, assembled in one place and declared as data.
+"""The declared API surface, assembled in one place and declared as data.
 
-Invariant 4 of the project says the API is a closed surface and that any endpoint
-beyond it is scope creep unless justified in writing. A rule like that is easy to
-state and easy to erode one convenient route at a time, so it is written here as
-`SURFACE` — a literal list — and checked against the routes FastAPI actually
-mounted (`tests/api/test_surface.py`). Adding an endpoint without editing this
-list breaks the suite; editing the list is a visible, reviewable act.
+The API is a closed surface (invariant 4): any endpoint beyond it is scope creep
+unless justified in writing. `SURFACE` is that list, checked against the routes
+FastAPI actually mounted (`tests/api/test_surface.py`), so adding an endpoint
+without editing this list breaks the suite.
 
-It has been edited twice, and this is the justification in writing the invariant
-asks for.
+Two additions beyond the five of §7.4, justified here as the invariant asks:
 
-**The sixth, `GET /baselines` (UCM-21).** The five endpoints of §7.4 all take one
-composition as their subject, and the two that mention a baseline take its id —
-which the client that signed it has and any later client does not. Without it the
-record of what was composed would live wherever the browser kept it. It is a read:
-no state, no table, no writer (`baseline/listing.py`).
+**The sixth, `GET /baselines`.** The five §7.4 endpoints all take one composition
+as their subject, and the two that mention a baseline take its id — which the
+client that signed it has and a later client does not. Without it the record of
+what was composed would live wherever the browser kept it. A read: no state, no
+table, no writer (`baseline/listing.py`).
 
-**The seventh, `GET /baseline/{id}/statement` (UCM-46).** The other six answer
-*what happened* (the trail), *what was signed* (the list) and *what to compose
-from* (the engine's three). None of them answers the question a reviewer actually
-arrives with — *what applies to this asset, what does not, and on whose word?* —
-which is a declaration of applicability: one row per required capability, with its
-inclusions and its justified exclusions, its tier, its jurisdiction, its gap and
-its signature. That document is the artefact the disciplines this engine already
-implements are *recognised* by (SoA of ISO/IEC 27001, tailoring of SP 800-53B,
-the CRS of IEC 62443-3-2), and it is what the memoir cites.
+**The seventh, `GET /baseline/{id}/statement`.** None of the others answers the
+question a reviewer arrives with — *what applies to this asset, what does not, and
+on whose word?* — a declaration of applicability (one row per required capability,
+with its inclusions, justified exclusions, tier, jurisdiction, gap and signature).
+That document is the artefact the disciplines this engine implements are
+recognised by (SoA of ISO/IEC 27001, tailoring of SP 800-53B, the CRS of
+IEC 62443-3-2), and it is what the memoir cites. It is the same kind of read as
+the sixth — a projection of the ledger, no table, no writer
+(`baseline/statement.py`) — and it carries the OSCAL export on the same route
+(`?format=oscal`), one document in two spellings.
 
-Three things make it an addition rather than scope creep. It is the same kind of
-read as the sixth — a projection of the ledger, no table, no writer, nothing that
-can drift from the trail (`baseline/statement.py`). Building it in the client
-instead would have put a second, untested implementation of the record in the
-browser and kept the artefact out of Swagger, which is the declared plan B for the
-demo. And it carries the OSCAL export on the same route (`?format=oscal`) rather
-than on a route of its own, because it is one document in two spellings.
-
-`/health` is deliberately not in the list. It is a liveness probe for the compose
-healthcheck (UCM-20), not a function of the engine: it tells a started container
-from a serving one and says nothing about a baseline. Counting it as part of the
-surface would be as wrong as hiding an engine endpoint behind it.
+`/health` is deliberately not in the list: it is a liveness probe for the compose
+healthcheck, not a function of the engine.
 """
 
 from __future__ import annotations
@@ -59,15 +47,13 @@ SURFACE: tuple[tuple[str, str], ...] = (
     ("POST", "/candidates"),
     ("POST", "/baseline/compose"),
     ("GET", "/baseline/{baseline_id}/audit-log"),
-    # UCM-46. The seventh, justified in this module's docstring.
+    # The seventh, justified in this module's docstring.
     ("GET", "/baseline/{baseline_id}/statement"),
-    # Was `GET /delta` in UCM-15/UCM-17, and the change is deliberate rather than
-    # convenient: taking the profile only by id made the delta the one endpoint
-    # that could not be asked about the asset the operator had just composed. It
-    # now names the profile the way the other two engine endpoints do. This
-    # replaced the GET, it did not join it.
+    # A POST rather than a GET on purpose: taking the profile only by id made the
+    # delta the one endpoint that could not be asked about the asset just composed.
+    # It now names the profile the way the other two engine endpoints do.
     ("POST", "/delta"),
-    # UCM-21. The sixth, and the reason it exists is in this module's docstring.
+    # The sixth, justified in this module's docstring.
     ("GET", "/baselines"),
 )
 

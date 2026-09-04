@@ -1,8 +1,8 @@
-"""UCM-12 - The deterministic half: gaps are named, never filled.
+"""The deterministic half: gaps are named, never filled.
 
-These tests never touch a model. What they pin down is the boundary the AI is not
-allowed to cross: a draft with a missing target SL does not become a profile with
-a plausible one, it becomes a list of questions for the operator.
+The boundary the AI is not allowed to cross: a draft with a missing target SL does
+not become a profile with a plausible one, it becomes a list of questions for the
+operator.
 """
 
 from __future__ import annotations
@@ -80,9 +80,9 @@ def test_unstated_target_sl_is_a_gap_not_a_default() -> None:
 
 
 def test_unstated_sectors_are_a_gap_the_operator_closes() -> None:
-    """UCM-47: sectors are asked, never guessed — a norm offered to the wrong
-    asset is a false obligation, so the reviewed profile has to declare at least
-    one. Per-zone sectors stay optional: they only override."""
+    """Sectors are asked, never guessed: a norm offered to the wrong asset is a
+    false obligation, so the reviewed profile must declare at least one. Per-zone
+    sectors stay optional; they only override."""
     assert "sectors" in missing_required(draft())
     assert "sectors" not in missing_required(draft(sectors=["energy"]))
 
@@ -173,9 +173,9 @@ def test_draft_can_express_the_hand_written_profiles(
 ) -> None:
     """The draft schema is not a lossy summary of `AssetProfile`.
 
-    Both validation profiles (UCM-1/UCM-2) survive a round trip through the
-    draft: if the parse cannot represent what an expert wrote by hand, the AI
-    layer would be structurally unable to reach the ground truth of M4.
+    Both validation profiles survive a round trip through the draft: if the parse
+    cannot represent what an expert wrote by hand, the AI layer would be
+    structurally unable to reach the ground truth of M4.
     """
     profile: AssetProfile = request.getfixturevalue(fixture)
 

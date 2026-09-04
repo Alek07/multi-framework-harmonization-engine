@@ -1,28 +1,19 @@
-"""UCM-14 - The explanation instructions, versioned.
+"""The explanation instructions, versioned.
 
-Like the parse prompt (UCM-12), this text is an **input of the result**: the same
-candidates and the same model with a different prompt produce different prose, so
-it is versioned, recorded in `ExplanationProvenance`, and changed by bumping the
+Like the parse prompt, this text is an **input of the result**: the same
+candidates and model with a different prompt produce different prose, so it is
+versioned, recorded in `ExplanationProvenance`, and changed by bumping the
 version rather than by editing a shipped one.
 
-What it has to buy from a 7B model is narrower than the parse's, and harder: the
-model must stay *useful* while being forbidden to help. Asked why several
-controls are on screen for the same capability, the natural completion is a
-comparison ending in a recommendation — the exact output invariant 1 forbids.
-Three devices push against it, in the order the model actually obeys them:
+What it must buy from a 7B is narrow and hard: the model must stay *useful* while
+forbidden to help — asked why several controls are on screen, the natural
+completion is a comparison ending in a recommendation, which invariant 1 forbids.
+Three devices push against it: the negative rule is stated first and names the
+forbidden sentences; a worked example shows two candidates explained without a
+comparison; and `basis` forces every sentence onto a fact written down elsewhere.
+None is a guarantee — `guard.py` turns a breach into a withheld explanation.
 
-* the negative rule is stated before the positive one, and names the forbidden
-  sentences literally;
-* the worked example shows two candidates explained *without* a comparison, since
-  an example is the instruction a small model follows;
-* `basis` forces every sentence back onto a fact that is written down somewhere
-  else, which leaves much less room for an opinion to be phrased as a finding.
-
-None of the three is a guarantee. `guard.py` is what turns a breach into a
-withheld explanation instead of a recommendation on the operator's screen.
-
-Written in English (project language rule); the prose it asks for is Spanish,
-because the operator reads it.
+Written in English (project language rule); the prose it asks for is Spanish.
 """
 
 from __future__ import annotations

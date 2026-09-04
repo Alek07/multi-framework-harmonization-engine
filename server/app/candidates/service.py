@@ -62,9 +62,8 @@ class UnknownCapabilityError(AppException):
 class CandidatesService:
     """Profile in, every option per capability out. Collaborators are injectable.
 
-    Both collaborators are built lazily: constructing them loads the catalog into
-    a Qdrant client and builds a Pydantic AI agent, and the API must be able to
-    come up — and serve `/health` — on a machine where neither service is running.
+    Both are built lazily: constructing them needs Qdrant and a Pydantic AI agent,
+    and the API must still come up and serve `/health` where neither is running.
     """
 
     def __init__(
@@ -139,16 +138,11 @@ class CandidatesService:
     ) -> tuple[ProfileRetrieval | None, RetrievalReport]:
         """Widen the core's candidates, or declare why nothing was added.
 
-        `gating` is handed to retrieval (UCM-52) so a suggestion for a mechanism the
-        engine ruled out of the zone is annotated with that exclusion instead of
-        offered as if it applied — the incoherence the ticket fixes. The
-        deterministic candidates carry the exclusion too, in `CapabilityGating`.
-
-        `IndexUnavailableError` is caught rather than propagated on purpose. The
-        deterministic candidates are already computed at this point, and refusing
-        to serve them because an optional widening failed would hide a complete
-        baseline behind a convenience. What must not happen is the operator not
-        *knowing*, which is why the failure travels in the response.
+        `gating` is handed to retrieval so a suggestion for a mechanism the engine
+        ruled out of the zone is annotated with that exclusion, not offered as if
+        it applied. `IndexUnavailableError` is caught, not propagated: the
+        deterministic candidates are already computed, so an optional widening
+        failing must not hide them — the failure travels in the response instead.
         """
         if not request.retrieval:
             return None, RetrievalReport(
@@ -213,8 +207,8 @@ class CandidatesService:
         explanations_notice: str | None,
         audit_events: int,
     ) -> CandidatesResponse:
-        # Explanations are requested for one zone at a time (UCM-14): they attach
-        # to that zone's capabilities and to no others.
+        # Explanations are requested for one zone at a time: they attach to that
+        # zone's capabilities and to no others.
         explained = (
             {e.capability_id: e for e in explanations.capabilities}
             if explanations is not None
@@ -380,11 +374,10 @@ class CandidatesService:
     def _check_scope(self, profile: AssetProfile, scope: ExplainScope | None) -> None:
         """Reject an unreachable explain scope *before* the pipeline runs, not after.
 
-        The order matters, and not only for latency. The core run is appended to
-        the append-only ledger as soon as it is computed, so validating afterwards
-        would leave a recorded engine run behind every client typo. Both checks are
-        made against declared data — the profile's zones and the catalog's
-        capabilities — so neither needs the pipeline to have run.
+        The core run is appended to the append-only ledger as soon as it is
+        computed, so validating afterwards would leave a recorded run behind every
+        client typo. Both checks use declared data (profile zones, catalog
+        capabilities), so neither needs the pipeline to have run.
         """
         if scope is None:
             return

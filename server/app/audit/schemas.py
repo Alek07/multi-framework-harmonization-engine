@@ -36,11 +36,11 @@ class AuditStage(str, Enum):
     CONFLICT_RESOLUTION = "conflict_resolution"
     GATING = "gating"
     PRIORITIZATION = "prioritization"
-    # The RAG pass (UCM-13). It decides nothing — it only adds options — but it is
-    # logged for the invariant it has to satisfy: coverage is only ever widened,
-    # and a declared lens that sets a candidate aside says so on the record.
+    # The RAG pass. It decides nothing — it only adds options — but it is logged
+    # for the invariant it must satisfy: coverage is only ever widened, and a
+    # declared lens that sets a candidate aside says so on the record.
     RETRIEVAL = "retrieval"
-    # Where the human takes over (UCM-16).
+    # Where the human takes over.
     COMPOSITION = "composition"
     SIGNATURE = "signature"
 
@@ -48,7 +48,7 @@ class AuditStage(str, Enum):
 class AuditEventType(str, Enum):
     """What happened. Each type belongs to exactly one actor (see `actor_for`)."""
 
-    # --- engine (deterministic core, UCM-8/UCM-9/UCM-10) ---
+    # --- engine (deterministic core) ---
     RUN_STARTED = "run_started"
     ZONE_DERIVED = "zone_derived"
     CAPABILITY_MAPPED = "capability_mapped"
@@ -64,13 +64,13 @@ class AuditEventType(str, Enum):
     STAGE_COMPLETED = "stage_completed"
     RUN_COMPLETED = "run_completed"
 
-    # --- engine (RAG pass, UCM-13) ---
+    # --- engine (RAG pass) ---
     # Candidates offered on top of the catalog's, for one capability in one zone.
     CANDIDATES_RETRIEVED = "candidates_retrieved"
     CANDIDATE_SET_ASIDE = "candidate_set_aside"
     CANDIDATES_CUT = "candidates_cut"
 
-    # --- human (sovereign composition, UCM-16) ---
+    # --- human (sovereign composition) ---
     OPTION_SELECTED = "option_selected"
     OPTION_REJECTED = "option_rejected"
     COMPENSATORY_DECLARED = "compensatory_declared"

@@ -1,7 +1,7 @@
-"""UCM-53 - A control's declared premise, compared against the zone's own.
+"""A control's declared premise, compared against the zone's own.
 
-The comparison the catalog could not make until v0.5.0: the profile always knew
-the zone hosts no general-purpose OS, and now the control says it needs one.
+The profile always knew the zone hosts no general-purpose OS; since catalog v0.5.0
+the control can say it needs one.
 """
 
 from __future__ import annotations
@@ -194,7 +194,7 @@ def test_an_authored_rule_decides_and_the_derived_premise_stays_on_the_record(
 def test_with_no_authored_rule_the_premise_is_what_excludes(
     catalog: Catalog, gating_rules: GatingRules, embedded: ZoneContext
 ) -> None:
-    """The 118 orphans of UCM-55: no rule names them, so nothing used to look."""
+    """The 118 orphan controls: no rule names them, so nothing used to look."""
     unruled = GatingRules(
         rules_version=gating_rules.rules_version,
         rules=[r for r in gating_rules.rules if "CTL-CIS-1001" not in r.control_ids],

@@ -1,20 +1,12 @@
-"""UCM-53 - Merge a reviewed premise proposal into the catalog sources.
+"""Merge a reviewed premise proposal into the catalog sources.
 
-The proposal written by `tag_presuppositions.py` is not the catalog and never
-becomes it on its own. This script is the *human's* act: it takes the file the
-reviewer has read, edited and pruned, and writes what survived into the versioned
-sources, so that merging is one reviewable command instead of five JSON files
-edited by hand.
-
-Two things it deliberately does not do.
-
-It does not reformat: the splice is textual (`app/tagging/merge.py`), so the diff
-shows the handful of controls that gained a premise rather than 226 lines
-rewritten to say what they already said.
-
-And it does not decide. `--only` and `--exclude` exist because the reviewer's
-verdict is per control, and the honest way to record "these yes, those no" is to
-run the merge with that list rather than to edit the proposal until it agrees.
+The human's act: takes the proposal written by `tag_presuppositions.py` after the
+reviewer has read, edited and pruned it, and splices what survived into the
+versioned sources -- one reviewable command instead of five JSON files edited by
+hand. The splice is textual (`app/tagging/merge.py`), so the diff shows only the
+controls that gained a premise rather than every line rewritten. It decides
+nothing: `--only` / `--exclude` record the reviewer's per-control verdict rather
+than editing the proposal until it agrees.
 
 Run from `server/`, after reviewing the proposal:
 

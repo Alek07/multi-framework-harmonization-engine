@@ -1,10 +1,7 @@
 /**
- * Handing a document to the operator as a file, without inventing anything.
- *
- * What is written to disk is the server's own JSON, serialised and nothing else:
- * no field renamed, no key dropped, no ordering imposed. A file the operator
- * archives or sends to an auditor has to be the artefact the engine emitted, not
- * this client's rendering of it.
+ * Hands a document to the operator as a file without inventing anything: the
+ * server's own JSON, serialised and nothing else — no field renamed, no key
+ * dropped. An archived or audited file must be the engine's artefact, not a rendering.
  */
 
 export function downloadJson(name: string, document: unknown): void {
@@ -19,8 +16,7 @@ export function downloadJson(name: string, document: unknown): void {
   window.document.body.appendChild(link)
   link.click()
   link.remove()
-  // Revoking immediately can race the download in some browsers; one tick is
-  // enough and the object is not kept alive any longer than that.
+  // Revoking immediately can race the download in some browsers; one tick is enough.
   window.setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 

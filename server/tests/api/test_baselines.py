@@ -1,4 +1,4 @@
-"""UCM-21 - `GET /baselines`: what has been signed here, read from the ledger.
+"""`GET /baselines`: what has been signed here, read from the ledger.
 
 Asserted on the property that makes the sixth endpoint defensible: it stores
 nothing, so the list can never disagree with the trail it is read from.

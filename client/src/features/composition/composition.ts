@@ -1,12 +1,8 @@
 /**
- * The shape of a composition session: what the provider offers, and the few
- * helpers that read the engine's answers.
- *
- * The division of labour this module encodes is the whole point. The engine owns
- * every fact — which options exist, what they cover, which mandates are open,
- * which conflicts it refuses to settle, which mechanisms gating removed — and
- * all of it arrives in `CandidatesResponse` and is read from there, never
- * recomputed. What the provider holds is what the operator has *done*.
+ * The composition session contract, and the helpers that read the engine's
+ * answers. The engine owns every fact (options, coverage, open mandates,
+ * conflicts, gated mechanisms) via `CandidatesResponse`, read never recomputed;
+ * the provider holds only what the operator has *done*.
  */
 
 import { createContext, useContext } from 'react'
@@ -35,24 +31,17 @@ import type {
 export type Step = 1 | 2 | 3 | 4 | 5
 
 /**
- * Why each step is not reachable yet, or `null` when it is.
- *
- * The five steps are one argument told in order, and a step whose input does not
- * exist yet has nothing honest to show: the candidates screen with no profile,
- * the regional comparison with no zones, the trail before a single decision. The
- * locks say *what is missing* rather than merely refusing, so the sentence is
- * shown wherever the step is offered — rail, tooltip, forward button.
+ * Why each step is not reachable yet, or `null` when it is. The lock says *what
+ * is missing* rather than merely refusing, so the same sentence can be shown
+ * wherever the step is offered — rail, tooltip, forward button.
  */
 export type StepLocks = Record<Step, string | null>
 
 /**
- * The gate, derived from the state and nothing else.
- *
- * Step 2 needs a complete profile — a draft with holes in it would run through
- * the core as a baseline nobody decided. Steps 3 to 5 need the engine run: they
- * all read `CandidatesResponse`, and the trail of step 5 shows the decisions
- * taken over it. Signing does not close anything: after it the whole flow stays
- * readable, which is what makes the record auditable.
+ * The gate, derived from state alone. Step 2 needs a complete profile (a draft
+ * with holes would run the core as a baseline nobody decided); steps 3-5 need
+ * the engine run. Signing closes nothing — the whole flow stays readable, which
+ * is what makes the record auditable.
  */
 export function stepLocksFor(input: {
   /** A started draft — parsed from the description or opened by hand. */
@@ -75,16 +64,13 @@ export function stepLocksFor(input: {
 }
 
 /**
- * Where the profile came from.
- *
- * There is no third source, and in particular there is no picker of profiles
- * frozen in the repository: the asset is described here, from scratch, which is
- * what the engine is for. `manual` is the fallback the PRD declares for a
- * machine where the model is not available — the same draft, filled in by hand.
+ * Where the profile came from. No third source and no picker of frozen profiles:
+ * the asset is described here from scratch. `manual` is the PRD's fallback for a
+ * machine without the model — the same draft, filled in by hand.
  */
 export type ProfileSource = 'parse' | 'manual'
 
-/** The region pair, in each order. The order asks a different question (UCM-17). */
+/** The region pair, in each order. The order asks a different question. */
 export const DELTA_ORDERS: { label: string; regions: Jurisdiction[] }[] = [
   { label: 'US → +EU', regions: ['US', 'EU'] },
   { label: 'EU → +US', regions: ['EU', 'US'] },
@@ -136,12 +122,9 @@ export interface CompositionApi {
   focusRequest: string | null
   /**
    * The card a `focusOn` sent the operator to, kept after the scroll is done.
-   *
-   * `focusRequest` lives for exactly one scroll and is cleared by the stage that
-   * performs it. A capability card that also has to *open* needs the request to
-   * still be readable on the render after that, so the destination is recorded
-   * separately: a blocker in step 4 that lands the operator on a closed header
-   * would be answering the link with the question again.
+   * `focusRequest` lives for one scroll and is cleared by the stage; a card that
+   * must also *open* needs the destination readable on the next render, so it is
+   * recorded separately.
    */
   expandRequest: string | null
   focusOn: (domId: string, zoneId: string, step: Step) => void
@@ -168,13 +151,9 @@ export interface CompositionApi {
   correctNature: (zoneIndex: number, field: NatureField) => void
   correctCriticality: (scale: ConsequenceScale) => void
   /**
-   * Any other edit to the draft, as a recipe over a copy of it.
-   *
-   * The typed helpers above cover the fields with their own affordance (the SL
-   * grid, the tri-state nature, the criticality scale). The rest — the asset's
-   * name and case, the zones' ids, the free-text criticality fields, adding and
-   * removing zones and conduits — are ordinary inputs, and giving each one its
-   * own action in this contract would say nothing the recipe does not.
+   * Any other edit to the draft, as a recipe over a copy of it. The typed helpers
+   * above cover the fields with their own affordance; the rest are ordinary inputs
+   * that a per-field action would not describe any better than the recipe does.
    */
   patchDraft: (
     recipe: (draft: AssetProfileDraft) => void,
@@ -240,10 +219,8 @@ export function useActiveZone(): ZoneCandidates | undefined {
 
 /**
  * The gap the engine declared for one capability, wherever it declared it.
- *
  * Four layers can declare one — resolution, gating, prioritisation, retrieval —
- * and a capability with no candidate must carry one from at least one of them
- * or the response would not have been constructible (invariant 2).
+ * and a capability with no candidate must carry one from at least one (invariant 2).
  */
 export function declaredGap(capability: CapabilityCandidates): CapabilityGap | null {
   return (
@@ -263,32 +240,14 @@ export interface PickedCoverage {
 }
 
 /**
- * The engine's own coverage formula, applied to the subset the human picked.
- *
- * This is the one figure the client computes, and it exists because selections
- * never leave the browser until `POST /baseline/compose`: between the engine's
- * answer and the signature there is nobody else who could report what the
- * composition covers. It is provisional by construction — the number that
- * reaches the baseline and the trail is the engine's, computed at compose time.
- *
- * Three decisions, and each one mirrors `resolve_capability` on purpose:
- *
- * * **The best option, not the sum.** The core takes `max(coverage_weight)`
- *   over the effective options; adding two partial mechanisms together would
- *   claim a coverage the engine never grants, on the screen where the operator
- *   decides whether the requirement is answered.
- * * **A contextual overlay weighs nothing.** The core leaves it out of coverage
- *   because a jurisdictional obligation is an exigency, not a mechanism, and
- *   choosing one does not implement anything.
- * * **A superseded option the human picked does count** — and here the mirror
- *   is deliberately broken. The core drops it because its rule set set it
- *   aside; overriding that is a supported move with its own written reason, and
- *   once the operator takes it, it is their mechanism and covers what it covers.
- *
- * Retrieved suggestions carry a similarity score and no weight — that is the
- * retriever's contract, not an omission — so picking one is a real decision
- * with an unquantifiable contribution. It goes to `unweighted`, to be named on
- * screen rather than silently rounded to nothing (invariant 2).
+ * The engine's coverage formula over the subset the human picked — the one figure
+ * the client computes, because selections stay in the browser until compose. It is
+ * provisional; the number that reaches the baseline is the engine's. Three rules
+ * mirror `resolve_capability`: best option not the sum (`max(coverage_weight)`);
+ * a contextual overlay weighs nothing (an exigency, not a mechanism); a superseded
+ * option the human picked does count (overriding the rule set is a supported move).
+ * Retrieved suggestions carry a score and no weight, so they go to `unweighted` —
+ * named on screen, never rounded to nothing (invariant 2).
  */
 export function pickedCoverage(
   capability: CapabilityCandidates,

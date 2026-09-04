@@ -1,33 +1,13 @@
-"""UCM-53 - A control whose declared premise the zone does not meet is not applicable here.
+"""A control whose declared premise the zone does not meet is not applicable here.
 
-The gap this closes is one of arithmetic. The profile has always known that a
-zone hosts no general-purpose OS — `parse` reads the negation out of the
-operator's description and the operator confirms it, per zone. The catalog never
-knew that a control *needs* one. With only one side of the comparison declared
-there was nothing to compare, so the discrimination rested entirely on the
-hand-written rule set: 108 of 226 controls named by a rule, and the other 118
-retained identically for every asset (UCM-55).
+`FrameworkControl.presupposes` supplies the premise the catalog was missing; this
+module compares it against the zone. Like sectoral applicability, an unmet premise
+becomes a `GatingDecision` with the `NOT_APPLICABLE` outcome, never a silent drop.
 
-`FrameworkControl.presupposes` supplies the missing side, and this module is the
-comparison. It is deliberately *the same operation as gating*, and it reuses the
-gating machinery rather than inventing one — like sectoral applicability
-(UCM-47), an unmet premise becomes a `GatingDecision` with the `NOT_APPLICABLE`
-outcome, carrying a rule id, the premise observed on the profile and a written
-justification. Nothing is dropped in silence.
-
-Three asymmetries keep the direction of the check safe:
-
-* **No declared premise excludes nothing.** A control with an empty
-  `presupposes` is retained in every zone, exactly as it was before the field
-  existed. Absence of a premise is not a premise.
-* **An authored rule always wins.** When a hand-written gating rule already
-  fires on the control, that rule decides and this determination is recorded in
-  `also_matched_rule_ids`. A human who wrote a rule for this control by name
-  knew more than a premise derived from its description does, and the engine
-  must not overrule them — but neither may it forget what it saw.
-* **It removes mechanisms, never capabilities.** As with every other gating
-  outcome, the requirement behind the control stays required; what leaves is
-  this way of meeting it, with its reason attached.
+Three asymmetries keep the check safe: no declared premise excludes nothing
+(absence of a premise is not a premise), an authored gating rule always wins (its
+determination is recorded in `also_matched_rule_ids`), and it removes mechanisms,
+never capabilities.
 """
 
 from __future__ import annotations

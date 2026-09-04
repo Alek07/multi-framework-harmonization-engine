@@ -1,20 +1,18 @@
-"""UCM-43/UCM-44 - What the catalog holds, and how the zones read it.
+"""What the catalog holds, and how the zones read it.
 
-Two reports, printed side by side, both meant to be run *before* and *after* a
-catalog or rules bump and pasted into the issue that made the change:
+Two reports, printed side by side, meant to be run before and after a catalog or
+rules bump and pasted into the issue that made the change:
 
-* **Content** — how much catalog there is, per framework and per mapping type,
-  plus the integrity numbers the loader already enforces (orphan capabilities,
-  unused controls). This is the "contenido escaso" measurement of UCM-43.
-* **Tier balance** — for every zone of every frozen profile: how many
-  capabilities land in Tier 0, how many in Tier 1, and *why* each Tier 0 is
-  mandatory (SL-target, legal obligation, or both). A catalog bump can make
-  everything mandatory without anyone noticing — a legal mapping is an
-  unconditional Tier 0 regardless of its coverage weight — and a Tier 0 that
-  swallows Tier 1 leaves the prioritisation of UCM-10 with nothing to order.
+* Content -- how much catalog there is, per framework and per mapping type, plus
+  the integrity numbers the loader enforces (orphan capabilities, unused controls).
+* Tier balance -- for every zone of every frozen profile: how many capabilities
+  land in Tier 0, how many in Tier 1, and why each Tier 0 is mandatory (SL-target,
+  legal obligation, or both). A catalog bump can make everything mandatory without
+  anyone noticing, and a Tier 0 that swallows Tier 1 leaves the prioritisation with
+  nothing to order.
 
-Neither report decides anything: it reads the same deterministic core the API
-runs and counts it. Run from `server/`:
+Neither report decides anything: it reads the deterministic core the API runs and
+counts it. Run from `server/`:
 
     uv run python scripts/catalog_report.py
 """

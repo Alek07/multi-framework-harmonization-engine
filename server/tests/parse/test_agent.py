@@ -1,9 +1,8 @@
-"""UCM-12 - The agent's configuration is part of the result, so it is asserted.
+"""The agent's configuration is part of the result, so it is asserted.
 
-Temperature, seed and the retry budget are not implementation details of the
-parse: they are the reproducibility claim of the TFM (invariant 3). A refactor
-that quietly dropped the seed would still pass every behavioural test in this
-suite, which is why these assertions exist at all.
+Temperature, seed and the retry budget are the reproducibility claim (invariant 3),
+not implementation details: a refactor that dropped the seed would still pass every
+behavioural test, which is why these assertions exist.
 """
 
 from __future__ import annotations

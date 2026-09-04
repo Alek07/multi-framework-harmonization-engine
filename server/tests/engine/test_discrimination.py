@@ -1,22 +1,10 @@
-"""UCM-44 - Two different assets get two measurably different baselines.
+"""Two different assets get two measurably different baselines.
 
-This is the claim the whole engine rests on, and until v0.2.0 of the gating rules
-it was not true enough to demonstrate: against the v0.2.0 catalog the previous
-rule set named 20 of 225 controls and left exactly 7 of them behaving differently
-between a Purdue-L1 gas corridor and a hybrid Windows engineering station. Every
-other mechanism was retained identically, so the operator's asset barely moved
-their baseline.
-
-The numbers asserted here are floors, not photographs: they may grow as the rules
-grow, and a regression that quietly flattens the engine again will trip them. What
-must not change is the shape of the claim:
-
-* the two profiles differ on a substantial number of mechanisms;
-* the crown jewel differs from the corridor it sits behind, which needs a premise
-  the profile declares (`role`) and v0.1.0 could not read at all;
-* no difference is silent — each one traces to a rule, a premise observed on the
-  profile and a written justification;
-* and the whole thing is deterministic: the same inputs give the same answer.
+The asserted counts are floors, not photographs: they may grow as the rules grow,
+and a regression that quietly flattens the engine again will trip them. What must
+not change is the shape of the claim: the two profiles differ on many mechanisms;
+the crown jewel differs from the corridor it sits behind; no difference is silent;
+and the whole thing is deterministic.
 """
 
 from __future__ import annotations
@@ -61,13 +49,10 @@ def test_two_profiles_produce_measurably_different_baselines(
 def test_the_crown_jewel_is_not_the_corridor_it_sits_behind(
     gating_a: ProfileGating, catalog: Catalog
 ) -> None:
-    """0 with the v0.1.0 rules: no premise the engine could read told them apart.
+    """The only thing separating the SIS from the corridor is the profile's `role`.
 
-    Both zones are OT, both are safety-relevant — the corridor because its physical
-    consequence is catastrophic — and both declare the same five `nature` flags. The
-    only thing that separates the safety instrumented system from the corridor is
-    the role the profile declares for it, and until UCM-44 no rule could condition
-    on it.
+    Both zones are OT, both safety-relevant, and both declare the same five `nature`
+    flags; a rule set that cannot condition on `role` cannot tell them apart at all.
     """
     corridor = outcomes(gating_a, "Z-OT-CORRIDOR", catalog)
     sis = outcomes(gating_a, "Z-SIS", catalog)

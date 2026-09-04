@@ -1,9 +1,7 @@
 /**
- * UCM-21 - The baselines: what has been signed, and what is still being composed.
- *
- * The signed ones are the server's (`GET /baselines`, read from the ledger). The
- * draft is this browser's: nothing about a composition reaches the server until
- * it is signed, so an unsigned one exists only where it was written.
+ * The baselines: what has been signed, and what is still being composed. Signed
+ * ones are the server's (`GET /baselines`, from the ledger); the draft is this
+ * browser's, since nothing reaches the server until it is signed.
  */
 
 import { useNavigate } from '@tanstack/react-router'

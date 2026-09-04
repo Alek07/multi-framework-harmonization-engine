@@ -1,11 +1,10 @@
-"""UCM-14 - The facts: the order on screen, what may be cited, what is said anyway.
+"""The facts: the order on screen, what may be cited, what is said anyway.
 
-The explanation layer is only as honest as the sheet it reads. These tests assert
-the three properties that make the rest checkable: the candidates arrive in the
-engine's order, a candidate's citable evidence matches what it actually has (a
-suggestion has a similarity and no mapping; a mapping has a type, a weight and a
-provenance), and every candidate carries deterministic text before any model is
-asked anything.
+The explanation layer is only as honest as the sheet it reads. Three properties make
+the rest checkable: candidates arrive in the engine's order, a candidate's citable
+evidence matches what it actually has (a suggestion has a similarity and no mapping;
+a mapping has a type, a weight and a provenance), and every candidate carries
+deterministic text before any model is asked anything.
 """
 
 from __future__ import annotations

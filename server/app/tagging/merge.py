@@ -1,14 +1,13 @@
-"""UCM-53 - Splicing a reviewed premise into a catalog source, without reformatting it.
+"""Splice a reviewed premise into a catalog source without reformatting it.
 
-The catalog sources keep one control per line. That is what makes `git diff`
-readable after a change like this one — the reviewer sees the handful of controls
-that gained a premise, not 226 lines rewritten to say the same thing they said
-before. A `json.dump` of the parsed file would destroy exactly that, so the merge
-is textual and surgical instead, and this module is the surgery.
+The catalog sources keep one control per line, which is what makes `git diff`
+readable after a change like this — the reviewer sees the handful of controls that
+gained a premise, not the whole file rewritten. A `json.dump` would destroy that,
+so the merge is textual and surgical instead.
 
-It lives in `app/` rather than in the script that calls it because it is the one
-part of the merge that can silently corrupt a versioned input, and the repo's
-line is that logic worth testing does not live in `scripts/`.
+It lives in `app/` rather than in the calling script because it is the one part of
+the merge that can silently corrupt a versioned input, and logic worth testing
+does not live in `scripts/`.
 """
 
 from __future__ import annotations

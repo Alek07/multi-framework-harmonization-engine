@@ -1,10 +1,8 @@
-"""UCM-53 - Fixtures for the tagging tests: a scripted model instead of Ollama.
+"""Fixtures for the tagging tests: a scripted model instead of Ollama.
 
-Same discipline as the parse fixtures. The scripted model is swapped into the
-*real* agent (`agent.override`) so what is under test is the agent this POC
-ships, with its output type and its retry budget, and no test can reach a
-provider. The run against the real model lives in `test_live_ollama.py`, behind
-the `llm` marker.
+Same discipline as the parse fixtures: the scripted model is swapped into the
+*real* agent (`agent.override`) and no test can reach a provider. The run against
+the real model lives in `test_live_ollama.py`, behind the `llm` marker.
 """
 
 from __future__ import annotations

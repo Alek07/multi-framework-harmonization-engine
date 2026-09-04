@@ -1,9 +1,8 @@
-"""UCM-12 - The digest guard: what Ollama serves is what was evaluated, or nothing.
+"""The digest guard: what Ollama serves is what was evaluated, or nothing.
 
-The tag `qwen2.5:7b-instruct-q4_K_M` is mutable. A run against different weights
-under the same name produces a perfectly well-formed draft, so the only place
-this can be caught is before the request — which is what these tests hold in
-place. `/api/tags` is stubbed; no test here opens a socket.
+The tag `qwen2.5:7b-instruct-q4_K_M` is mutable, and different weights under the
+same name produce a well-formed draft, so the only place to catch it is before the
+request. `/api/tags` is stubbed; no test here opens a socket.
 """
 
 from __future__ import annotations

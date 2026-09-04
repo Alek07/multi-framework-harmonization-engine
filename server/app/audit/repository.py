@@ -1,9 +1,9 @@
-"""UCM-11 - The ledger's only writer. It appends; it has no update path.
+"""The ledger's only writer. It appends; it has no update path.
 
-The repository owns what the caller must not choose: the position in the ledger
-(`sequence`), the instant (`recorded_at`) and the link to the previous event
-(`prev_hash`/`event_hash`). A caller can therefore write a wrong justification,
-but not a wrong order, a backdated event or an unchained one.
+The repository owns what the caller must not choose: the position (`sequence`),
+the instant (`recorded_at`) and the link to the previous event
+(`prev_hash`/`event_hash`). A caller can write a wrong justification, but not a
+wrong order, a backdated event or an unchained one.
 """
 
 from __future__ import annotations

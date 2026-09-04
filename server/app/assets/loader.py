@@ -1,9 +1,9 @@
-"""UCM-8 - Load the hand-written asset profiles from JSON.
+"""Load the hand-written asset profiles from JSON.
 
-The two validation profiles (UCM-1/UCM-2) are inputs frozen in Git so the core
-can be run end to end without the AI layer (M1 gate) and so the M4 evaluation
-always measures against the same profiles. From M2 on, the same schema is what
-the LLM parse produces and the operator reviews.
+The two validation profiles are inputs frozen in Git so the core can run end to
+end without the AI layer (M1 gate) and so the M4 evaluation always measures against
+the same profiles. From M2 on, the same schema is what the LLM parse produces and
+the operator reviews.
 """
 
 from __future__ import annotations

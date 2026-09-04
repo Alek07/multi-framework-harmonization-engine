@@ -1,16 +1,9 @@
 /**
- * How the engine's vocabulary is written on screen.
- *
- * Presentational only, and that is a boundary rather than a style note: nothing
- * here reorders, scores or hides anything. The identifiers stay the server's
- * (`not_applicable`, `tier_0`) — they are what the audit log records and what
- * the memoir cites — and these are the Spanish words the operator reads instead
- * of them (language rule, CLAUDE.md §8).
- *
- * The rule this module enforces on the whole client: **an operator never reads a
- * raw identifier, an endpoint route or an internal rule name.** Where the raw
- * value still matters for traceability it goes in a `title` tooltip, never in
- * the visible label.
+ * The engine's vocabulary written on screen — presentational only: nothing here
+ * reorders, scores or hides. Identifiers stay the server's (`not_applicable`,
+ * `tier_0`, what the ledger records); these are the Spanish words shown instead
+ * (language rule). An operator never reads a raw id, route or rule name — where
+ * the raw value matters for traceability it goes in a `title` tooltip.
  */
 
 import type {
@@ -140,12 +133,9 @@ export const CASE_TYPE: Record<CaseType, { label: string; note: string }> = {
 }
 
 /**
- * The sectors an asset operates in, in the operator's words (UCM-47).
- *
- * Presentational only: the engine intersects these with the sectors each norm
- * governs to decide applicability (TSA gobierna `transport`, IMO `maritime`,
- * CIRCIA es transversal). The `note` says what the sector covers, not which norm
- * reaches it — that is the engine's to decide, not the label's to promise.
+ * The sectors an asset operates in, in the operator's words. Presentational only:
+ * the engine intersects these with the sectors each norm governs to decide
+ * applicability. The `note` says what the sector covers, not which norm reaches it.
  */
 export const SECTOR: Record<Sector, { label: string; note: string }> = {
   energy: {
@@ -225,14 +215,10 @@ export const GATING_OUTCOME: Record<GatingOutcome, Chip & { note: string }> = {
 }
 
 /**
- * Where an exclusion's rule came from.
- *
- * Most exclusions cite a rule someone wrote by hand in the gating file. Two do
- * not, and saying so matters to whoever audits the baseline: the sectoral one
- * (UCM-47) and the premise one (UCM-53) are read off the *control's own*
- * declaration in the catalog, so what backs them is a fact about the control
- * rather than a judgement about this asset. Anything not listed here is a
- * hand-written rule.
+ * Where an exclusion's rule came from. Most cite a hand-written gating rule; the
+ * two listed here (sectoral, premise) are read off the *control's own* catalog
+ * declaration, so what backs them is a fact about the control, not a judgement
+ * about this asset. Anything not listed is a hand-written rule.
  */
 export const RULE_ORIGIN: Record<string, { label: string; note: string }> = {
   'GATE-PREMISE-UNMET': {
@@ -246,11 +232,9 @@ export const RULE_ORIGIN: Record<string, { label: string; note: string }> = {
 }
 
 /**
- * What became of each mechanism in the declaration of applicability (UCM-46).
- *
- * The three gating outcomes keep the wording of `GATING_OUTCOME` above: they are
- * the same decision seen in the document, and giving them a second wording would
- * suggest they were two different things.
+ * What became of each mechanism in the declaration of applicability. The three
+ * gating outcomes keep the wording of `GATING_OUTCOME` above — the same decision
+ * seen in the document; a second wording would suggest two different things.
  */
 export const DISPOSITION: Record<MechanismDisposition, { label: string; note: string }> = {
   selected: {

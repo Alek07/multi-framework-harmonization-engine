@@ -1,23 +1,17 @@
-"""UCM-43 - A catalog split across one file per framework is the same catalog.
+"""A catalog split across one file per framework is the same catalog.
 
-The split exists so a framework can be authored, reviewed — or handed to the
-CISO — on its own, without opening the other four. That is an authoring
-convenience and it has to stay exactly that: what the engine loads, validates
-and fingerprints must not be able to tell how many files it came from.
+The split is an authoring convenience: what the engine loads, validates and
+fingerprints must not be able to tell how many files it came from. The guarantees
+asserted here are about *sameness*, plus the two ways a manifest can lie about its
+parts:
 
-So the guarantees asserted here are about *sameness*, plus the two ways a
-manifest can lie about its parts:
-
-* a split of a catalog loads to the same model as the catalog in one file;
+* a split loads to the same model as the catalog in one file;
 * the model does not depend on the order the sources are listed in — that order
-  reaches the Qdrant collection name through the parsed model
-  (`app/retrieval/index.py`), and a collection name that changed because someone
-  reordered a list would be a false alarm about stale vectors;
-* **a single file is still read verbatim**, in its authored order. Every catalog
-  already shipped keeps parsing and hashing as it did before the split existed,
-  which is what lets a baseline signed against v0.1.0 stay reproducible;
-* a source that does not exist, or that contributes no control because its key
-  was mistyped, is an error — never a catalog that quietly holds less.
+  reaches the Qdrant collection name, so a reorder must not look like stale vectors;
+* a single file is still read verbatim, in its authored order, so a baseline
+  signed against v0.1.0 stays reproducible;
+* a source that does not exist, or contributes no control because its key was
+  mistyped, is an error — never a catalog that quietly holds less.
 """
 
 from __future__ import annotations

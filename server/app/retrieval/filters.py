@@ -1,31 +1,17 @@
-"""UCM-13 - Payload filtering: a declared lens, never a silent narrowing.
+"""Payload filtering: a declared lens, never a silent narrowing.
 
-The ticket asks for retrieval filtered by payload on three axes — jurisdiction,
-zone and mapping type — and the project's second invariant says nothing may be
-restricted in silence. Both hold at once because of how the filter is used, and
-that is worth stating plainly:
-
-* **Most axes are a human's question, not a policy.** "Show me the EU reading of
-  this zone" (`GET /delta?regions=US,EU`) or "only the frameworks that carry the
-  mechanism in an OT zone". The engine does not narrow these on its own; the
-  answer is a *view*, and the baseline is unchanged.
-* **The sector axis is the engine's own determination (UCM-52).** Sectoral
-  applicability (UCM-47) — "a norm that does not govern this sector is not a
-  candidate here" — is decided, not asked, exactly as gating decides the technical
-  dimension. Building it is not the failure this module guards against: that
-  failure is a *silent* narrowing, and this one is anything but.
-* **Everything a lens excludes comes back.** The service re-runs the same query
-  unfiltered and reports the difference as `set_aside`, with the axis responsible
-  (`excluded_axes`). Any lens can therefore be audited — the operator's and the
-  engine's alike: what it set aside is on the record next to what it showed.
-
-The zone axis deserves one more note. There is no "zone" field on a control — a
-control belongs to a framework, not to a zone — so a zone lens is expressed as the
-frameworks that the zone's *declared precedence order* puts first
-(`rules.framework_precedence`, UCM-8, versioned data). `zone_lens` reads that
-order; it does not invent one. And it takes an explicit `frameworks` count rather
-than defaulting to some subset, because a default here would be the engine
-quietly deciding what an operator gets to see.
+Retrieval is filterable on four axes — jurisdiction, zone, mapping type, sector —
+without breaching invariant 2, because of how the filter is used. Most axes are a
+human's question ("the EU reading of this zone"), not a policy: the answer is a view
+and the baseline is unchanged. The sector axis is the engine's own determination —
+a norm that does not govern this sector is not a candidate here — decided as gating
+decides the technical dimension; that is not a silent narrowing. And everything a
+lens excludes comes back: the service re-runs the query unfiltered and reports the
+difference as `set_aside` with the axis responsible (`excluded_axes`), so any lens is
+auditable. The zone axis has no "zone" field on a control, so a zone lens is the
+frameworks the zone's declared precedence order (`rules.framework_precedence`,
+versioned data) puts first; `zone_lens` reads that order and takes an explicit
+`frameworks` count rather than defaulting to a subset the engine chose.
 """
 
 from __future__ import annotations
@@ -75,13 +61,13 @@ def to_qdrant(payload_filter: PayloadFilter | None) -> qdrant.Filter | None:
             )
         )
     if payload_filter.sectors:
-        # Sectoral applicability (UCM-47) as a lens. A control applies when its
-        # declared scope is *empty* — transversal, the CIS/CSF/IEC case — or when
-        # it meets the zone's sectors. Both must survive, so this is a nested OR
-        # (`should`, min 1), not a plain `MatchAny`: filtering a transversal
-        # control out on `energy ∉ []` would assert it does not apply where it in
-        # fact does. What the lens does exclude is a norm whose enumerated scope is
-        # disjoint from the zone's — IMO's maritime controls on a gas pipeline.
+        # Sectoral applicability as a lens. A control applies when its declared
+        # scope is empty — transversal, the CIS/CSF/IEC case — or when it meets the
+        # zone's sectors. Both must survive, so this is a nested OR (`should`, min 1),
+        # not a plain `MatchAny`: filtering a transversal control out on `energy ∉ []`
+        # would assert it does not apply where it in fact does. What the lens does
+        # exclude is a norm whose enumerated scope is disjoint from the zone's —
+        # IMO's maritime controls on a gas pipeline.
         conditions.append(
             qdrant.Filter(
                 should=[
@@ -114,7 +100,7 @@ def excluded_axes(payload_filter: PayloadFilter, payload: ControlPayload) -> lis
     }:
         axes.append(FilterAxis.MAPPING_TYPE)
     # Sector excludes only an *enumerated* scope disjoint from the lens: an empty
-    # scope is transversal and is never set aside (mirrors `to_qdrant` and UCM-47's
+    # scope is transversal and is never set aside (mirrors `to_qdrant` and
     # `control_applies`), so `energy` does not exclude a control that declares none.
     if (
         payload_filter.sectors

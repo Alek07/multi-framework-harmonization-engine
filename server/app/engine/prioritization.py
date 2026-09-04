@@ -1,42 +1,16 @@
-"""UCM-10 - Step 4 of the core: prioritisation and phased roadmap.
+"""Step 4 of the core: prioritisation and phased roadmap.
 
-Mapping says which mechanisms exist, conflict resolution which one prevails,
-gating which ones this asset can host. Prioritisation answers the operator's
-last question — *and now, in what order?* — without ever ranking everything
-together, because ranking everything together is what turns a baseline into a
-wish list.
+Answers "in what order?" without ranking everything together. Two non-comparable
+tiers: Tier 0 (mandatory at the zone's SL-target or by legal obligation) is not
+prioritised — every item lands in phase 0, and one left without an applicable
+mechanism or with a residual is reported as *outstanding*, the list
+`POST /baseline/compose` must find empty before signing. Tier 1 (discretionary)
+is the only thing ordered, ordinally: benefit against cost through a declared table.
 
-Two tiers, and they are not comparable:
-
-* **Tier 0** — mandatory at the zone's SL-target (an IEC 62443-3-3 SR required
-  at or below the SL the zone declares for its foundational requirement) or by
-  a legal obligation. It is *not prioritised*: `priority` is null by contract
-  and every item lands in phase 0. A Tier 0 capability that gating left without
-  an applicable mechanism, or with a declared residual, is reported as
-  **outstanding** — that list is exactly what `POST /baseline/compose` has to
-  find empty before signing (UCM-16).
-* **Tier 1** — discretionary. This is the only thing the engine orders, and it
-  orders it ordinally: coverage and leverage on one side, declared cost on the
-  other, resolved through a declared table.
-
-Gordon-Loeb in spirit, ordinal scales in practice: the engine compares risk
-reduction against cost, but it does not own the probabilities or the euros that
-a real Gordon-Loeb calculation needs, so it does not pretend to. It says "alta
-frente a media" and shows the table that turned the pair into a phase. Saying so
-out loud is the rigour; inventing a number would be the fiction.
-
-The CIS Implementation Groups are reused as what they are — an IT prioritisation
-already done by someone else — and only where they belong: they order inside
-IT/hybrid zones and stay informational in OT ones.
-
-Dependencies are a **partial order**, not a ranking: a capability is never
-scheduled before its prerequisite. One asymmetry is deliberate: the lift never
-moves a Tier 0 item, because a mandate cannot be deferred by a discretionary
-prerequisite. The relation stays visible in `depends_on`/`unlocks` so the human
-sees the sequencing the engine refused to impose.
-
-Nothing is dropped here either: every capability of the catalog appears in
-exactly one phase of every zone, with its tier, its evidence and its rationale.
+Gordon-Loeb in spirit, ordinal in practice — no invented numbers. CIS
+Implementation Groups order inside IT/hybrid zones, informational in OT.
+Dependencies are a partial order (never scheduled before a prerequisite; Tier 0
+is never moved). Every capability appears in exactly one phase of every zone.
 """
 
 from __future__ import annotations
@@ -91,8 +65,8 @@ LEVERAGE_BANDS: tuple[tuple[int, OrdinalLevel], ...] = (
     (1, OrdinalLevel.MEDIUM),
 )
 
-# Gordon-Loeb in spirit, made explicit: risk reduction against cost, resolved by
-# a declared table instead of by arithmetic on numbers the engine does not have.
+# Gordon-Loeb in spirit: risk reduction against cost, resolved by a declared
+# table rather than arithmetic on numbers the engine does not have.
 PRIORITY_MATRIX: dict[OrdinalLevel, dict[OrdinalLevel, OrdinalLevel]] = {
     OrdinalLevel.HIGH: {
         OrdinalLevel.LOW: OrdinalLevel.HIGH,
@@ -111,13 +85,11 @@ PRIORITY_MATRIX: dict[OrdinalLevel, dict[OrdinalLevel, OrdinalLevel]] = {
     },
 }
 
-# The physical consequence of the asset does not create a number either: it
-# raises the benefit one ordinal step, and only where something is actually
-# missing in a safety-relevant zone.
+# Physical consequence raises the benefit one ordinal step, only where a
+# safety-relevant zone has something missing.
 HIGH_CONSEQUENCE_SCALES = frozenset({ConsequenceScale.CATASTROPHIC, ConsequenceScale.HIGH})
 
-# The catalog publishes the CIS Implementation Group in `strength`; it is read
-# from the declared scale for CIS controls and never inferred for anything else.
+# CIS IG is read from `strength` for CIS controls; never inferred for anything else.
 IG_ORDERING_DOMAINS = frozenset({ZoneDomain.IT, ZoneDomain.HYBRID})
 
 MANDATORY_PHASE = 0
@@ -265,19 +237,15 @@ def _mandates(
 ) -> list[Mandate]:
     """Why the capability is obligatory here — read from declared data, control by control.
 
-    A mandate is unaffected by gating: that the asset cannot host the mechanism
-    does not repeal the requirement. That is precisely what makes a Tier 0
-    capability *outstanding* instead of quietly optional.
+    A mandate is unaffected by gating: being unable to host the mechanism does not
+    repeal the requirement, which is what makes a Tier 0 capability *outstanding*.
     """
     found: list[Mandate] = []
     for mapping in sorted(catalog.mappings_for(capability_id), key=lambda m: m.control_id):
         control = controls[mapping.control_id]
 
-        # A norm outside the asset's sector creates no obligation (UCM-47). This
-        # is read straight from the catalog, not from the gating result, so
-        # without the guard a maritime legal control would still make an onshore
-        # pipeline Tier 0 — the exact false obligation the ticket removes. Gating
-        # already recorded the sectoral exclusion with its rule and reason.
+        # A norm outside the asset's sector creates no obligation: without the
+        # guard a maritime legal control would make an onshore pipeline Tier 0.
         if not control_applies(control, zone.sectors):
             continue
 
@@ -342,10 +310,9 @@ def _benefit(
 ) -> tuple[OrdinalLevel, bool]:
     """Ordinal risk reduction: what the capability closes, or what it unlocks.
 
-    The two readings are not averaged — averaging ordinals is the arithmetic
-    this engine refuses. The stronger one carries, and the asset's physical
-    consequence raises it one step where the zone is safety-relevant and gating
-    left something open.
+    Not averaged (averaging ordinals is the arithmetic this engine refuses): the
+    stronger carries, raised one step by physical consequence where the zone is
+    safety-relevant and gating left something open.
     """
     benefit = max(coverage_level, leverage_level, key=lambda level: ORDINAL_RANK[level])
     uplift = (

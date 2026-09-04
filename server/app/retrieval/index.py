@@ -1,29 +1,15 @@
-"""UCM-13 - The Qdrant index: the catalog, vectorised, and nothing else.
+"""The Qdrant index: the catalog, vectorised, and nothing else.
 
-The index is **derived data**. Everything in it comes from the versioned catalog
-JSON and can be thrown away and rebuilt; no decision of the engine is stored here
-and nothing is authored here. That is what allows `ensure` to be idempotent and
-the startup population to be non-fatal (`app/main.py`): a missing index is a
-missing *convenience*, never lost state.
-
-Two design points carry the reproducibility invariant.
-
-**The collection name is a fingerprint, not a label.** It is
-`{prefix}_v{catalog_version}_{digest}` where the digest is a SHA-256 of the
-catalog as the engine parses it, plus the text template and the model. Change the
-catalog, the way controls are rendered into text, or the embedding model, and the
-name changes — so a stale collection is never *silently* queried, it is simply a
-different collection that this process will not look at. A bump of the catalog
-version is the documented convention (never edit a shipped catalog in place); the
-digest catches the case where the convention was broken anyway.
-
-**One point per control, not one per mapping.** A mapping is a
-(capability, control) pair, and indexing those would mean the retrieval could only
-ever return pairs the author already wrote down — it would confirm the catalog
-and never widen it, which is the opposite of the point. So the unit is the
-control, the mechanism itself, and the mappings it takes part in travel in the
-payload (`capability_ids`, `mapping_types`) where they can be filtered on and
-shown to the operator without steering the similarity.
+The index is derived data: everything comes from the versioned catalog JSON and can
+be rebuilt, so `ensure` is idempotent and startup population is non-fatal — a missing
+index is lost convenience, never lost state. Two design points carry reproducibility.
+The collection name is a fingerprint, `{prefix}_v{catalog_version}_{digest}`, where
+the digest hashes the parsed catalog plus text template and model, so a stale
+collection is a different collection this process never queries. And the unit is one
+point per control, not per mapping: indexing (capability, control) pairs could only
+return what the author already wrote, confirming the catalog and never widening it —
+so mappings travel in the payload (`capability_ids`, `mapping_types`) where they can
+be filtered without steering the similarity.
 """
 
 from __future__ import annotations
@@ -51,7 +37,7 @@ from app.retrieval.embeddings import (
 
 logger = logging.getLogger(__name__)
 
-# The payload keys a filter may act on (UCM-13's three axes plus UCM-52's sector).
+# The payload keys a filter may act on (the three retrieval axes plus sector).
 # Declared here rather than inline so the index itself says what it is filterable by.
 FILTERABLE_KEYS = (
     "jurisdiction",
@@ -62,11 +48,10 @@ FILTERABLE_KEYS = (
 )
 
 # Bumped whenever the payload *projection* changes shape (a new field, a different
-# aggregation) without the catalog itself changing. The collection name is a
-# fingerprint of the catalog, the text template and the model — but not of this
-# projection, so a projection change would otherwise be served by a collection
-# built before it, silently missing the new field. Folding this into the digest
-# forces a clean rebuild. v2: `applies_to_sectors` added for UCM-52.
+# aggregation) without the catalog itself changing. The collection name fingerprints
+# the catalog, the text template and the model — but not this projection, so folding
+# this into the digest forces a clean rebuild instead of an old collection silently
+# missing the new field. v2: `applies_to_sectors` added.
 PAYLOAD_SCHEMA_VERSION = "v2"
 
 
@@ -93,16 +78,16 @@ class ControlPayload(BaseModel):
     jurisdiction: str
     control_type: str
     strength: str
-    # The sectors this control governs (UCM-47), projected so the sector lens
-    # (UCM-52) can filter on it. Empty means transversal — applies to every sector
-    # — and the filter treats it as such, never excluding it.
+    # The sectors this control governs, projected so the sector lens can filter on
+    # it. Empty means transversal — applies to every sector — and the filter treats
+    # it as such, never excluding it.
     applies_to_sectors: list[str] = Field(default_factory=list)
     capability_ids: list[str]
     mapping_types: list[str]
     provenance_sources: list[str]
     catalog_version: str
-    # The exact string that was embedded. Kept so a demo or an evaluation run
-    # (UCM-18) can show *what* was compared, instead of asking for trust.
+    # The exact string that was embedded. Kept so a demo or an evaluation run can
+    # show *what* was compared, instead of asking for trust.
     text: str
 
 

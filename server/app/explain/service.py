@@ -1,29 +1,22 @@
-"""UCM-14 - The explanation use case: candidates in, prose next to them out.
+"""The explanation use case: candidates in, prose next to them out.
 
-The service is written around one question — *what happens when this feature does
-not work?* — because the answer is what makes a P1 layer safe to ship next to a
-P0 pipeline:
+Written around one question — what happens when this feature does not work —
+because the answer is what makes a P1 layer safe next to a P0 pipeline:
 
 * **It fails open, always.** Ollama down, wrong digest, invalid output, a
-  candidate the model forgot, a sentence that reads as advice: every one of those
-  paths ends with the same candidates on screen, in the same order, carrying the
-  deterministic rationale the engine already wrote, and a `status` that says what
-  happened. There is no path through this module that removes, adds or reorders a
+  forgotten candidate, a sentence that reads as advice: every path ends with the
+  same candidates in the same order, carrying the engine's own rationale and a
+  `status` that says what happened. No path here removes, adds or reorders a
   candidate — `CapabilityExplanations` would refuse to be built.
-* **It writes nothing.** No audit entry (the LLM is not an actor, UCM-11), no
-  mutation of the resolution or the retrieval it was handed, no state. The prose
-  enters the record only when the human decides on it (UCM-16), and
+* **It writes nothing.** No audit entry (the LLM is not an actor), no mutation, no
+  state. The prose enters the record only when the human decides on it, and
   `CapabilityExplanations.digest` is how that entry names what was on screen.
-* **It is on demand, capability by capability.** There is deliberately no
-  profile-wide pass: 69 capabilities per zone at one model request each would put
-  minutes of P1 in front of a P0 result. `explain_zone` therefore takes the
-  explicit list of capabilities to explain — the operator opens a capability, and
-  that capability is explained.
+* **It is on demand, capability by capability.** There is no profile-wide pass: 69
+  capabilities per zone at one request each would put minutes of P1 in front of a
+  P0 result. `explain_zone` takes the explicit list of capabilities to explain.
 
-The one thing worth stating plainly: nothing here is on the path of the baseline.
-The service reads the core's resolution and the retrieval, and returns text. If
-this whole module were deleted, every candidate, every coverage number, every
-gating decision and every priority would be identical.
+Nothing here is on the path of the baseline: delete this module and every
+candidate, coverage number, gating decision and priority is identical.
 """
 
 from __future__ import annotations
@@ -87,9 +80,8 @@ class CandidateExplanationService:
         """Explain every candidate offered for one capability in one zone."""
         facts = facts_for(resolution, retrieval, zone)
 
-        # A capability with no candidate is an explicit gap (UCM-13). There is
-        # nothing to explain and nothing to say about it that the gap's own
-        # rationale does not already say.
+        # A capability with no candidate is an explicit gap: nothing to explain
+        # that the gap's own rationale does not already say.
         if not facts.candidates:
             return self._flat(facts, catalog_version, ExplanationStatus.UNAVAILABLE, notice=None)
 

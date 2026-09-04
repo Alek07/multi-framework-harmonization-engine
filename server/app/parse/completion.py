@@ -1,21 +1,12 @@
-"""UCM-12 - From draft to `AssetProfile`: the deterministic half of the parse.
+"""From draft to `AssetProfile`: the deterministic half of the parse.
 
-Everything here runs without the model. It answers two questions the LLM is not
-allowed to answer:
-
-* **What is still missing?** `missing_required` walks the draft against
-  `AssetProfile` (UCM-7) and names, path by path, every value the core needs and
-  the text did not give. The list is what the operator is asked to fill in — and
-  the reason the parse never has to guess a target SL to return something.
-* **Is this reviewed profile admissible?** `to_profile` builds the real
-  `AssetProfile` from a draft the operator has corrected, and refuses if anything
-  is still absent. There is no partial promotion and no default value: a profile
-  with an invented SL would run through the core and produce a baseline nobody
-  decided.
-
-The paths are written the way the operator reads them (`zones[Z-SIS].target_sl`)
-because they are what the UI puts next to the empty field, and what the audit log
-records as the gap the human closed.
+Everything here runs without the model. `missing_required` names, path by path,
+every value the core needs and the text did not give (so the parse never guesses a
+target SL to return something). `to_profile` builds the real `AssetProfile` from a
+corrected draft and refuses if anything is still absent: no partial promotion, no
+default value. Paths are written the way the operator reads them
+(`zones[Z-SIS].target_sl`) — what the UI shows next to the empty field and what the
+audit log records as the gap the human closed.
 """
 
 from __future__ import annotations
@@ -45,10 +36,9 @@ class IncompleteDraftError(AppException):
 def profile_id_for(draft: AssetProfileDraft, explicit: str | None = None) -> str:
     """Identifier of the parsed asset: the caller's, or a slug of the model's name.
 
-    Derived rather than asked of the model: an id is a key, not an observation
-    about the asset, and the same draft must always land on the same one. Accents
-    are folded rather than replaced — this identifier is read back in the audit
-    log, and `ESTACI-N` would be nobody's asset.
+    Derived, not asked of the model: an id is a key, and the same draft must always
+    land on the same one. Accents are folded rather than replaced — the id is read
+    back in the audit log, and `ESTACI-N` would be nobody's asset.
     """
     if explicit:
         return explicit
@@ -69,7 +59,7 @@ def _missing_in_zone(zone: ZoneDraft, index: int) -> list[str]:
     prefix = f"zones[{zone.id or index}]"
     missing = [] if zone.target_sl is not None else [f"{prefix}.target_sl"]
     # Asked once per zone: gating reads these premises from the zone, so a zone
-    # left without them is a zone the core cannot gate (UCM-9).
+    # left without them is a zone the core cannot gate.
     missing += [
         f"{prefix}.nature.{field}"
         for field in TechNatureDraft.model_fields
@@ -92,10 +82,10 @@ def missing_required(draft: AssetProfileDraft) -> list[str]:
         missing.append("name")
     if draft.case is None:
         missing.append("case")
-    # Asked of the operator, never guessed (UCM-47): the core runs without it —
-    # an empty list simply excludes nothing by sector — but a sectoral norm
-    # offered to the wrong asset is a false obligation, so the reviewed profile
-    # declares at least one. Per-zone sectors stay optional: they only override.
+    # Asked of the operator, never guessed: the core runs without it — an empty
+    # list excludes nothing by sector — but a sectoral norm offered to the wrong
+    # asset is a false obligation, so the reviewed profile declares at least one.
+    # Per-zone sectors stay optional: they only override.
     if not draft.sectors:
         missing.append("sectors")
 
@@ -124,9 +114,8 @@ def to_profile(draft: AssetProfileDraft, profile_id: str | None = None) -> Asset
     """Build the `AssetProfile` the core runs on from a reviewed draft.
 
     Called after the operator has completed the draft, never on the model's raw
-    output — which is why it raises instead of filling anything in. `conduits` may
-    legitimately be empty (an isolated asset); the zones, the nature and the
-    criticality may not.
+    output, so it raises instead of filling anything in. `conduits` may legitimately
+    be empty (an isolated asset); the zones, nature and criticality may not.
     """
     gaps = missing_required(draft)
     if gaps:

@@ -1,18 +1,10 @@
-"""UCM-9 - Gating rules: which mechanisms this asset cannot host, and why.
+"""Gating rules: which mechanisms this asset cannot host, and why.
 
-Kept apart from the catalog (which says *what exists*) and from the precedence
-rules (which settle a *clash*): these say whether a mechanism is applicable to
-this asset at all. They are versioned and validated against the catalog, so a
-rule can never gate a control the catalog does not have.
-
-They are data, not AI: applicability is decided by premises the zone declares
-(`Zone.nature`, carried into `ZoneContext`) and by the zone reading (domain,
-safety relevance), never by the LLM and never by a hidden heuristic. Widening the
-gating is adding entries to the JSON — configuration, not redesign.
-
-The schema itself enforces the golden rule's "never silently": a rule that
-defers to the organizational layer must name the layer, and a rule that leaves
-an objective without mechanism must state the compensation it owes.
+Data, not AI: applicability is decided by premises the zone declares
+(`Zone.nature`) and the zone reading, never by the LLM. Versioned and validated
+against the catalog, so a rule can never gate a control that does not exist.
+The schema enforces "never silently": a wrong-scope rule must name its layer, an
+objective-without-mechanism rule must state the compensation it owes.
 """
 
 from __future__ import annotations
@@ -30,9 +22,8 @@ from app.core.wording import say
 from app.engine.rules import BACKEND_ROOT, RuleProvenance
 from app.engine.schemas import GatingOutcome, ZoneContext, ZoneDomain
 
-# Declared order in which outcomes are considered when more than one rule fires
-# on the same control: if it is not our layer at all, that is the first answer;
-# then whether the premise exists; only then whether an objective is orphaned.
+# Order in which outcomes are considered when several rules fire on one control:
+# wrong layer first, then missing premise, then orphaned objective.
 OUTCOME_PRECEDENCE: dict[GatingOutcome, int] = {
     GatingOutcome.WRONG_SCOPE: 0,
     GatingOutcome.NOT_APPLICABLE: 1,
@@ -43,8 +34,8 @@ OUTCOME_PRECEDENCE: dict[GatingOutcome, int] = {
 class GatingCondition(BaseModel):
     """When a rule fires. An empty condition means "always, in every zone".
 
-    Only premises the profile actually declares are expressible: the flags of
-    `TechNature` and the zone reading. The engine infers nothing else.
+    Only premises the profile declares are expressible: `TechNature` flags and
+    the zone reading. The engine infers nothing else.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -52,13 +43,10 @@ class GatingCondition(BaseModel):
     domains: list[ZoneDomain] = Field(default_factory=list)
     nature: dict[str, bool] = Field(default_factory=dict)
     safety_relevant: bool | None = None
-    # The role the zone declares ("crown_jewel" for a safety instrumented
-    # system). Matched against the raw declared value rather than a boolean of
-    # our own so a third asset can bring a role this POC never met: extending
-    # coverage stays configuration, not redesign. Distinct from
-    # `safety_relevant`, which the engine concludes for the whole OT corridor —
-    # without this premise the SIS and the corridor behind it are the same zone
-    # to every rule, and their baselines came out identical (UCM-44).
+    # The role the zone declares ("crown_jewel"), matched on the raw value so a
+    # third asset can bring an unseen role. Distinct from `safety_relevant`, which
+    # the engine concludes for the whole OT corridor: without this the SIS and the
+    # corridor gate identically.
     roles: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -91,10 +79,8 @@ class GatingCondition(BaseModel):
         ):
             return ["se aplica siempre, sin condición sobre el activo"]
 
-        # Read as sentences rather than as the field paths they come from
-        # (`zone.domain=OT`, `nature.networked=true`): this list is the
-        # justification an operator is shown next to an excluded mechanism, and a
-        # justification written in schema paths cannot be judged.
+        # Sentences, not schema paths: this is the justification the operator sees
+        # next to an excluded mechanism.
         found = [f"la zona es {say(zone.domain)}"] if self.domains else []
         if self.roles:
             found.append(f"la zona declara el rol «{zone.role}»")
@@ -104,8 +90,8 @@ class GatingCondition(BaseModel):
                 if zone.safety_relevant
                 else "la zona no es relevante para la seguridad de las personas"
             )
-        # "la zona", not "el activo": the premises are this zone's own, and on a
-        # hybrid asset the neighbouring zone answers the same flag differently.
+        # "la zona", not "el activo": the premises are this zone's own — a hybrid
+        # asset's neighbouring zone answers the same flag differently.
         found.extend(
             f"la zona {'tiene' if getattr(zone.nature, flag) else 'no tiene'} {say(flag)}"
             for flag in sorted(self.nature)
@@ -169,11 +155,9 @@ class GatingRules(BaseModel):
         return self
 
     def rules_for(self, control_id: str, zone: ZoneContext) -> list[GatingRule]:
-        """Every rule that fires on the control, in declared deterministic order.
-
-        The order comes from the outcome precedence and the rule ID, never from
-        the position of the rule in the file: the first one decides and the rest
-        stay recorded, so the outcome cannot depend on ingestion order.
+        """Every rule that fires on the control, ordered by outcome precedence then
+        rule ID — never by file position, so the outcome is ingestion-independent.
+        The first decides; the rest stay recorded.
         """
         matched = [r for r in self.rules if r.applies_to(control_id, zone)]
         return sorted(matched, key=lambda r: (OUTCOME_PRECEDENCE[r.outcome], r.id))

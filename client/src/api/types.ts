@@ -1,16 +1,8 @@
 /**
- * The engine's contracts, in TypeScript.
- *
- * Every type here mirrors a Pydantic model of the backend, field for field, and
- * the module each one comes from is named above it. Nothing is summarised or
- * flattened on the way across: the API deliberately carries the core's own
- * shapes — `CapabilityResolution`, `CapabilityGating`, `CapabilityPriority` —
- * because a summary is a place where a candidate can quietly stop being
- * mentioned (invariant 2, `server/app/candidates/schemas.py`). The UI renders
- * those shapes; it does not recompute them.
- *
- * The five endpoints are the whole surface (invariant 4). There is no sixth call
- * anywhere in this client.
+ * The engine's contracts, in TypeScript — each type mirrors a backend Pydantic
+ * model field for field, with its source module named above it. Nothing is
+ * summarised across: a summary is where a candidate could quietly stop being
+ * mentioned (invariant 2). The UI renders these shapes; it never recomputes them.
  */
 
 // --- catalog (server/app/catalog/schemas.py) ---------------------------------
@@ -19,7 +11,7 @@ export type Framework = 'CSF' | 'IEC62443' | 'CIS' | 'NIS2' | 'IMO' | 'CIRCIA' |
 export type Jurisdiction = 'US' | 'EU' | 'INTL' | 'INTL-MARITIME'
 
 /**
- * The sector an asset operates in and a norm governs (server `Sector`, UCM-47).
+ * The sector an asset operates in and a norm governs (server `Sector`).
  *
  * A neutral taxonomy both sides draw from, so the engine can intersect them: a
  * control names the sectors it governs (empty = transversal), an asset the ones
@@ -74,7 +66,7 @@ export type Premise =
   | 'office_it_surface'
 
 /**
- * What a control needs to be true of a zone for it to mean anything (UCM-53).
+ * What a control needs to be true of a zone for it to mean anything.
  *
  * A fact about the control, not a decision about any asset: what to do when the
  * zone does not meet it is the gating rules' business. `note` is the sentence the
@@ -435,7 +427,7 @@ export interface SetAsideCandidate {
 /** Why a retrieved candidate is not among the ones being shown. */
 export type CutReason = 'rank' | 'framework_cap'
 
-/** The rule that bounds the ranking (UCM-54). */
+/** The rule that bounds the ranking. */
 export interface CutPolicy {
   version: string
   depth: number
@@ -457,7 +449,7 @@ export interface DroppedCandidate {
   rationale: string
 }
 
-/** What the cut left below the line (UCM-54): `retained + dropped === evaluated`. */
+/** What the cut left below the line: `retained + dropped === evaluated`. */
 export interface RetrievalCut {
   policy: CutPolicy
   evaluated: number
@@ -475,10 +467,10 @@ export interface RetrievalCut {
 }
 
 /**
- * Why the engine's gating rules out this suggestion *in this zone* (UCM-52).
+ * Why the engine's gating rules out this suggestion *in this zone*.
  *
  * A suggestion carrying this is not hidden: it is offered marked, and the
- * declared ordering rule (UCM-53) puts it at the end of the tail.
+ * declared ordering rule puts it at the end of the tail.
  */
 export interface GatingAnnotation {
   zone_id: string
@@ -520,7 +512,7 @@ export interface RetrievalProvenance {
   text_template_version: string
   top_k: number
   cut_policy: CutPolicy
-  /** The rule that ordered the suggestion tail (UCM-53). */
+  /** The rule that ordered the suggestion tail. */
   ordering_version: string
   payload_filter: PayloadFilter
 }
@@ -602,7 +594,7 @@ export interface RetrievalReport {
   status: RetrievalStatus
   suggestions: number
   set_aside: number
-  /** Run-wide totals of the retriever's cut (UCM-54). */
+  /** Run-wide totals of the retriever's cut. */
   below_cut: number
   displaced: number
   provenance: RetrievalProvenance | null
@@ -978,10 +970,10 @@ export interface BaselineAuditLog {
 
 // --- POST /delta (server/app/delta/schemas.py) -------------------------------
 
-/** How the regional readings relate (UCM-50). */
+/** How the regional readings relate. */
 export type DeltaMode = 'cumulative' | 'symmetric'
 
-/** What enters the axis of comparison (UCM-50). */
+/** What enters the axis of comparison. */
 export type DeltaRegime = 'all' | 'legal'
 
 export interface RegionalRequirement {
@@ -1026,7 +1018,7 @@ export interface CapabilityDelta {
   rationale: string
 }
 
-/** Whether a legal regime of the compared regions governs this asset (UCM-50). */
+/** Whether a legal regime of the compared regions governs this asset. */
 export interface RegimeApplicability {
   framework: Framework
   jurisdiction: Jurisdiction

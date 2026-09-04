@@ -1,40 +1,26 @@
-"""UCM-14 - Contract of the candidate explanations: prose, and nothing else.
+"""Contract of the candidate explanations: prose, and nothing else.
 
-This is the third — and least powerful — AI pass of the POC. The parse proposes a
-draft the operator corrects (UCM-12), retrieval adds options nobody has to accept
-(UCM-13), and this layer only writes *why a candidate is on screen*. It is P1 and
-strictly presentational: it does not rank, does not select, does not filter and
-does not reach the deterministic core (invariant 1).
-
-"Presentational" is a claim, so the models below are built so that breaking it is
-not a bug to be caught in review but a shape that cannot be constructed:
+This is the third and least powerful AI pass: it only writes *why a candidate is
+on screen*. It is P1 and strictly presentational — it does not rank, select,
+filter or reach the deterministic core (invariant 1). The models below make
+breaking that a shape that cannot be constructed:
 
 * **The explained view is a bijection onto the offered candidates, in order.**
-  `CapabilityExplanations` restates `offered_control_ids` exactly as the core and
-  retrieval produced it, and a validator requires the explanations to be those
-  same IDs in that same sequence. An explanation layer that dropped a candidate,
-  added one, or reordered them fails to instantiate. Reordering is the subtle one
-  and it is the reason the check is on the *list* rather than on the set: a model
-  that answered "best first" would be ranking.
-* **There is no number to influence.** `CandidateExplanation` has no score, no
-  weight, no rank and no tier field. The layer has nothing to say about coverage
-  because coverage is arithmetic over authored mappings, and prose is not
-  evidence of equivalence.
+  `CapabilityExplanations` restates `offered_control_ids` and a validator requires
+  the explanations to be those same IDs in that same sequence. Reordering would be
+  ranking, which is why the check is on the *list* rather than on the set.
+* **There is no number to influence.** `CandidateExplanation` has no score,
+  weight, rank or tier field: coverage is arithmetic over authored mappings, and
+  prose is not evidence of equivalence.
 * **Every candidate always carries readable text.** When the model is off,
-  unreachable, or writes something that reads as a verdict, `text` falls back to
-  the deterministic rationale the engine already wrote, `status` says which of
-  those happened, and the candidate itself is untouched. A P1 feature that could
-  take a P0 candidate off the screen would be worse than no feature.
+  unreachable, or writes a verdict, `text` falls back to the deterministic
+  rationale, `status` says which happened, and the candidate is untouched.
 * **What the model may cite is a closed list.** `basis` is drawn from
-  `EvidenceKey`, and the service only accepts the keys that candidate actually
-  has (`app/explain/evidence.py`). An explanation that leans on a similarity
-  score the candidate never had is caught, withheld and reported instead of read
-  as fact.
+  `EvidenceKey`, and the service only accepts the keys that candidate actually has
+  (`app/explain/evidence.py`); anything else is caught, withheld and reported.
 
-Nothing here writes to the audit log, for the same reason the parse does not
-(UCM-11): the LLM is not an actor. What the operator was shown is recorded when
-the operator decides — `digest` exists so that human entry can name the exact
-prose it was reading.
+Nothing here writes to the audit log — the LLM is not an actor. `digest` exists so
+the operator's decision entry can name the exact prose it was reading.
 """
 
 from __future__ import annotations
@@ -57,7 +43,7 @@ class CandidateOrigin(str, Enum):
 
     # Authored mapping in the versioned catalog: the deterministic core offered it.
     CATALOG = "catalog"
-    # Suggested by the RAG pass (UCM-13): a neighbour in embedding space, not a mapping.
+    # Suggested by the RAG pass: a neighbour in embedding space, not a mapping.
     RETRIEVAL = "retrieval"
 
 
@@ -163,11 +149,11 @@ class CandidateExplanation(BaseModel):
 
 
 class ExplanationProvenance(BaseModel):
-    """How this batch of prose was produced — or why it was not (UCM-22).
+    """How this batch of prose was produced — or why it was not.
 
     Same shape as `ParseProvenance` and for the same reason: the decoding
-    parameters are inputs of the text, so two runs of the POC that show different
-    words must be explainable by something written down here.
+    parameters are inputs of the text, so two runs that show different words must
+    be explainable by something written down here.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -231,9 +217,9 @@ class CapabilityExplanations(BaseModel):
     def digest(self) -> str:
         """SHA-256 of exactly what was shown, candidate by candidate.
 
-        The composition entry the human signs (UCM-16) can carry this digest, so
-        the log says which words were on screen when the choice was made without
-        the audit trail having to store the prose of a model that decided nothing.
+        The composition entry the human signs can carry this digest, so the log
+        says which words were on screen when the choice was made without storing the
+        prose of a model that decided nothing.
         """
         payload = "\n".join(
             f"{e.control_id}|{e.status.value}|{e.text}" for e in self.explanations
@@ -294,10 +280,9 @@ class ZoneExplanations(BaseModel):
 class ExplanationDraft(BaseModel):
     """One explanation as the model writes it, before it is screened.
 
-    The descriptions below are part of the prompt: Ollama serves this schema as
-    `response_format`, so llama.cpp constrains decoding to it (the same path the
-    parse uses, UCM-12). It buys the shape; the presentational rules are bought by
-    the prompt and *checked* by `guard.py`.
+    The field descriptions below are part of the prompt: Ollama serves this schema
+    as `response_format`, so llama.cpp constrains decoding to it. It buys the shape;
+    the presentational rules are checked by `guard.py`.
     """
 
     model_config = ConfigDict(extra="forbid")

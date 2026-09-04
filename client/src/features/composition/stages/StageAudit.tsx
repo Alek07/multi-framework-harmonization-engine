@@ -1,16 +1,9 @@
 /**
- * Etapa 5 — the trail.
- *
- * Before the signature this table shows the operator's *pending* decisions,
- * hatched and italic, with the timestamp column empty: nothing has been recorded
- * yet, and a preview that looked like the ledger would be a lie about when a
- * decision became a fact. After it, the same table is the server's own record —
- * engine entries and human ones, in ledger order, with the re-walk of the hash
- * chain underneath.
- *
- * There is no edit action and no delete action anywhere in it, not even a
- * disabled one. The log is append-only, and the screen says that in words the
- * operator can act on rather than by naming the invariant.
+ * Etapa 5 — the trail. Before signing, the table shows the operator's *pending*
+ * decisions, hatched and italic with no timestamp: a preview that looked like the
+ * ledger would lie about when a decision became fact. After signing, it is the
+ * server's record in ledger order, with the hash-chain re-walk underneath. No edit
+ * or delete action anywhere — the log is append-only.
  */
 
 import { useState } from 'react'
@@ -118,9 +111,7 @@ export function StageAudit() {
           key: `pending-${index}`,
         }))
 
-  // The numbers in the first column are the ledger's own `sequence`, so page 2
-  // starts at 11 and not at 01: the reader is looking at part of one record,
-  // not at a record of its own.
+  // First column is the ledger's own `sequence`, so page 2 starts at 11, not 01.
   const page = usePage(rows, PER_PAGE, `${filter}-${signed}`)
 
   return (

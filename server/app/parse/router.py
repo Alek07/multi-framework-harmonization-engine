@@ -1,20 +1,13 @@
-"""UCM-15 - `POST /asset/parse`: free text in, a reviewable draft out.
+"""`POST /asset/parse`: free text in, a reviewable draft out.
 
-The endpoint is thin because the service is (`parse/service.py`), and both are
-thin for the same reason: the LLM extracts, it does not decide (invariant 1).
-What the route is careful *not* to do is worth stating.
-
-* **It does not write to the audit log.** A draft is a proposal, and a proposal
-  enters the ledger when the operator confirms it — as a human decision, with the
-  human's justification (UCM-11).
-* **It does not return an `AssetProfile`.** It returns a `ParseResult`:
-  the draft, the paths still missing, and the provenance of the run.
-  `review_required` is a constant `True`.
-* **There is no endpoint to promote a draft into a profile,** and that is not an
-  omission. The operator corrects the draft, and the corrected `AssetProfile` is
-  what the next call (`POST /candidates`) carries. Adding a sixth endpoint to
-  perform `completion.to_profile` — a pure, offline function — would open a closed
-  surface (invariant 4) to buy nothing.
+Thin because the LLM extracts, it does not decide (invariant 1). The route does not
+write to the audit log (a draft is a proposal; it enters the ledger only when the
+operator confirms it, as a human decision) and does not return an `AssetProfile` but
+a `ParseResult` (draft, missing paths, provenance; `review_required` is constant
+`True`). There is deliberately no endpoint to promote a draft into a profile: the
+operator corrects the draft and the corrected `AssetProfile` is what `POST /candidates`
+carries — adding one for the offline `completion.to_profile` would open a closed
+surface (invariant 4) to buy nothing.
 """
 
 from __future__ import annotations

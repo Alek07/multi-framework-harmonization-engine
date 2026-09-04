@@ -1,19 +1,11 @@
-"""UCM-15 - Fixtures for the closed surface: the shipped app, and no network at all.
+"""Fixtures for the closed surface: the shipped app, and no network at all.
 
-Same rule the rest of the suite follows (UCM-12/13/14): these tests run on any
-machine, offline, with no Ollama, no Qdrant and no embedding model on disk. What
-is replaced is exactly three things — the LLM's replies, the vectors, and the
-digest check — and they are replaced by the *same* stand-ins the unit suites
-already use, so what is exercised end to end here is the shipped code path: the
-real routers, the real dependency wiring, the real deterministic core, the real
-audit ledger and the real Pydantic contracts.
-
-The overrides go through `app.dependency_overrides`, which is why `app/api/deps.py`
-exposes the services as dependencies rather than importing them inside the
-handlers: a route that reached for a singleton directly could not be tested
-without a container. The agents are process-wide (`lru_cache`), so every override
-of one is entered on an `ExitStack` that the fixture unwinds — a scripted model
-left installed would silently script the next test too.
+Tests run offline with no Ollama, Qdrant or embedding model: only the LLM
+replies, the vectors and the digest check are replaced, by the same stand-ins the
+unit suites use, so the shipped code path runs end to end. Overrides go through
+`app.dependency_overrides`; the process-wide agents (`lru_cache`) are overridden
+on an `ExitStack` the fixture unwinds, so a scripted model never leaks into the
+next test.
 """
 
 from __future__ import annotations
@@ -153,16 +145,10 @@ def _first_explainable(
 ) -> tuple[str, str, list[str], str]:
     """A capability with both kinds of candidate, and the reply that explains them.
 
-    The reply is built from the *actual* candidates the service will offer — the
-    core's resolution plus the RAG pass over it — because `CapabilityExplanations`
-    refuses to be built unless the explanations are exactly the offered candidates,
-    in order. Scripting anything else would test the validator, not the wiring.
-
-    Which is why the gating goes in too, exactly as `CandidatesService` passes it:
-    it is what marks a suggestion the zone already ruled out (UCM-52), and the
-    declared ordering rule reads that mark to put those suggestions last (UCM-53).
-    A retrieval run without it would produce a different order here than the one
-    the endpoint answers with, and the test would be measuring the fixture.
+    The reply is built from the actual candidates the service offers (resolution
+    plus the RAG pass), in order, because `CapabilityExplanations` refuses any
+    other set; the gating goes in too, exactly as `CandidatesService` passes it,
+    or the fixture's order would differ from the endpoint's.
     """
     profile_retrieval = RetrievalService(index=FakeIndex(catalog)).retrieve_profile(
         resolution, gating=gating
@@ -193,10 +179,9 @@ def _first_explainable(
 def engine_run(client: TestClient, offline_candidates: CandidatesService) -> dict[str, Any]:
     """A recorded core run for PROFILE-A: what a composition is signed on top of.
 
-    Produced by calling the real endpoint rather than by seeding the ledger by
-    hand, because the property under test is that the two halves of the flow fit:
-    `POST /candidates` records a run and hands back its id, and
-    `POST /baseline/compose` is only admissible against exactly that run.
+    Produced through the real endpoint, not by seeding the ledger, so the test
+    exercises that `POST /candidates` records a run whose id
+    `POST /baseline/compose` then admits.
     """
     response = client.post(f"{PREFIX}/candidates", json={"profile_id": "PROFILE-A"})
     assert response.status_code == 200, response.text

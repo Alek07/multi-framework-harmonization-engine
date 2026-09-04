@@ -1,4 +1,4 @@
-"""UCM-13 - The index is a faithful, disposable projection of the catalog."""
+"""The index is a faithful, disposable projection of the catalog."""
 
 from __future__ import annotations
 

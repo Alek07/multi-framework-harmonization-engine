@@ -1,8 +1,8 @@
-"""UCM-7 - AssetProfile: the engine's input contract (asset profile).
+"""AssetProfile: the engine's input contract.
 
-It is the structured output of the LLM parse (reviewed by the operator) and the
-input to gating and prioritization. Pure Pydantic; not persisted as a table
-(composed in memory per request).
+The structured output of the LLM parse (reviewed by the operator) and the input to
+gating and prioritization. Pure Pydantic; not persisted as a table (composed in
+memory per request).
 """
 
 from __future__ import annotations
@@ -48,8 +48,8 @@ class TechNature(BaseModel):
     operator station in the control room — and a single asset-wide reading has to
     be wrong about one of them: `general_purpose_os=true` suppresses the
     *no-aplica* exclusion the controller is owed, `false` gates the workstation as
-    if it ran firmware. Gating reads these premises per zone (UCM-9), so this is
-    where they belong.
+    if it ran firmware. Gating reads these premises per zone, so this is where they
+    belong.
     """
 
     model_config = ConfigDict(extra="forbid")

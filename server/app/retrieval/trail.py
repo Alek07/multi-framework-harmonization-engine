@@ -90,7 +90,7 @@ def _candidates_cut(
     run_id: UUID,
     versions: dict[str, str],
 ) -> list[AuditEventCreate]:
-    """The rule that bounded the ranking, and what it left below (UCM-54).
+    """The rule that bounded the ranking, and what it left below.
 
     A list only so a capability the index never answered writes nothing at all.
     """

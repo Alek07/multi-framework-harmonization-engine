@@ -1,37 +1,22 @@
 """The whole flow through the API, on several assets, against a deployment.
 
-Not a unit of it: the seven declared endpoints in the order an operator walks
-them -- free text in, signed baseline and declaration of applicability out -- and
-then the same walk again for assets that differ on the premises the engine reads.
+The seven declared endpoints in the order an operator walks them -- free text in,
+signed baseline and declaration of applicability out -- then the same walk again
+for assets that differ on the premises the engine reads. Unlike the rest of the
+suite (scripted model, fake index, in-process client), this proves the seams hold:
+that a premise declared in the catalog becomes a justified exclusion in the zone
+that does not meet it, and stays legible, with its rule and evidence, in the signed
+document at the far end.
 
-What it is for. Every other test in this repo checks one layer with the ones
-around it replaced: scripted model, fake index, in-process client. That is what
-makes them fast and what lets them run on a laptop with nothing installed, and it
-is also what they cannot prove -- that the seams hold, and that a decision taken
-in the catalog survives the whole chain.
+The five assets bracket the premise and sector space rather than being realistic
+in every detail, and are given as prose so the flow starts at the parse. The last
+two, a water plant and a hospital, are out of the pipeline's sectors, so maritime
+and transport norms must come out as justified exclusions, scored against
+`server/eval/applicability_ground_truth.json`.
 
-The claim under test: a premise the catalog declares about a control
-becomes a justified exclusion in the zone that does not meet it, and that
-exclusion is still legible, with its rule and its evidence, in the signed
-document at the far end. If it were lost anywhere between the gating and the
-declaration, everything else could still be green.
-
-The first three assets bracket the premise space rather than trying to be
-realistic in every detail: one that can host almost nothing, one that can host
-almost everything, and one that is two zones at once and carries a maritime
-obligation. They are given as *prose*, because the flow starts at the parse and
-an asset handed over as a ready-made profile would skip the half of the argument
-that is hardest.
-
-The last two -- a water plant and a hospital -- are outside the pipeline's
-sectors, so the maritime and transport norms must come out as justified
-exclusions, scored against `server/eval/applicability_ground_truth.json`.
-
-Two things it deliberately reports instead of asserting. Which premises the parse
-captures is measured and printed, never required -- a miss there is the argument
-for human-in-the-loop, not a defect. And the operator's review is simulated in
-one marked place, so it is always visible which values came from the model and
-which from the person.
+Premise capture by the parse and the operator's review are reported, not asserted:
+a parse miss is the argument for human-in-the-loop, and the simulated review is
+printed field by field so model and human values stay distinguishable.
 
 Run from the repo root, with the stack up:
 
@@ -298,10 +283,8 @@ def complete(asset: Asset, draft: dict[str, Any], missing: list[str], r: Report)
             "nature": {},
             "safety_out_of_scope": bool(zone.get("safety_out_of_scope")),
         }
-        # `sectors` above all: a zone's own sectors *override* the asset's, so
-        # dropping them here would have silently handed every zone the asset-wide
-        # reading -- and with it the sectoral exclusion that tells a jetty from an
-        # operations room inside the same terminal.
+        # A zone's own sectors override the asset's; dropping them would hand every
+        # zone the asset-wide reading and lose the per-zone sectoral exclusion.
         for optional in ("purdue", "role", "position", "reference", "sectors"):
             if zone.get(optional):
                 merged[optional] = zone[optional]
@@ -649,10 +632,9 @@ def statement(client: httpx.Client, asset: Asset, baseline: dict, r: Report) -> 
             "cada una llega como exclusion justificada por ambito, con su evidencia",
         )
 
-    # Counted over what the gating did *not* exclude, not over what the signature
-    # took: a contextual obligation -- which is most of what the IMO contributes --
-    # is an exigency rather than a mechanism, so it is offered and never "included".
-    # Counting only the included ones reported zero IMO for a maritime terminal.
+    # Counted over what the gating did not exclude, not over what the signature
+    # took: a contextual obligation is offered rather than "included", so counting
+    # only included ones reported zero IMO for a maritime terminal.
     gated_out = {"not_applicable", "objective_without_mechanism", "wrong_scope"}
     surviving = [m for m in mechs if m["disposition"] not in gated_out and m["framework"]]
     frameworks = sorted({m["framework"] for m in surviving})

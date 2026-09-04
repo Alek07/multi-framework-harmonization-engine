@@ -1,13 +1,9 @@
-"""UCM-8 - Precedence rules and declared contradictions (engine policy).
+"""Precedence rules and declared contradictions (engine policy).
 
-Kept apart from the catalog on purpose: the catalog describes *what exists*
-(capabilities, controls, mappings), these rules describe *how the engine settles
-a clash* — zone precedence and the contradictions declared by the author. They
-are versioned like the catalog and validated against it, so a rule can never
-point at a control or capability that does not exist.
-
-They are data, not AI: the LLM never takes part in resolving a conflict
-(invariant 1) and the outcome is reproducible (invariant 3).
+How the engine settles a clash — zone precedence and author-declared
+contradictions — kept apart from the catalog and validated against it. Data, not
+AI: the LLM never resolves a conflict (invariant 1) and the outcome is
+reproducible (invariant 3).
 """
 
 from __future__ import annotations

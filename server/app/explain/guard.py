@@ -1,32 +1,24 @@
-"""UCM-14 - The presentational guard: the check that the model only explained.
+"""The presentational guard: the check that the model only explained.
 
-The prompt asks the model to describe and never to advise. This module is what
-makes that an enforced property instead of a hope, because a 7B model that is
-asked to be helpful will eventually be helpful in the one way it must not: "el
-mejor candidato", "debería elegir", "descarte los demás". Two deterministic
-checks, both run on every generated text:
+The prompt asks the model to describe and never advise; this module makes that an
+enforced property, because a 7B asked to be helpful will eventually be helpful in
+the one way it must not ("el mejor candidato", "debería elegir"). Two
+deterministic checks run on every generated text:
 
 * **No verdict language.** A declared Spanish lexicon of recommendation,
   obligation, selection and comparison. A hit withholds the prose.
 * **No ungrounded citation.** The `basis` the model returns must be a subset of
-  the evidence that candidate actually has (`evidence.py`). Citing a similarity
-  score a catalog candidate never had is a fabrication, and a fluent fabrication
-  next to a real control is worse than no sentence at all.
+  the evidence that candidate actually has (`evidence.py`).
 
-What "withheld" means matters as much as the checks: the *prose* is dropped and
-the candidate stays exactly where it was, with the engine's own deterministic
-rationale in its place and the reason written next to it. The guard can never
-remove a candidate, reorder one, or change a score — it only ever decides which
-of two texts is shown.
-
-Two limits, declared rather than discovered. A lexicon catches the phrasings it
-lists and not a verdict expressed in words nobody wrote down; and it is the
-prompt, not the guard, that does most of the work. The guard is the net, not the
-floor — it turns a silent breach of invariant 1 into a visible one.
+"Withheld" means the prose is dropped and the candidate stays exactly where it
+was, with the engine's own rationale in its place and the reason next to it. The
+guard never removes, reorders or rescores a candidate — it only decides which of
+two texts is shown. It is the net, not the floor: the prompt does most of the
+work, and the lexicon catches only the phrasings it lists.
 
 Negations are skipped on purpose: "la similitud no descarta la equivalencia" is
-description, not instruction, and withholding it would train the reader to
-ignore the flag.
+description, not instruction, and withholding it would train the reader to ignore
+the flag.
 """
 
 from __future__ import annotations

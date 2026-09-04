@@ -1,7 +1,7 @@
-"""UCM-21 - `GET /baselines`: signed baselines projected from the ledger, and nothing else.
+"""`GET /baselines`: signed baselines projected from the ledger, and nothing else.
 
 A signed baseline *is* its `baseline_signed` entry, so there is no table and no
-second place one can live. Pure, like the trail writers.
+second place one can live.
 """
 
 from __future__ import annotations

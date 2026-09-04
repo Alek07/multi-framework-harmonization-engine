@@ -1,22 +1,19 @@
-"""UCM-15 - What the five endpoints are given to work with.
+"""What the endpoints are given to work with.
 
-Three kinds of collaborator, and they are wired differently for reasons that
-matter more than the plumbing:
+Three kinds of collaborator, wired differently:
 
 * **The ledger is per request.** `AuditService` is built around the request's
-  `AsyncSession`, so a run and the human decisions taken on it are appended in one
-  transaction and rolled back together if the request fails. A half-written trail
-  is worse than no trail (`audit/repository.py`).
+  `AsyncSession`, so a run and the human decisions on it are appended in one
+  transaction and rolled back together if the request fails
+  (`audit/repository.py`).
 * **The engine's collaborators are per process.** The parse agent, the catalog
   index and the explanation agent are expensive to build and hold no request
-  state: one embedding model per process, not one per call. `lru_cache` is what
-  makes "per process" true; `Depends` is what makes it overridable, which is how
-  the suite runs with no Ollama and no Qdrant.
+  state. `lru_cache` makes "per process" true; `Depends` makes it overridable,
+  which is how the suite runs with no Ollama and no Qdrant.
 * **The profile is resolved, never invented.** `requested_profile` accepts either
   an inline `AssetProfile` — the reviewed output of `POST /asset/parse` — or the
-  id of one of the profiles frozen in the repo (UCM-1/UCM-2). Exactly one of the
-  two: guessing which to use when both are given would mean the engine choosing
-  its own input.
+  id of one of the profiles frozen in the repo. Exactly one of the two: guessing
+  when both are given would mean the engine choosing its own input.
 """
 
 from __future__ import annotations
@@ -79,10 +76,9 @@ DeltaDep = Annotated[RegionalDeltaService, Depends(delta_service)]
 def requested_profile(profile: AssetProfile | None, profile_id: str | None) -> AssetProfile:
     """The profile the request is about: the one it carried, or the one it named.
 
-    The frozen profiles are addressable by id on purpose. They are the inputs the
-    core was validated against (M1 gate) and the ones the evaluation measures
-    (UCM-18), so a demo through Swagger — the declared plan B if the UI is cut —
-    can reach the whole pipeline without pasting a profile into every request.
+    The frozen profiles are addressable by id on purpose: a demo through Swagger
+    (the declared plan B if the UI is cut) can reach the whole pipeline without
+    pasting a profile into every request.
     """
     if profile is not None and profile_id is not None:
         raise ProfileRequestError(

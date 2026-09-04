@@ -1,16 +1,10 @@
 /**
- * Etapa 2 — candidates: the central contribution, on screen.
- *
- * A crosswalk translates (A ≈ B). What this stage shows is every equivalent
- * option for a requirement *in this zone* — framework, jurisdiction, strength,
- * how much it covers, where the equivalence comes from — next to each other,
- * with the engine's reason for each one and no recommendation attached.
- * Underneath, what was left out of this zone and why, which is a deliverable of
- * the baseline rather than noise.
- *
- * The copy names things the way the operator does: requisito, control, nivel.
- * The engine's own vocabulary (`mapping_type`, `tier_0`, rule ids) lives in the
- * label maps and in tooltips, never in a visible label.
+ * Etapa 2 — candidates: the central contribution, on screen. Where a crosswalk
+ * translates (A ≈ B), this stage shows every equivalent option for a requirement
+ * *in this zone* side by side — framework, jurisdiction, strength, coverage,
+ * provenance — with the engine's reason and no recommendation, and underneath what
+ * was left out and why (a deliverable, not noise). Engine vocabulary stays in the
+ * label maps and tooltips, never a visible label.
  */
 
 import { useEffect, useState } from 'react'
@@ -43,10 +37,9 @@ const COMPUTING = [
 ]
 
 /**
- * Read once, and the rest of the screen becomes readable — so it is offered
- * rather than imposed. It teaches the notation; it declares nothing, which is
- * what makes it safe to keep behind a button while the engine's own statements
- * (gaps, conflicts, exclusions) stay on the page where they cannot be closed.
+ * The notation legend, offered behind a button rather than imposed: it teaches and
+ * declares nothing, so it is safe to fold while the engine's own statements (gaps,
+ * conflicts, exclusions) stay on the page where they cannot be closed.
  */
 function Legend() {
   return (
@@ -88,12 +81,10 @@ function Legend() {
 }
 
 /**
- * Paged at five, and the count in the heading is the count of the whole list.
- *
- * This panel is a deliverable — it is what answers an auditor asking why a
- * catalog control is not in the baseline — so the pager may shorten the scroll
- * and nothing else: every exclusion is still here, page by page, in the core's
- * own order.
+ * Paged at five, with the heading counting the whole list. This panel is a
+ * deliverable — it answers an auditor asking why a catalog control is not in the
+ * baseline — so the pager only shortens the scroll: every exclusion is still here,
+ * page by page, in the core's order.
  */
 function GatingPanel() {
   const zone = useActiveZone()
@@ -267,9 +258,8 @@ export function StageCandidates() {
       hint="Para cada requisito de esta zona verás, unas al lado de otras, todas las opciones equivalentes que ofrecen los distintos marcos. Marca la que vas a implantar y escribe por qué: esa razón es la que quedará registrada."
       scope={zone ? `${ZONE_DOMAIN[zone.zone.domain]} · ${zone.zone.zone_id}` : undefined}
     >
-      {/* Two explanations of the screen, offered instead of imposed: the stage
-          opens on the options themselves, and the operator asks for the reading
-          they need. Nothing the engine *decided* is behind a button. */}
+      {/* Two readings offered, not imposed: the stage opens on the options, and
+          nothing the engine *decided* is behind a button. */}
       <div className="mb-4 flex flex-wrap gap-2">
         {zone ? (
           <InfoButton onClick={() => setShowDerivation(true)}>Por qué esta zona es así</InfoButton>

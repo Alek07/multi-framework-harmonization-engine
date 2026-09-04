@@ -1,50 +1,25 @@
-"""UCM-15/UCM-17/UCM-50 - Contract of `POST /delta`: one zone, N regional readings.
+"""Contract of `POST /delta`: one zone, N regional readings.
 
-The shape was fixed in UCM-15 before the logic existed; UCM-17 filled it in;
-UCM-50 makes the comparison symmetric and adds a legal-regime lens without
-changing what a client already sending the old body gets back.
+The delta is one zone of one profile, read once per region, with the difference
+between the readings made explicit — not "what does EU call this US control"
+(translation) but "compose this zone for a US operator, then for one who also
+answers to EU obligations, and show what changes".
 
-What the delta *is*, stated precisely, because it is easy to mistake for a
-crosswalk: it is one zone of one profile, read once per region, with the
-difference between the readings made explicit. Not "what does EU call this US
-control" — that is translation — but "compose this zone for a US operator, then
-for an operator who also answers to EU obligations, and show what changes".
+Two axes the human chooses and the engine obeys (it never applies a lens on its
+own):
 
-**Two axes the human chooses, and the engine obeys** (invariant: the engine never
-applies a lens on its own initiative):
+* `mode` — `cumulative` (default) reads each region plus the ones before it, so
+  "+EU" is the US reading plus the European overlay; `symmetric` reads each region
+  on its own over the common ground and reports the difference in both directions.
+* `regime` — `all` (default) makes jurisdiction the axis; `legal` makes only the
+  legal controls of the compared regions differentiate, freezing the common
+  technical ground (CIS, CSF, IEC 62443) so the comparison is law-against-law.
 
-* `mode` — how the readings relate.
-  * `cumulative` (the default, UCM-3): reading *i* offers everything the regions
-    up to *i* offer, so "+EU" is the US reading *plus* the European overlay, never
-    a parallel catalog in which a European operator has no CIS and no CSF. This is
-    still the right answer for an operator subject to *both* regimes.
-  * `symmetric`: each reading offers only its own region's contribution over the
-    common ground, and the difference is reported in **both** directions — what US
-    demands that EU does not, *and* what EU demands that US does not. This is the
-    half UCM-50 restored: the cumulative reading could never let the first region
-    report what it alone requires.
-* `regime` — what enters the axis of comparison.
-  * `all` (the default): jurisdiction is the axis — a control counts for a region
-    when its jurisdiction is that region.
-  * `legal`: only `legal` controls of the compared regions differentiate; the
-    common technical ground (CIS, CSF, IEC 62443) stays fixed in every reading and
-    is credited to no region. This makes the comparison law-against-law instead of
-    law-against-voluntary-guidance — the very confusion that produced the original
-    finding, since CIS/CSF carry a US jurisdiction but are voluntary guidance.
-
-Bounds declared rather than discovered:
-
-* **One zone per call.** The demo answers the question for the demo zone. N zones
-  at once is declared future work, not an omission papered over with a loop.
-* **A lens sets candidates aside; it never deletes them.** Every reading reports
-  what its own lens left out (`set_aside_control_ids`) — the controls of the other
-  region (symmetric) or of a region still to come (cumulative). A filter whose
-  leftovers were invisible would be exactly the silent restriction invariant 2
-  forbids.
-* **The delta reads authored mappings, not embedding distances.** The question
-  "what does EU require that US does not" is answered by the versioned catalog and
-  the deterministic core, so it is reproducible with Qdrant and Ollama off. A
-  similarity score has no business answering a question about legal obligation.
+Bounds: one zone per call (N zones is declared future work); a lens sets
+candidates aside but never deletes them, and every reading reports what its lens
+left out (`set_aside_control_ids`), so the restriction is never silent
+(invariant 2); the delta reads authored mappings, not embedding distances, so it
+is reproducible with Qdrant and Ollama off.
 """
 
 from __future__ import annotations
@@ -60,7 +35,7 @@ from app.retrieval.schemas import PayloadFilter
 
 
 class DeltaMode(str, Enum):
-    """How the regional readings relate to one another (UCM-50)."""
+    """How the regional readings relate to one another."""
 
     # Reading i offers every region up to i: "+EU" is the US reading plus EU.
     CUMULATIVE = "cumulative"
@@ -70,7 +45,7 @@ class DeltaMode(str, Enum):
 
 
 class DeltaRegime(str, Enum):
-    """What enters the axis of comparison (UCM-50)."""
+    """What enters the axis of comparison."""
 
     # Jurisdiction is the axis. The common ground is the jurisdictions not compared.
     ALL = "all"
@@ -82,18 +57,13 @@ class DeltaRegime(str, Enum):
 class DeltaRequest(BaseModel):
     """Body of `POST /delta`: which asset, which zone, and which regions in order.
 
-    The profile is named the same way `POST /candidates` and
-    `POST /baseline/compose` name it — inline or by id, never both — and that
-    symmetry is the point of the shape. The delta answers "compose this zone for
-    a US operator, then for one who also answers to EU obligations": *this* zone,
-    of *this* asset. An endpoint that could only be asked about the profiles
-    frozen in the repository could not be asked about the asset the operator has
-    just composed, which is the question the engine exists to answer.
-
-    `profile_id` remains, and not as a courtesy: the frozen profiles are the
-    inputs the core was validated against and the ones the evaluation measures
-    (UCM-18), so the Swagger demo — the declared plan B — still reaches the whole
-    comparison without pasting a profile into the request.
+    The profile is named the way `POST /candidates` and `POST /baseline/compose`
+    name it — inline or by id, never both. An endpoint that could only be asked
+    about the profiles frozen in the repository could not be asked about the asset
+    the operator has just composed, which is the question the engine exists to
+    answer. `profile_id` remains because the frozen profiles are what the core was
+    validated against and what the evaluation measures, so the Swagger demo still
+    reaches the comparison without pasting a profile in.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -183,12 +153,12 @@ class CapabilityRegionView(BaseModel):
     # What this reading contributes that no other one does. In `cumulative` mode
     # this is always empty on the first reading — it is the starting point, and
     # everything it offers the later readings offer too. In `symmetric` mode every
-    # reading, the first included, reports its own exclusive contribution: that is
-    # the direction the cumulative reading could not express (UCM-50).
+    # reading, the first included, reports its own exclusive contribution: the
+    # direction the cumulative reading could not express.
     only_here_control_ids: list[str] = Field(default_factory=list)
     # Candidates the catalog maps here that this reading's lens left out — controls
     # of the other region (symmetric) or of a region still to come (cumulative).
-    # Apartar no es descartar.
+    # Setting aside is not discarding.
     set_aside_control_ids: list[str] = Field(default_factory=list)
     frameworks: list[Framework] = Field(default_factory=list)
     # Computed by the deterministic core over this reading's options, not here.
@@ -219,15 +189,14 @@ class CapabilityDelta(BaseModel):
 
 
 class RegimeApplicability(BaseModel):
-    """Whether a legal framework governs this zone at all (UCM-50, on UCM-47).
+    """Whether a legal framework governs this zone at all.
 
     The engine does not choose the comparison, but it *does* determine
     applicability and say so with its reason: TSA governs the transport sector, so
     it applies to a pipeline and not to a hospital; CIRCIA is transversal and
     applies always. Reported for every legal framework of the compared regions,
-    applicable or not, so the human chooses the comparison already knowing which
-    regimes are even in play — and so a non-applicable regime is a visible datum,
-    not a silence.
+    applicable or not, so a non-applicable regime is a visible datum, not a
+    silence.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -278,8 +247,8 @@ class RegionalDelta(BaseModel):
     # absence of one.
     regional_gap_capability_ids: list[str] = Field(default_factory=list)
     # Which legal regimes of the compared regions govern this zone, with the
-    # engine's reason. Determined, not chosen (UCM-47/UCM-50): reglas deciden
-    # aplicabilidad, humano elige la comparación.
+    # engine's reason. Determined, not chosen: the rules decide applicability, the
+    # human chooses the comparison.
     regime_applicability: list[RegimeApplicability] = Field(default_factory=list)
     rationale: str
 

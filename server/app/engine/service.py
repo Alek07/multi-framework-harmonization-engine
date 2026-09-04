@@ -1,11 +1,8 @@
-"""UCM-8/UCM-9/UCM-10 - Core steps 1-4 end to end, per asset profile.
+"""Core steps 1-4 end to end, per asset profile.
 
-`resolve_profile` is what the rest of the engine builds on: gating
-(`gate_profile`, UCM-9) removes *mechanisms* from this result, prioritisation
-(`prioritize_profile`, UCM-10) tiers what survives and lays out the phased
-roadmap, and the audit log (UCM-11) records every decision already made here. No
-AI takes part: same catalog + same rules + same profile always give the same
-result.
+`resolve_profile` maps and resolves; `gate_profile` removes mechanisms;
+`prioritize_profile` tiers what survives into a phased roadmap. No AI takes part:
+same catalog + rules + profile always give the same result.
 """
 
 from __future__ import annotations
@@ -66,10 +63,10 @@ def gate_profile(
     catalog: Catalog | None = None,
     rules: RuleSet | None = None,
 ) -> ProfileGating:
-    """Apply gating to the resolved profile, zone by zone (UCM-9).
+    """Apply gating to the resolved profile, zone by zone.
 
-    Takes the resolution rather than recomputing it so the same steps 1-2 result
-    can be audited, gated and prioritised: gating decorates, it never re-decides.
+    Takes the resolution rather than recomputing it, so one steps 1-2 result is
+    audited, gated and prioritised: gating decorates, it never re-decides.
     """
     catalog = catalog if catalog is not None else get_catalog()
     resolution = resolution if resolution is not None else resolve_profile(profile, catalog, rules)
@@ -94,12 +91,11 @@ def prioritize_profile(
     rules: RuleSet | None = None,
     gating_rules: GatingRules | None = None,
 ) -> ProfilePrioritization:
-    """Tier, order and phase the gated profile, zone by zone (UCM-10).
+    """Tier, order and phase the gated profile, zone by zone.
 
-    Takes the gating rather than recomputing it, for the same reason gating takes
-    the resolution: one chain of decisions, auditable end to end. Prioritisation
-    reads what gating left applicable — it never re-opens a mechanism, and it
-    never repeals a mandate gating could not meet.
+    Takes the gating rather than recomputing it: one chain of decisions, auditable
+    end to end. It reads what gating left applicable — never re-opening a mechanism
+    nor repealing a mandate gating could not meet.
     """
     catalog = catalog if catalog is not None else get_catalog()
     if gating is None:

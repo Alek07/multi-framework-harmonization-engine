@@ -1,27 +1,12 @@
-"""UCM-12 - The parse instructions, versioned.
+"""The parse instructions, versioned.
 
-The prompt is an **input of the result**, on the same footing as the catalog and
-the rule files: the same text and the same model with a different prompt give a
-different draft. So it is versioned here, recorded in `ParseProvenance`, and
-changed the way a catalog is changed — by bumping the version, never by editing
-a shipped one in place.
-
-Two things it has to buy from a 7B model, and both are invariants rather than
-preferences:
-
-* **Extract, do not decide.** The recurring failure of a small model on this task
-  is helpfulness: asked for a target SL that the paragraph does not mention, it
-  produces a plausible one. Hence the repetition of the null rule and the worked
-  example that leaves fields empty — the example is the instruction the model
-  actually obeys.
-* **Account for every sentence.** Anything not representable goes to `unmapped`.
-  A model that quietly ignores a clause it did not understand breaks invariant 2
-  more thoroughly than one that fails to parse at all, because nothing downstream
-  can tell that it happened.
-
-Written in English (project language rule) over Spanish input: the operator's
-description and the `note` strings the operator reads are Spanish, the
-instruction is developer-authored and so it is not.
+The prompt is an input of the result, on the same footing as the catalog and the
+rule files: the same model with a different prompt gives a different draft. So it is
+versioned, recorded in `ParseProvenance`, and changed by bumping the version, never
+by editing a shipped one in place. Two invariants it must buy from a 7B model:
+extract, do not decide (hence the repeated null rule and the worked example that
+leaves fields empty), and account for every sentence (anything not representable
+goes to `unmapped`; a silently dropped clause breaks invariant 2).
 """
 
 from __future__ import annotations
@@ -33,8 +18,8 @@ from __future__ import annotations
 # five premises once per zone. A hybrid asset settles them differently per zone
 # and a single asset-wide answer had to be wrong about one of them.
 # 0.4.0: the draft carries the asset's `sectors` and an optional per-zone
-# `sectors` (UCM-47), extracted under the same null rule as every other field — an
-# unstated sector stays an empty list and the operator completes it.
+# `sectors`, extracted under the same null rule as every other field — an unstated
+# sector stays an empty list and the operator completes it.
 PROMPT_VERSION = "0.4.0"
 
 # `criticality.scale` comes back null even when the text rates the consequence
@@ -43,7 +28,7 @@ PROMPT_VERSION = "0.4.0"
 # any serious-sounding consequence, and one read «grave» as moderate — so the
 # model cannot tell a stated rating from an inferable one. Null is the safe end
 # of that trade: `missing_required` asks for it and the operator answers in one
-# click, where a wrong severity would silently drive prioritisation (UCM-10).
+# click, where a wrong severity would silently drive prioritisation.
 # Held by `test_live_ollama.py::test_a_consequence_is_not_a_severity`.
 
 SYSTEM_PROMPT = """\

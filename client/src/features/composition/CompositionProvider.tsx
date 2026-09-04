@@ -1,15 +1,9 @@
 /**
- * The state of a composition session — the human's side of it, and only that.
- *
- * Every call to the engine lives here, so there is exactly one place that talks
- * to it. The arithmetic in `progress` mirrors `_check_mandates`
- * (`server/app/baseline/service.py`) and nothing else: it decides whether the
- * *button* is enabled, and the server verifies the same thing again before
- * signing — so a client that got it wrong could only ever be wrong in the
- * direction of asking, never of signing.
- *
- * What the operator decided lives in `session.ts` and outlives the tab (UCM-21);
- * what the engine answered stays here and dies with the page.
+ * The human's side of a composition session, and the single place that calls the
+ * engine. The arithmetic in `progress` mirrors `_check_mandates` only to enable
+ * the *button*; the server re-verifies before signing, so a wrong client can only
+ * err toward asking, never toward signing. What the operator decided lives in
+ * `session.ts` and outlives the tab; engine answers stay here and die with the page.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -93,9 +87,8 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   const [deltaLoading, setDeltaLoading] = useState(false)
   const [deltaError, setDeltaError] = useState<string | null>(null)
   const [deltaOrder, setDeltaOrder] = useState(0)
-  // The delta screen answers one question — the difference between the legal
-  // regimes that govern this asset — so it opens symmetric (both directions) and
-  // legal (law against law), and does not offer to be anything else (UCM-50).
+  // Opens symmetric (both directions) and legal (law against law): the screen
+  // answers one question, the difference between the regimes governing this asset.
   const [deltaMode, setDeltaMode] = useState<DeltaMode>('symmetric')
   const [deltaRegime, setDeltaRegime] = useState<DeltaRegime>('legal')
 
@@ -136,12 +129,9 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   }, [description, parsing, signed])
 
   /**
-   * The fallback the PRD declares: the same draft, with nothing in it.
-   *
-   * Every value starts empty rather than defaulted, for the same reason the
-   * parse returns nulls: a target SL nobody chose would run through the core and
-   * produce a baseline nobody decided. `missing_required` is what tells the
-   * operator, path by path, what is still theirs to fill in.
+   * The PRD's fallback: the same draft, empty. Every value starts empty rather
+   * than defaulted (like the parse's nulls) — a target SL nobody chose would run
+   * the core into a baseline nobody decided. `missing_required` lists what is left.
    */
   const startManualDraft = useCallback(() => {
     if (signed) return
@@ -267,15 +257,10 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   // --- stage 2 ---------------------------------------------------------------
 
   /**
-   * One engine run at a time.
-   *
-   * `POST /candidates` is not a read: it appends the run's decisions to the
-   * append-only ledger, and the ledger numbers them by reading its own head
-   * first. Two overlapping runs therefore claim the same sequence and the
-   * second one is refused by the database — correctly, but the operator would
-   * see a 500 for having double-clicked. React's development mode double-invokes
-   * effects, so this guard is not hypothetical: without it the very first load
-   * of the candidates stage fires the run twice.
+   * One engine run at a time. `POST /candidates` appends to the append-only
+   * ledger, which numbers entries from its own head, so two overlapping runs
+   * claim the same sequence and the second is refused. StrictMode double-invokes
+   * effects, so without this guard the first candidates load fires the run twice.
    */
   const running = useRef(false)
 
@@ -306,10 +291,8 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   )
 
   const loadCandidates = useCallback(async () => {
-    // Same guard as `runCandidates`, and it has to be *here* too: StrictMode
-    // invokes the mount effect twice, and a second call that returns without
-    // running would otherwise clear the flag while the first request is in
-    // flight — leaving the stage with no sign that anything is happening.
+    // Guard needed here too: StrictMode invokes the mount effect twice, and a
+    // second call clearing the flag mid-flight would leave the stage looking idle.
     if (running.current) return
     setCandidatesLoading(true)
     try {
@@ -320,12 +303,10 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   }, [runCandidates])
 
   /**
-   * Ask the LLM why each candidate of one capability is on screen (UCM-14).
-   *
-   * It re-runs `POST /candidates` because that is where the scope lives, and the
-   * response replaces the current one: a new engine run, appended to the ledger
-   * like any other. The operator's decisions survive it untouched — they are
-   * keyed by zone, capability and control, not by run.
+   * Ask the LLM why each candidate of one capability is on screen. Re-runs
+   * `POST /candidates` (where the scope lives), replacing the current response.
+   * The operator's decisions survive: they are keyed by zone/capability/control,
+   * not by run.
    */
   const explainCapability = useCallback(
     async (zone: string, capabilityId: string) => {
@@ -460,12 +441,9 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   }, [candidates, gaps, reasons, selections, signed])
 
   /**
-   * The human's decisions, in the four kinds the ledger knows how to file.
-   *
-   * `compensatory_declared` is not a separate control in the interface: a
-   * mechanism that gating listed as compensatory for this capability *is* a
-   * compensatory declaration, and filing it as an ordinary selection would put
-   * the wrong sentence in the trail.
+   * The human's decisions in the four kinds the ledger files. `compensatory_declared`
+   * is not a separate control: a mechanism gating listed as compensatory *is* a
+   * compensatory declaration, and filing it as a plain selection would mislabel the trail.
    */
   const choices = useMemo<CompositionChoice[]>(() => {
     const built: CompositionChoice[] = []
@@ -482,7 +460,7 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
         const picked = selections[key] ?? []
         const reason = (reasons[key] ?? '').trim()
         // No reason, no entry: the request would be refused, and a decision
-        // recorded without its justification is the thing UCM-11 forbids.
+        // recorded without its justification is exactly what is forbidden.
         if (!reason) continue
 
         for (const controlId of picked) {
@@ -595,12 +573,9 @@ export function CompositionProvider({ children }: { children: ReactNode }) {
   )
 
   /**
-   * A step whose input disappears cannot stay on screen.
-   *
-   * Re-parsing the description or starting a manual draft clears the engine run,
-   * and the operator may be standing on a step that reads it. The step is derived
-   * rather than stored for that reason: what is on screen is always a step that
-   * still holds, without a render passing through one that does not.
+   * A step whose input disappears cannot stay on screen. Re-parsing or starting a
+   * manual draft clears the engine run, so the step is derived rather than stored:
+   * what shows is always a step that still holds.
    */
   const step = stepLocks[requestedStep]
     ? (([4, 3, 2, 1] as Step[]).find((n) => n < requestedStep && !stepLocks[n]) ?? 1)

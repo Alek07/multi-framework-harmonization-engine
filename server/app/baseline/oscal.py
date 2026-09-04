@@ -1,41 +1,22 @@
-"""UCM-46 - The declaration as a partial OSCAL system-security-plan (NIST).
+"""The declaration as a partial OSCAL system-security-plan (NIST).
 
-The internal schema is already *conceptually* OSCAL — a versioned catalog, a
-profile that tailors it for one asset, a plan that records what that asset
-implements — so the crosswalk is the deliverable and this is its proof of work:
-the same document `statement.py` projects, expressed in the OSCAL SSP model
-(v1.1.3) for the subset of fields this engine actually has facts for.
+The internal schema is already conceptually OSCAL — a versioned catalog, a
+profile tailoring it for one asset, a plan recording what that asset implements
+— so this expresses the same document `statement.py` projects in the OSCAL SSP
+model (v1.1.3), for the subset of fields the engine has facts for.
 
-**It is a partial export and it says so in its own metadata.** Nothing here is a
-conformance claim: an SSP is a document about an authorised system, and this is a
-composed baseline for an asset. What the export is good for is the thing the
-ticket asks for — that a reviewer can take the artefact into an OSCAL toolchain
-and read the composition without translating it by hand.
-
-Four mapping decisions carry the weight, and each is written up in
+It is a partial export and says so in its own metadata: nothing here is a
+conformance claim. Four mapping decisions carry the weight, each written up in
 `docs/oscal-crosswalk.md` with the alternative that was rejected:
 
-* **`control-id` is the capability, not the framework control.** OSCAL resolves
-  control ids against the imported profile; the profile of this engine is the
-  asset's requirement set, whose members are the framework-neutral capabilities.
-  Mapping the framework control there instead would have made every zone's
-  mechanism a separate control and lost the requirement they answer to.
-* **A zone is a component.** `type="network"` — an IEC 62443 zone is a grouping
-  of assets under one security level, which is the closest core value. One
-  `implemented-requirement` per capability then carries one `by-component` per
-  zone it was composed in, which is exactly how the same requirement gets a
-  different answer in the corridor and in the SIS.
-* **`implementation-status` uses core values only.** `implemented`,
-  `alternative` for a declared compensatory control, `not-applicable` for a
-  justified gating exclusion, `partial` for residual coverage. The one case OSCAL
-  has no state for — a gap the operator accepted *in writing*, which is neither
-  planned nor not-applicable — is exported as `partial` and disambiguated by an
-  extension property, and that gap in the model is reported as a finding rather
-  than smoothed over.
-* **Everything non-core goes in `props` under our own `ns`.** Tier, phase,
-  jurisdiction, provenance, gating rule, audit sequence: OSCAL prescribes a
-  namespace for exactly this, and inventing core names would make the document
-  lie about what it conforms to.
+* `control-id` is the capability, not the framework control: OSCAL resolves
+  control ids against the imported profile, whose members are the capabilities.
+* A zone is a component (`type="network"`), with one `by-component` per zone
+  under each capability's `implemented-requirement`.
+* `implementation-status` uses core values only; an accepted-in-writing gap has
+  no core state, so it is exported as `partial`, disambiguated by an extension
+  property, and reported as a finding rather than smoothed over.
+* Everything non-core goes in `props` under our own `ns`.
 """
 
 from __future__ import annotations

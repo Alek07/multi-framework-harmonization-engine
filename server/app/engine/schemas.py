@@ -1,14 +1,9 @@
 """Output contract of the deterministic core, steps 1-4.
 
-UCM-8 (mapping + conflict resolution), UCM-9 (gating) and UCM-10
-(prioritisation) are explicit here: which candidates a capability has per zone,
-which conflicts were found, how each one was resolved (and under which declared
-rule), which mechanisms the asset profile rules out — and with what
-justification — which gaps remain, and in what order what is left should be
-built. Nothing is dropped: a candidate that does not prevail is *marked*, never
-removed, a mechanism that does not apply is *excluded with a reason*, and a
-capability without an effective mechanism becomes an explicit gap (invariant: 0
-silent omissions).
+Candidates per zone, conflicts and how each was resolved, mechanisms the profile
+rules out (with justification), remaining gaps and the build order. Nothing is
+dropped: a losing candidate is marked, an inapplicable mechanism is excluded with
+a reason, an uncovered capability becomes an explicit gap (0 silent omissions).
 """
 
 from __future__ import annotations
@@ -61,7 +56,7 @@ class CandidateStatus(str, Enum):
 
 
 class ConflictType(str, Enum):
-    """The three situations of UCM-8."""
+    """The three conflict situations."""
 
     OVERLAP = "overlap"
     GRANULARITY = "granularity"
@@ -93,22 +88,16 @@ class ZoneContext(BaseModel):
     domain: ZoneDomain
     target_sl: int
     safety_relevant: bool
-    # Carried verbatim from the zone, and carried *separately* from
-    # `safety_relevant` on purpose. The role is what the profile declares
-    # ("crown_jewel" for the SIS); safety relevance is a conclusion the engine
-    # draws, and it draws it for the whole OT corridor too because the physical
-    # consequence is catastrophic. Folding one into the other — which is what
-    # v0.1.0 did — left the crown jewel with no premise of its own and made its
-    # baseline identical to the corridor's, mechanism for mechanism (UCM-44).
+    # The role the profile declares ("crown_jewel"), kept separate from
+    # `safety_relevant` (a conclusion the engine draws for the whole OT corridor):
+    # folding them left the crown jewel gating identically to the corridor.
     role: str | None = None
     derivation: str
-    # Carried verbatim from the zone: the premises gating reads (UCM-9). They
-    # travel *inside* the zone reading rather than beside it so no caller can pair
-    # one zone's context with another zone's nature.
+    # The premises gating reads, carried inside the zone reading so no caller can
+    # pair one zone's context with another zone's nature.
     nature: TechNature
-    # SL-target per foundational requirement, when the zone declares one. A zone
-    # rarely wants the same level everywhere (a corridor may demand SL3 on
-    # integrity and SL2 on confidentiality) and Tier 0 is read from it.
+    # SL-target per foundational requirement, when the zone declares one; Tier 0
+    # is read from it.
     sl_vector: SLVector | None = None
     sectors: list[Sector] = Field(default_factory=list)
 
@@ -219,7 +208,7 @@ class ZoneResolution(BaseModel):
 
 
 class ProfileResolution(BaseModel):
-    """Steps 1-2 of the core for a whole asset profile. Input to gating (UCM-9)."""
+    """Steps 1-2 of the core for a whole asset profile. Input to gating."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -248,17 +237,15 @@ class ProfileResolution(BaseModel):
         raise KeyError(f"zone not resolved: {zone_id}")
 
 
-# --- UCM-9: gating ------------------------------------------------------------
+# --- gating -------------------------------------------------------------------
 
 
 class GatingOutcome(str, Enum):
     """The three — and only three — ways a mechanism can leave the zone's baseline."""
 
     # Justified exclusion: the control's technical premise does not exist here.
-    # A deliverable of the baseline, not a gap.
     NOT_APPLICABLE = "not_applicable"
-    # The objective still stands, the asset cannot host the mechanism:
-    # a compensatory control is owed.
+    # Objective stands but the asset cannot host the mechanism: compensation owed.
     OBJECTIVE_WITHOUT_MECHANISM = "objective_without_mechanism"
     # Not a zone-layer mechanism at all: deferred to the organizational layer.
     WRONG_SCOPE = "wrong_scope"
@@ -283,8 +270,7 @@ class GatingDecision(BaseModel):
     outcome: GatingOutcome
     rule_id: str
     rationale: str
-    # Premises read from the profile/zone that made the rule fire, e.g.
-    # "nature.general_purpose_os=false" — the audit trail of the exclusion.
+    # Premises read from the profile/zone that made the rule fire — the exclusion's trail.
     evidence: list[str] = Field(default_factory=list)
     compensation: str | None = None
     deferred_to: str | None = None
@@ -298,8 +284,8 @@ class CapabilityGating(BaseModel):
 
     capability_id: str
     zone_id: str
-    # The golden rule, written into the contract: gating removes mechanisms,
-    # never required capabilities. This field cannot be False.
+    # The golden rule in the contract: gating removes mechanisms, never required
+    # capabilities. Cannot be False.
     required: Literal[True] = True
     status: CapabilityStatus
     retained_control_ids: list[str] = Field(default_factory=list)
@@ -351,7 +337,7 @@ class ZoneGating(BaseModel):
 
 
 class ProfileGating(BaseModel):
-    """Step 3 of the core for a whole asset profile. Input to prioritisation (UCM-10)."""
+    """Step 3 of the core for a whole asset profile. Input to prioritisation."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -389,7 +375,7 @@ class ProfileGating(BaseModel):
         raise KeyError(f"zone not gated: {zone_id}")
 
 
-# --- UCM-10: prioritisation ---------------------------------------------------
+# --- prioritisation -----------------------------------------------------------
 
 
 class PriorityTier(str, Enum):
@@ -458,14 +444,13 @@ class CapabilityPriority(BaseModel):
     depends_on: list[str] = Field(default_factory=list)
     benefit: OrdinalLevel
     cost: OrdinalLevel
-    # Null on Tier 0 — and that is the contract, not a missing value: what is
-    # mandatory at the zone's SL-target is not ranked, it is completed.
+    # Null on Tier 0 by contract, not a missing value: a mandate is completed, not ranked.
     priority: OrdinalLevel | None = None
     # CIS Implementation Group of the retained CIS mechanism, when there is one.
     implementation_group: str | None = None
     phase: int
-    # Tier 0 that gating left without an applicable mechanism, or with a declared
-    # residual: what the human must close before the baseline can be signed.
+    # Tier 0 left without an applicable mechanism or with a residual: what the
+    # human must close before signing.
     outstanding: bool = False
     gap: CapabilityGap | None = None
     rationale: str
@@ -541,12 +526,11 @@ class ProfilePrioritization(BaseModel):
 
     @property
     def tier_0_complete(self) -> bool:
-        """The engine's reading before the human composes (UCM-16).
+        """The engine's reading before the human composes.
 
-        False does not mean "cannot be signed": it means the engine cannot claim
-        the mandatory block is met on its own, and `outstanding_mandates` is the
-        list the human has to close — with a mechanism or with a justified
-        compensatory control — for `POST /baseline/compose` to accept the signature.
+        False does not mean "cannot be signed": the engine cannot claim the
+        mandatory block is met on its own. `outstanding_mandates` is what the human
+        must close for `POST /baseline/compose` to accept the signature.
         """
         return all(z.tier_0_complete for z in self.zones)
 

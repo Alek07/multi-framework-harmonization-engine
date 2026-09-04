@@ -1,7 +1,6 @@
-"""UCM-46 - The baseline as a declaration of applicability, and as a partial OSCAL SSP.
+"""The baseline as a declaration of applicability, and as a partial OSCAL SSP.
 
-Written about the claims the artefact is supposed to support, because that is what
-a reviewer will check it against:
+Written about the claims the artefact supports:
 
 * **Nothing is missing from the document.** Every required capability of every
   zone has a row — the same set the ledger's own mapping stage accounted for. The
@@ -361,7 +360,7 @@ def test_the_document_says_what_it_is_not(
 def test_asking_for_the_document_records_nothing(
     client: TestClient, engine_run: dict[str, Any]
 ) -> None:
-    """No table, no writer: the same argument the sixth endpoint stands on (UCM-21)."""
+    """No table, no writer: the same argument the sixth endpoint stands on."""
     baseline = sign(client, engine_run)
     before = client.get(baseline["audit_log_path"]).json()["events"]
 

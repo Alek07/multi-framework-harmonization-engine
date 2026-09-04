@@ -1,10 +1,8 @@
-"""UCM-14 - The contract: an explanation layer that decided is not representable.
+"""The contract: an explanation layer that decided is not representable.
 
-The service is one implementation; the type is the promise. Everything here is a
-statement about `CapabilityExplanations` that holds however the prose was
-produced — including by code written after this ticket. If a future caller tried
-to hand the operator a reordered candidate list with a model's ranking behind it,
-it would fail to build.
+The service is one implementation; the type is the promise. Everything here holds
+however the prose was produced: a caller trying to hand the operator a reordered
+candidate list with a model's ranking behind it would fail to build.
 """
 
 from __future__ import annotations
@@ -157,7 +155,7 @@ def test_a_candidate_is_never_left_without_text() -> None:
 
 
 def test_the_digest_names_exactly_what_was_shown() -> None:
-    """UCM-16 records what the operator was reading; the digest is how it points."""
+    """The composition records what the operator was reading; the digest is how it points."""
     shown = capability(["CTL-A"], [explanation("CTL-A")])
     same = capability(["CTL-A"], [explanation("CTL-A")])
     other = capability(["CTL-A"], [explanation("CTL-A", ExplanationStatus.UNAVAILABLE)])

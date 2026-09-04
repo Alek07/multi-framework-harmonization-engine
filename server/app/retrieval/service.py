@@ -48,10 +48,9 @@ class RetrievalService:
     ) -> ProfileRetrieval:
         """Widen the candidates of every capability in every zone of the profile.
 
-        `gating` is the deterministic core's step 3 (UCM-9). When present, a
-        suggestion for a mechanism gating ruled out of the zone is *annotated* with
-        that exclusion rather than offered as if it applied — the incoherence
-        UCM-52 fixes. Absent, retrieval widens exactly as before.
+        `gating` is the deterministic core's step 3. When present, a suggestion for a
+        mechanism gating ruled out of the zone is *annotated* with that exclusion
+        rather than offered as if it applied. Absent, retrieval widens as before.
         """
         self._check_same_catalog(resolution)
         lens = payload_filter if payload_filter is not None else PayloadFilter()
@@ -81,8 +80,8 @@ class RetrievalService:
         """Widen every capability of one zone, in the resolution's own order.
 
         The lens the caller hands in is augmented here with the zone's own sectoral
-        applicability (UCM-47): what the norm's declared scope leaves out of this
-        zone comes back set aside on the sector axis, the same as any other lens.
+        applicability: what the norm's declared scope leaves out of this zone comes
+        back set aside on the sector axis, the same as any other lens.
         """
         lens = self._applicability_lens(
             zone.zone, payload_filter if payload_filter is not None else PayloadFilter()
@@ -127,10 +126,10 @@ class RetrievalService:
         )
 
         # Rebuilt from `hits` so confirmations and suggestions keep one shared
-        # ranking, and then ordered by the declared rule (UCM-53): a suggestion
-        # the zone's gating already ruled out reads last, and reads marked. The
-        # sort happens *after* `apply_cut`, so it can move a suggestion but never
-        # decide whether it survives — that is the cut's call, not this one's.
+        # ranking, and then ordered by the declared rule: a suggestion the zone's
+        # gating already ruled out reads last, and reads marked. The sort happens
+        # *after* `apply_cut`, so it can move a suggestion but never decide whether
+        # it survives — that is the cut's call, not this one's.
         shown = confirmations | {hit.control_id for hit in kept}
         retrieved = sink_gated(
             [
@@ -241,9 +240,9 @@ class RetrievalService:
 
         The engine builds this axis on its own initiative, and that is not a silent
         restriction: what the zone's sectors leave out returns set aside on the
-        sector axis (UCM-52). With no sectors declared the engine asserts nothing —
-        an exclusion on a premise nobody stated is the failure UCM-47 forbids — so
-        the operator's lens is handed back untouched.
+        sector axis. With no sectors declared the engine asserts nothing — an
+        exclusion on a premise nobody stated would be a false obligation — so the
+        operator's lens is handed back untouched.
         """
         if not zone.sectors:
             return operator_lens

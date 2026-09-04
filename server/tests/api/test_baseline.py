@@ -1,14 +1,10 @@
-"""UCM-15/UCM-16 - The baseline endpoints: the trail, and the shape of a composition.
+"""The baseline endpoints: the trail, and the shape of a composition.
 
-Two different things are asserted here. `GET /baseline/{id}/audit-log` is tested
-as the working endpoint it is. For `POST /baseline/compose`, what is tested is the
-*request contract* — the rules a body has to satisfy before the engine will look
-at it at all — while what the composition actually does lives in `test_compose.py`.
-
-Keeping them apart is deliberate: these bodies quote a `run_id` the ledger has
-never seen, so anything that gets past Pydantic is refused for that reason and for
-no other. A test that asserted 422 without knowing which of the two rejections it
-was measuring would pass for the wrong reason the day one of them broke.
+`GET /baseline/{id}/audit-log` is tested as the working endpoint it is. For
+`POST /baseline/compose` only the request contract is tested here (what the
+composition does lives in `test_compose.py`): the bodies quote a `run_id` the
+ledger never saw, so anything past Pydantic is refused for that reason alone and
+the two rejection causes stay distinguishable.
 """
 
 from __future__ import annotations
@@ -60,10 +56,9 @@ def valid_composition(**overrides: Any) -> dict[str, Any]:
 async def seed_trail(db: AsyncSession) -> AuditService:
     """One engine decision and one human decision, both under the same run.
 
-    The trail is served by baseline, and the engine's decisions are recorded
-    *before* a baseline exists — they are what the human composed from — so the
-    query has to walk back from the baseline to the run. Seeding both halves is
-    what makes that behaviour observable.
+    The engine's decisions are recorded before a baseline exists, so serving the
+    trail by baseline has to walk back to the run; seeding both halves makes that
+    observable.
     """
     audit = AuditService(AuditRepository(db))
     await audit.record(
@@ -159,12 +154,8 @@ def test_a_malformed_baseline_id_is_a_422(client: TestClient) -> None:
 
 
 # --- POST /baseline/compose: the request contract ----------------------------
-#
-# What the composition *does* is asserted in `test_compose.py`. What is asserted
-# here is the shape of the request — the rules a body has to satisfy before the
-# engine will look at it at all. They are checked with a `run_id` the ledger has
-# never seen, so a body that reaches the service is refused for that reason (422)
-# and never for a malformed field: the two failures stay distinguishable.
+# Only the shape of the request is checked here; a `run_id` the ledger never saw
+# means anything past Pydantic is refused for that reason (422), never a field.
 
 
 def test_a_well_formed_composition_reaches_the_engine(client: TestClient) -> None:

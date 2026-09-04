@@ -1,9 +1,9 @@
-"""UCM-53 - Splicing a premise into a source line without touching anything else.
+"""Splicing a premise into a source line without touching anything else.
 
-The merge is textual because the catalog sources keep one control per line, and
-that is what keeps `git diff` readable when a handful of controls gain a premise.
-The risk of textual surgery is that it corrupts a versioned input, so what is
-asserted here is that the rest of the line survives byte for byte.
+The merge is textual because the catalog sources keep one control per line, which
+keeps `git diff` readable when a handful of controls gain a premise. The risk is
+that textual surgery corrupts a versioned input, so the rest of the line is
+asserted to survive byte for byte.
 """
 
 from __future__ import annotations

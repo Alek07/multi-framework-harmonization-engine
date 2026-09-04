@@ -1,8 +1,8 @@
-"""UCM-11 - What the log says about a core run, before it touches the database.
+"""What the log says about a core run, before it touches the database.
 
-The derivation is pure, so the promise of the research question can be measured
-directly on it: every decision has an author and a written reason, nothing the
-engine found is left out, and the same run always produces the same trail.
+The derivation is pure, so the promise can be measured directly on it: every
+decision has an author and a written reason, nothing the engine found is left
+out, and the same run always produces the same trail.
 """
 
 import pytest

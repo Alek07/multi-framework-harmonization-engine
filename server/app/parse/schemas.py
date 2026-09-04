@@ -1,26 +1,13 @@
-"""UCM-12 - Contract of the AI parse: free text -> draft of an `AssetProfile`.
+"""Contract of the AI parse: free text -> draft of an `AssetProfile`.
 
-The LLM's job here is **extraction**, never decision (invariant 1). Everything in
-this module is shaped by two consequences of that:
-
-* **It produces a draft, not a profile.** `AssetProfile` (UCM-7) requires a
-  target SL and five booleans of technological nature per zone, plus a criticality
-  scale. An operator's paragraph rarely states all of them, so handing the model
-  the strict schema would force it to *invent* the missing values — the model
-  deciding the baseline's severity through the back door. The draft mirrors
-  `AssetProfile` field by field but makes every value the text may be silent
-  about `None`: what is not stated comes back empty, and the operator fills it in
-  (`completion.py`).
-* **Nothing it read may vanish** (invariant 2). Two fields carry that weight:
-  `notes` justifies each extracted value with the fragment of text it came from,
-  and `unmapped` collects every statement the schema had no place for. A sentence
-  the parse cannot represent is reported, never dropped — and never rounded into
-  a neighbouring field.
-
-The draft is therefore *reviewable by construction*: for every field the operator
-can see whether it was stated or inferred, from which words, and what was left
-over. `ParseResult.review_required` is always true — the AI's output is a
-proposal, and only a human turns it into the profile the core runs on.
+The LLM extracts, it never decides (invariant 1), and the module is shaped by two
+consequences. It produces a draft, not a profile: the draft mirrors `AssetProfile`
+field by field but makes every value the text may be silent about `None`, so the
+model is not forced to invent a missing SL or nature — the operator fills it in
+(`completion.py`). And nothing it read may vanish (invariant 2): `notes` justifies
+each extracted value with the text fragment behind it, `unmapped` collects every
+statement the schema had no place for. The draft is therefore reviewable by
+construction, and `ParseResult.review_required` is always true.
 """
 
 from __future__ import annotations
@@ -34,18 +21,15 @@ from app.assets.schemas import CaseType, ConsequenceScale
 from app.catalog.schemas import Sector
 
 # Ollama compiles this schema into a GBNF grammar; it never enters the prompt
-# (measured: `prompt_tokens` is identical with the full schema and with a 62-char
-# one). So the grammar constrains *structure* only — the `description=` strings
-# below document the field for us and do not reach the model, and instructions
-# belong in `prompt.py`.
+# (measured: `prompt_tokens` is identical with the full schema and a 62-char one).
+# The grammar constrains structure only — the `description=` strings below document
+# the field for us and do not reach the model; instructions belong in `prompt.py`.
 #
-# Which makes `required` the load-bearing part. Every field here has a default,
-# so the generated schema said `required: []`, the grammar let the model omit any
-# key, and it omitted the expensive ones: `zones`, `conduits` and `notes` came
-# back *absent*, not empty, and Pydantic filled in the defaults without a word.
-# A key the model never answered is a silent omission, which is the failure
-# invariant 2 exists to prevent — so every draft model below forces all of its
-# properties into `required` and lets `X | None` carry "the text does not say".
+# That makes `required` load-bearing. Every field has a default, so the generated
+# schema said `required: []` and the model omitted the expensive keys (`zones`,
+# `conduits`, `notes` came back absent, Pydantic filling the defaults silently). A
+# key the model never answered is a silent omission (invariant 2), so every draft
+# model forces all properties into `required` and lets `X | None` carry "not said".
 
 
 def _require_every_key(schema: dict[str, Any]) -> None:
@@ -110,7 +94,7 @@ class SLVectorDraft(BaseModel):
 
 
 class TechNatureDraft(BaseModel):
-    """Technological nature of one zone — the input gating reads (UCM-9).
+    """Technological nature of one zone — the input gating reads.
 
     Every field is a tri-state: true, false, or `None` for 'the text does not say'.
     A `False` guessed here would silently remove mechanisms from the baseline,
@@ -204,7 +188,7 @@ class ConduitDraft(BaseModel):
 
 
 class CriticalityDraft(BaseModel):
-    """Physical consequence of a compromise — what prioritisation weighs (UCM-10)."""
+    """Physical consequence of a compromise — what prioritisation weighs."""
 
     model_config = _ANSWER_EVERY_FIELD
 
@@ -277,7 +261,7 @@ class AssetProfileDraft(BaseModel):
 
 
 class AssetParseRequest(BaseModel):
-    """Body of `POST /asset/parse` (UCM-15): the operator's own description.
+    """Body of `POST /asset/parse`: the operator's own description.
 
     `profile_id` is optional and it is a *key*, not an observation: given, it is
     used verbatim so a second parse of a corrected description lands on the same
@@ -298,7 +282,7 @@ class AssetParseRequest(BaseModel):
 
 
 class ParseProvenance(BaseModel):
-    """Everything needed to replay this parse on another machine (UCM-22).
+    """Everything needed to replay this parse on another machine.
 
     The digest is the one that Ollama reported for the model it actually served,
     not the one that was asked for: a tag is mutable and pins nothing on its own.

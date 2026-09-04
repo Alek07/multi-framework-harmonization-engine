@@ -1,8 +1,8 @@
-"""UCM-11 - The ledger in SQLite: append-only, chained, and readable end to end.
+"""The ledger in SQLite: append-only, chained, and readable end to end.
 
-This is also the M1 gate: the whole deterministic core runs with the two
-hand-written profiles (no AI) and every decision it takes ends up in the log,
-with its author, its reason and its position in a chain that can be re-verified.
+Also the M1 gate: the whole deterministic core runs with the two hand-written
+profiles (no AI) and every decision ends up in the log — author, reason and
+position in a chain that can be re-verified.
 """
 
 from uuid import uuid4
@@ -263,10 +263,10 @@ async def test_the_human_decisions_are_recorded_on_top_of_the_engine_run(
 async def test_ratifying_a_mechanism_is_a_human_act_and_not_a_selection(
     audit: AuditService, profile_a: AssetProfile
 ) -> None:
-    """UCM-16 — accepting the engine's retained mechanism has its own event type.
+    """Accepting the engine's retained mechanism has its own event type.
 
-    It belongs to the human (nobody else can ratify) and it is deliberately not
-    `OPTION_SELECTED`: reading the trail, "eligió SR 2.8 frente a CIS 8.2" and
+    It belongs to the human (nobody else can ratify) and is deliberately not
+    `OPTION_SELECTED`: in the trail, "eligió SR 2.8 frente a CIS 8.2" and
     "ratificó lo que el motor retuvo" have to stay different sentences.
     """
     ratified = await audit.record_human_decision(

@@ -1,9 +1,8 @@
-"""UCM-12 - The parse use case, against a scripted model.
+"""The parse use case, against a scripted model.
 
-Three things are asserted here that no amount of prompt work can guarantee on its
-own: that a malformed answer is retried rather than accepted, that the run is
-described well enough to be replayed, and that what comes back is a proposal —
-gaps included — rather than a profile.
+Asserts what prompt work alone cannot guarantee: a malformed answer is retried
+rather than accepted, the run is described well enough to be replayed, and what
+comes back is a proposal — gaps included — rather than a profile.
 """
 
 from __future__ import annotations
@@ -102,7 +101,7 @@ async def test_the_same_text_hashes_the_same_whatever_the_surrounding_whitespace
 
 
 async def test_a_malformed_answer_is_retried_not_accepted() -> None:
-    """The ticket's 'reintento en fallo de formato', asserted rather than assumed."""
+    """Retry on format failure, asserted rather than assumed."""
     result = await parse('{"zones": "not a list"}', draft_json())
 
     assert result.draft.name == "Estación de ingeniería de gasoducto"

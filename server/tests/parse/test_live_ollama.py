@@ -1,17 +1,16 @@
-"""UCM-12 - The parse against the real model. Opt-in: `uv run pytest -m llm`.
+"""The parse against the real model. Opt-in: `uv run pytest -m llm`.
 
-Deselected by default because it needs Ollama up with the pinned model — the rest
-of the suite must stay runnable on any machine. What it checks cannot be checked
-with a scripted model, because it is about the model itself:
+Deselected by default because it needs Ollama up with the pinned model. What it
+checks cannot be checked with a scripted model, because it is about the model itself:
 
 * the 7B produces a draft the schema accepts, on the first request;
 * two identical descriptions produce byte-identical drafts (temp 0 + fixed seed,
-  invariant 3 — the claim the whole POC rests on);
+  invariant 3);
 * it leaves unstated fields empty instead of filling them in, and puts what the
   schema cannot hold in `unmapped`.
 
-The third is the one that can regress silently when the prompt is edited, and it
-is the reason the prompt carries a version.
+The third can regress silently when the prompt is edited, which is why the prompt
+carries a version.
 """
 
 from __future__ import annotations
@@ -108,10 +107,9 @@ async def test_what_the_text_states_plainly_is_not_left_null(
 async def test_a_consequence_is_not_a_severity(service: AssetParseService) -> None:
     """A burst gas line sounds catastrophic. Saying so is the operator's call.
 
-    The boundary the parse must not cross, and the reason `scale` is left null
-    even when the text *does* rate the consequence: two prompt wordings that
-    taught the mapping also made the model rate an unrated consequence, and
-    `scale` drives prioritisation (UCM-10). See the note in `app/parse/prompt.py`.
+    `scale` is left null even when the text rates the consequence: it drives
+    prioritisation, and rating it is judgement the parse must not make. See the
+    note in `app/parse/prompt.py`.
     """
     result = await service.parse(DESCRIPTION_UNRATED_CONSEQUENCE)
 

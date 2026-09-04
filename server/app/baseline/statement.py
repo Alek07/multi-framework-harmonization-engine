@@ -1,42 +1,24 @@
-"""UCM-46 - The signed baseline as a declaration of applicability, read off the ledger.
+"""The signed baseline as a declaration of applicability, read off the ledger.
 
-The engine already produced everything a recognised baseline document has to
-show — inclusions and exclusions with written justifications, explicit gaps,
-provenance and jurisdiction, tiers and phases, a human signature with its reason.
-What it did not do was *emit* it as the artefact a reviewer expects to see. That
-is all this module is: a projection, in the same sense as `listing.py`, and with
-the same property behind it — it computes nothing and stores nothing, so it
-cannot say anything the trail does not already say.
+A projection in the same sense as `listing.py`: it computes nothing and stores
+nothing, so it cannot say anything the trail does not.
 
-Three decisions shape the document, and each is a claim the TFM has to be able to
-defend rather than a convenience.
+Three decisions shape the document:
 
-* **The unit is the capability, and only mechanisms can be excluded.** An
-  ISO/IEC 27001 Statement of Applicability has the control as its unit and asks
-  for each one whether it applies. Here gating removes mechanisms and never
-  required capabilities (UCM-9), so no row of this document can say that a
-  requirement does not apply: what the rows carry is *how* each requirement is
-  met, and each mechanism underneath carries its own disposition — chosen,
-  ratified, compensatory, merely offered, discarded, or excluded by a named rule
-  on an observed premise. The correspondence with the SoA is therefore exact at
-  the level of the discipline (justified inclusion, justified exclusion, nothing
-  silent) and deliberately not at the level of the unit.
-* **Everything the run touched is listed, not only what was signed.** Every
-  capability of every zone leaves a row, because the invariant this project
-  measures is 0 silent omissions and a document that only listed the chosen ones
-  could not be checked against it. What was *not* part of the signature — Tier 1
-  the operator did not decide about — is listed as `roadmap` and flagged
-  `in_signed_baseline=False`, so the reader can tell a recommendation from a
-  commitment.
-* **The mechanisms nobody took stay in.** A declaration that lists only the
-  chosen control cannot show that there was anything to choose between, and
-  equivalent options side by side is the central contribution (UCM-16). They are
-  listed as `offered`, which is a fact about the composition and not a leftover.
+* The unit is the capability, and only mechanisms can be excluded. Gating removes
+  mechanisms and never required capabilities, so no row says a requirement does
+  not apply — the rows carry *how* each is met and each mechanism its own
+  disposition. The correspondence with an ISO/IEC 27001 SoA is exact at the level
+  of the discipline (justified inclusion/exclusion, nothing silent), not the unit.
+* Everything the run touched is listed, not only what was signed — the invariant
+  measured is 0 silent omissions. Tier 1 the operator did not decide is listed as
+  `roadmap` and flagged `in_signed_baseline=False`.
+* The mechanisms nobody took stay in, as `offered`: equivalent options side by
+  side is the central contribution.
 
 The document reports the catalog and rules recorded in the ledger, not the ones
-installed today. That is a consequence of projecting rather than recomputing, and
-it is the right behaviour: the baseline was signed under those versions and the
-same signature over another catalog would be another baseline (invariant 3).
+installed today — a consequence of projecting rather than recomputing: the same
+signature over another catalog would be another baseline (invariant 3).
 """
 
 from __future__ import annotations
@@ -209,7 +191,7 @@ class _Projection:
         # happened — so the operator's *choices* are the entries that are not
         # ratifications. A row ratified at signing is included in the baseline and
         # is still not one the operator decided; claiming otherwise would put a
-        # deliberation on the record that never took place (UCM-16).
+        # deliberation on the record that never took place.
         choices = [
             event
             for event in decisions
@@ -332,7 +314,7 @@ class _Projection:
         Ratification is read from the payload rather than from `control_id`: it is
         one entry that may cover several retained mechanisms, and it is a
         different act from choosing — which is precisely why it has its own event
-        type (UCM-16).
+        type.
         """
         payload = event.payload or {}
         if event.event_type is AuditEventType.MECHANISM_RATIFIED:

@@ -1,19 +1,12 @@
-"""UCM-12 - Fixtures for the parse tests: a scripted model instead of Ollama.
+"""Fixtures for the parse tests: a scripted model instead of Ollama.
 
-Nothing here talks to a model. `FunctionModel` lets a test say exactly what the
-LLM replies — including a malformed reply — so the properties that matter (the
-retry loop, the provenance, the refusal to invent) are asserted deterministically
-and the suite still runs on a machine with no GPU, no Ollama and no network. The
-one test that needs the real model lives in `test_live_ollama.py`, behind the
-`llm` marker.
-
-The scripted model is swapped into the *real* agent (`agent.override`), not into
-a lookalike built for the tests: what is under test is the agent this POC ships,
-with its output type and its retry budget.
-
-`verify_model` is stubbed for the same reason it exists — it is a network call.
-What the service must guarantee, that no draft is produced without a verified
-digest, is asserted directly in `test_ollama.py`.
+`FunctionModel` scripts exactly what the LLM replies (a malformed one included),
+so the retry loop, provenance and refusal-to-invent are asserted deterministically
+and the suite runs with no GPU, Ollama or network. The scripted model is swapped
+into the *real* agent (`agent.override`), so what is under test is the shipped
+agent. The one live test lives in `test_live_ollama.py`, behind the `llm` marker.
+`verify_model` is stubbed because it is a network call; the guarantee that no draft
+is produced without a verified digest is asserted in `test_ollama.py`.
 """
 
 from __future__ import annotations
@@ -34,8 +27,8 @@ from app.parse.agent import ParseAgent, parse_agent
 VERIFIED_DIGEST = "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
 
 # A description that states some things and stays silent about others on purpose:
-# no target SL, no physical consequence, nothing about office IT surface. What
-# the parse does with the silence is what UCM-12 is about.
+# no target SL, no physical consequence, nothing about office IT surface. How the
+# parse handles the silence is the point.
 DESCRIPTION_ES = (
     "Estación de ingeniería de gasoducto sobre Windows 10, en nivel 3 al norte de "
     "la IDMZ. Descarga lógica a los PLC del corredor a través de la IDMZ y el "

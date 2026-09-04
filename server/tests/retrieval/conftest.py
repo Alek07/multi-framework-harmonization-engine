@@ -1,16 +1,13 @@
-"""UCM-13 - A catalog index without Qdrant and without the embedding model.
+"""A catalog index without Qdrant and without the embedding model.
 
-The suite has to run on any machine, offline, with no containers up — the same
-rule the parse tests follow (UCM-12). So the fake below replaces exactly one
-thing: the vectors. Everything else is the shipped code path — the real payload
-projection from the catalog, the real filter language, the real service and the
-real trail — because those are what the invariant of this ticket lives in.
+The suite runs on any machine, offline. The fake below replaces exactly one thing,
+the vectors; everything else is the shipped code path — the real payload projection,
+filter language, service and trail — because that is where the invariant lives.
 
 The stand-in ranker is token overlap between the capability's text and the
-control's, which is deterministic, ordering-stable and good enough to produce the
-mix of confirmations and widenings the tests need. It is *not* a claim about
-retrieval quality: that is measured against the real model in
-`test_live_qdrant.py` and, honestly and with every miss analysed, in UCM-18.
+control's: deterministic, ordering-stable, and enough to produce the mix of
+confirmations and widenings the tests need. It is not a claim about retrieval
+quality — that is measured against the real model in `test_live_qdrant.py`.
 """
 
 from __future__ import annotations
@@ -60,8 +57,8 @@ def matches(query_filter: Any, payload: ControlPayload) -> bool:
 
     Interpreting the real `qdrant.Filter` — rather than the `PayloadFilter` it was
     built from — means these tests also check that `to_qdrant` emits the structure
-    it claims to. The sector axis (UCM-52) is a nested `should` (transversal *or*
-    in scope), so a `must` entry is either a `FieldCondition` or a sub-filter.
+    it claims to. The sector axis is a nested `should` (transversal *or* in scope),
+    so a `must` entry is either a `FieldCondition` or a sub-filter.
     """
     if query_filter is None:
         return True

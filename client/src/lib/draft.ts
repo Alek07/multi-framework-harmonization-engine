@@ -1,19 +1,11 @@
 /**
  * Draft -> `AssetProfile`, the one piece of server logic this client mirrors.
  *
- * `POST /asset/parse` returns a *draft* with every uncertain value null, plus
- * the paths still missing. The operator then corrects it, and the corrected
- * profile is what the next call carries — there is deliberately no endpoint that
- * promotes a draft, because promoting one is a pure offline function and a sixth
- * endpoint would open a closed surface to buy nothing
- * (`server/app/parse/router.py`).
- *
- * The consequence is that the client has to run that function itself, so the
- * two below are a deliberate transcription of `server/app/parse/completion.py`
- * (`missing_required`, `to_profile`, `profile_id_for`) and of nothing else. They
- * check *presence*, never semantics: whether an SL of 3 is the right SL for a
- * zone is not a question this UI answers — the operator does, and the engine
- * reads what they wrote. If `completion.py` changes, this file changes with it.
+ * Promoting a draft is a pure offline function, so there is no endpoint for it;
+ * the client transcribes `server/app/parse/completion.py` (`missing_required`,
+ * `to_profile`, `profile_id_for`) and nothing else. It checks *presence*, never
+ * semantics — the operator decides values, the engine reads them. If
+ * `completion.py` changes, this file changes with it.
  */
 
 import {
@@ -36,8 +28,8 @@ export function profileIdFor(draft: AssetProfileDraft, explicit?: string | null)
   if (explicit) return explicit
   const folded = (draft.name ?? '')
     .normalize('NFKD')
-    // Fold accents rather than replace them: this id is read back in the audit
-    // log, and `ESTACI-N` would be nobody's asset.
+    // Fold accents rather than drop them: this id is read back in the audit log,
+    // and `ESTACI-N` would be nobody's asset.
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^\x20-\x7E]/g, '')
   const slug = folded.toUpperCase().replace(NON_ALNUM, '-').replace(/^-+|-+$/g, '')
@@ -45,11 +37,9 @@ export function profileIdFor(draft: AssetProfileDraft, explicit?: string | null)
 }
 
 /**
- * A zone the operator adds by hand, with every premise undeclared.
- *
- * Nothing is guessed into it — least of all the five of `nature`, where a
- * fabricated `false` silently removes mechanisms from the baseline and a
- * fabricated `true` suppresses the exclusion an embedded controller is owed.
+ * A zone the operator adds by hand, with every premise undeclared. Nothing is
+ * guessed — least of all the five of `nature`, where a fabricated `false` removes
+ * mechanisms and a fabricated `true` suppresses an exclusion the zone is owed.
  */
 export function emptyZone(id: string): ZoneDraft {
   return {
@@ -83,7 +73,7 @@ function missingInZone(zone: ZoneDraft, index: number): string[] {
   const prefix = `zones[${zone.id || index}]`
   const missing = zone.target_sl == null ? [`${prefix}.target_sl`] : []
   // Asked once per zone: gating reads these premises from the zone, so a zone
-  // left without them is a zone the core cannot gate (UCM-9).
+  // left without them is one the core cannot gate.
   missing.push(
     ...NATURE_FIELDS.filter((field) => zone.nature?.[field] == null).map(
       (field) => `${prefix}.nature.${field}`,
@@ -93,11 +83,9 @@ function missingInZone(zone: ZoneDraft, index: number): string[] {
 }
 
 /**
- * Every value `AssetProfile` requires that the draft does not have, in document
- * order — the same list, computed the same way, that the server returned for the
- * model's own output. Recomputed here because the operator's corrections change
- * it, and a "complete" flag that stopped updating as they typed would be worse
- * than none.
+ * Every value `AssetProfile` requires that the draft lacks, in document order —
+ * the same list the server computes. Recomputed here because the operator's
+ * corrections change it as they type.
  */
 export function missingRequired(draft: AssetProfileDraft): string[] {
   const missing: string[] = []
@@ -147,17 +135,15 @@ function zoneOf(draft: ZoneDraft): Zone {
     safety_out_of_scope: draft.safety_out_of_scope ?? false,
     ...(draft.reference ? { reference: draft.reference } : {}),
     // Carried whole, empty list and all: a zone that narrows nothing inherits the
-    // asset's sectors, and dropping the field is what lost the scope (UCM-57).
+    // asset's sectors, and dropping the field is what would lose the scope.
     sectors: draft.sectors,
   }
 }
 
 /**
- * The `AssetProfile` the core runs on, or null while anything is still missing.
- *
- * There is no partial promotion and no default value, for the same reason the
- * server refuses one: a profile with an invented SL would run through the core
- * and produce a baseline nobody decided.
+ * The `AssetProfile` the core runs on, or null while anything is missing. No
+ * partial promotion and no default, like the server: a profile with an invented
+ * SL would run the core into a baseline nobody decided.
  */
 export function toProfile(
   draft: AssetProfileDraft,

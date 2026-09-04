@@ -1,10 +1,7 @@
 /**
- * One screen, five stages: describe the asset, review what the model made of
- * it, compose from the options the engine laid side by side, compare regions,
- * sign, read the trail.
- *
- * Every fact on screen comes from an engine response, and routes, schema names
- * and rule identifiers stay the engineer's vocabulary, not the operator's.
+ * One screen, five stages: describe the asset, review the parse, compose from the
+ * side-by-side options, compare regions, sign, read the trail. Every fact comes
+ * from an engine response; routes, schema names and rule ids stay out of the UI.
  */
 
 import { useState } from 'react'
@@ -30,11 +27,9 @@ const STEP_LABELS: Record<Step, string> = {
 }
 
 /**
- * Forward and back, in the order the argument is made.
- *
- * A step whose input does not exist yet is offered disabled with the missing
- * piece written underneath, not hidden: the operator has to be able to see where
- * the flow goes and what unlocks it, and a button that vanishes teaches neither.
+ * Forward and back. A step whose input does not exist yet is offered disabled with
+ * the missing piece written underneath, not hidden — a vanishing button teaches
+ * neither where the flow goes nor what unlocks it.
  */
 function StepNav({
   step,

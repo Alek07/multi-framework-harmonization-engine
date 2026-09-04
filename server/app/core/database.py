@@ -18,11 +18,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     """Create the schema from the models, idempotently.
 
-    The POC ships no Alembic revision on purpose: the audit log (UCM-11) is the
-    only mutable state, and `docker compose up` has to produce a working SQLite
-    database on a foreign machine without a migration step. The model registry is
-    what puts every table in the metadata — and, with the log's table, the
-    append-only triggers it carries.
+    The POC ships no Alembic revision on purpose: the audit log is the only
+    mutable state, and `docker compose up` has to produce a working SQLite
+    database on a foreign machine without a migration step. The model registry
+    puts every table in the metadata — and, with the log's table, the append-only
+    triggers it carries.
     """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

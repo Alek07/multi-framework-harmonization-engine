@@ -1,27 +1,13 @@
 /**
  * Etapa 1 — the asset: one free-text input, and the human's review of what the
- * model made of it.
+ * model made of it. Described from scratch (no canned-profile picker); the only
+ * alternative is the PRD's fallback, the same draft filled in by hand.
  *
- * There is one way in and it is the operator's own paragraph. The asset is
- * described here from scratch — no picker of canned profiles, because composing
- * the baseline of *this* asset is what the engine is for, and an interface that
- * opened with a menu of prepared assets would be demonstrating the menu. The
- * only alternative offered is the fallback the PRD declares: the same draft,
- * filled in by hand, for a machine where the model is not available.
- *
- * The two halves of the stage are the two halves of invariant 1. The model
- * extracts; every extracted value is shown with the fragment of text it came
- * from, whether it was *stated* or *inferred*, and what the model could not
- * place at all (`unmapped`). Then every field is editable, and the profile the
- * core runs on is the corrected one — the draft never becomes an input on its
- * own.
- *
- * `missing_required` is what stands between a draft and a profile, and it is
- * listed in full, path by path. While it is non-empty the flow does not advance:
- * a profile with an invented SL would produce a baseline nobody decided. Each of
- * those paths is also marked on the field it belongs to, so the list at the foot
- * of the card says *how many* and the card itself says *which* — a list of
- * fourteen paths is not an answer to "what do I fill in".
+ * The two halves are invariant 1: the model extracts (each value shown with its
+ * source fragment and whether stated or inferred, plus `unmapped`), then every
+ * field is editable and the core runs on the corrected draft. `missing_required`
+ * gates advance and is listed in full and marked field by field — how many at the
+ * foot, which on the card.
  */
 
 import {
@@ -225,12 +211,10 @@ function SectorChips({
 }
 
 /**
- * Sectors of the asset — what turns a sectoral norm on or off (UCM-47).
- *
- * Not in `missing_required` on purpose: an empty list is a valid answer (the
- * asset is treated as transversal), never a gap. But it is the field that lets
- * the engine tell TSA (transport) or IMO (maritime) apart from a transversal
- * obligation like CIRCIA, so an empty one is worth a word to the operator.
+ * Sectors of the asset — what turns a sectoral norm on or off. Not in
+ * `missing_required`: an empty list is valid (treated as transversal), never a
+ * gap. But it is what lets the engine tell a sectoral norm apart from a
+ * transversal one, so an empty one is worth a word to the operator.
  */
 function AssetSectors({ draft }: { draft: AssetProfileDraft }) {
   const { patchDraft, parseResult, corrections, signed } = useComposition()
@@ -331,9 +315,8 @@ function SLGrid({ draft }: { draft: AssetProfileDraft }) {
           const zoneCorrections = corrections.filter((c) =>
             c.path.startsWith(`zones[${zone.id}]`),
           ).length
-          // The same prefix `missingRequired` builds, index and all: a zone whose
-          // id the operator has just blanked still has to be able to say what
-          // it is missing (`lib/draft.ts`).
+          // The same prefix `missingRequired` builds: a zone whose id was just
+          // blanked must still be able to report what it is missing.
           const prefix = `zones[${zone.id || zoneIndex}]`
           const zoneMissing = missing.filter((path) => path.startsWith(`${prefix}.`)).length
           return (
@@ -850,10 +833,8 @@ export function StageAsset() {
 
           <div className="flex flex-col gap-2">
             <Caps>Lo que el asistente ha entendido</Caps>
-            {/* Capped like the description it answers, and scrolling inside: the
-                evidence list is one entry per extracted value, so on a long
-                description it would otherwise run several screens past the
-                textarea and leave the two halves of the stage unpaired. */}
+            {/* Capped and scrolling inside, so a long evidence list stays paired
+                with the textarea instead of running several screens past it. */}
             <div className={`flex flex-col gap-2 ${PANE}`}>
             {/* While the model runs, this column is the working panel: the stale
                 evidence of a previous run belongs to that run, not to this one. */}

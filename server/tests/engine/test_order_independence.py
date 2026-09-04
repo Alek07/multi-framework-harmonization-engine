@@ -1,8 +1,8 @@
-"""UCM-8/UCM-9/UCM-10 - The core must not depend on the order its inputs were ingested.
+"""The core must not depend on the order its inputs were ingested.
 
-The ticket demands this be proven, not asserted: the catalog is shuffled with
-several fixed seeds and the whole resolution — and the gating and the roadmap
-built on it — must come out byte-identical.
+Proven, not asserted: the catalog is shuffled with several fixed seeds and the
+whole resolution — and the gating and roadmap built on it — must come out
+byte-identical.
 """
 
 import random

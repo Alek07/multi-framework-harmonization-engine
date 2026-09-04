@@ -1,33 +1,18 @@
-"""UCM-7 - Load the versioned catalog from JSON.
+"""Load the versioned catalog from JSON: read-only, loaded once and cached.
 
-The catalog is read-only; it is loaded once and cached. The path is resolved
-relative to the backend root so it does not depend on the current working dir.
+The path is resolved relative to the backend root so it does not depend on the
+current working dir. A catalog is either a single JSON file or a *manifest*
+carrying `sources` (one path per framework, resolved relative to the manifest).
+The manifest keeps what is framework-neutral (version, notes, capabilities);
+each source carries one framework's controls and the mappings that reach them.
+The parts are merged here and `Catalog` validates the whole, so a source file on
+its own is deliberately not valid.
 
-**One catalog, one or many files.** A catalog is either a single JSON file or a
-*manifest* — the same file, carrying `sources`: one path per framework, resolved
-relative to the manifest itself. The manifest keeps what is framework-neutral
-(the version, the notes, the capabilities); each source carries the controls of
-one framework and the mappings that reach them. Nothing about the model changes:
-the parts are merged here and `Catalog` validates the whole, so referential
-integrity is still checked over the catalog as the engine reads it and a source
-file on its own is deliberately not valid.
-
-Splitting is an authoring convenience — a framework can be reviewed, or handed
-to the CISO, without opening every other one — and it is invisible downstream.
-Two consequences are worth stating, because both touch reproducibility:
-
-* **A merged catalog is sorted; a single-file one is not.** With several files
-  the order of the merged lists would otherwise be an artefact of the order the
-  sources happen to be listed in, and that order reaches the Qdrant collection
-  name (`app/retrieval/index.py` fingerprints the parsed model). Sorting makes
-  the fingerprint depend on the content and on nothing else — as does keeping
-  `sources` itself out of the model (see `schemas.Catalog`). A single file keeps
-  its authored order untouched, so every catalog already shipped goes on parsing
-  — and hashing — exactly as it did before this existed.
-* **A source that contributes no control is an error**, not an empty file. The
-  manifest lists its parts by hand; a path that resolves to nothing is a typo,
-  and a typo that loads quietly would remove controls from a baseline in
-  silence.
+Merged lists are sorted so the parsed model's fingerprint depends on content
+alone, not on the order sources happen to be listed in (`app/retrieval/index.py`
+fingerprints the parsed model); a single file keeps its authored order. A source
+that contributes no control is an error, not an empty file — a silent typo would
+remove controls from a baseline.
 """
 
 from __future__ import annotations

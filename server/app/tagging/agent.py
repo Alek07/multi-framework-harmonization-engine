@@ -1,15 +1,13 @@
-"""UCM-53 - The Pydantic AI agent that proposes a control's premises.
+"""The Pydantic AI agent that proposes a control's premises.
 
-Same shape as the parse and explain agents, and for the same reasons:
-`NativeOutput` so llama.cpp grammar-constrains decoding to the draft schema,
-temperature 0 with a fixed seed so the run is reproducible (invariant 3), and a
-retry budget that Pydantic AI spends by appending the validation error to the
-history — a different, still deterministic conversation rather than a reroll.
+Same shape as the parse and explain agents: `NativeOutput` so llama.cpp
+grammar-constrains decoding, temperature 0 with a fixed seed for reproducibility
+(invariant 3), and a retry budget spent by appending the validation error to the
+history rather than rerolling.
 
-The one deliberate difference is that it reuses `LLM_TIMEOUT_SECONDS` instead of
-asking for a budget of its own. The answer for one control is a handful of short
-fields, nothing like the twelve paragraphs `explain` has to wait for, and this
-runs offline from a script where a slow control costs a reviewer nothing.
+The one deliberate difference is that it reuses `LLM_TIMEOUT_SECONDS` rather than a
+budget of its own: the answer for one control is a handful of short fields, and
+this runs offline from a script where a slow control costs a reviewer nothing.
 """
 
 from __future__ import annotations

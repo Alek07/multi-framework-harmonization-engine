@@ -1,9 +1,8 @@
-"""UCM-53 - The suggestion tail is ordered by a rule, and ordering never removes.
+"""The suggestion tail is ordered by a rule, and ordering never removes.
 
-A suggestion the zone's gating has already ruled out reads last and reads marked.
-Burying it would be the quiet drop UCM-54 exists to prevent; hiding it would be
-worse. So the property under test is arithmetic before it is presentation: the
-set of offered ids is exactly the same before and after the sort.
+A suggestion the zone's gating has already ruled out reads last and reads marked;
+burying or hiding it would be a quiet drop. So the property under test is arithmetic
+before presentation: the set of offered ids is the same before and after the sort.
 """
 
 from __future__ import annotations

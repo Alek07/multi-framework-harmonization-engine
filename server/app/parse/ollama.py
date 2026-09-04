@@ -1,16 +1,12 @@
-"""UCM-12 - What Ollama is actually serving, checked before it is trusted.
+"""What Ollama is actually serving, checked before it is trusted.
 
-An Ollama tag is mutable: `qwen2.5:7b-instruct-q4_K_M` on a foreign machine may
-be a different build of the weights than the one this POC was evaluated with, and
-nothing in a chat response says so. Reproducibility (invariant 3) therefore rests
-on the **manifest digest**, not the tag — so the engine asks `/api/tags` which
-digest is behind the name and refuses to parse against anything else.
-
-The check is lazy and cached rather than done at application start: the API must
-come up on a machine where Ollama is still pulling (the compose healthcheck can
-take ~20 min on the first run, UCM-20) without the backend crash-looping. What
-matters is that no draft is ever produced by an unverified model, and that is
-what `verify_model` guarantees — it is the first thing every parse awaits.
+An Ollama tag is mutable, so reproducibility (invariant 3) rests on the manifest
+digest, not the tag: the engine asks `/api/tags` which digest is behind the name
+and refuses to parse against anything else. The check is lazy and cached, not done
+at startup, so the API can come up while Ollama is still pulling (the compose
+healthcheck can take ~20 min on the first run) without the backend crash-looping.
+`verify_model` guarantees no draft is ever produced by an unverified model — it is
+the first thing every parse awaits.
 """
 
 from __future__ import annotations
@@ -61,9 +57,8 @@ async def _tags() -> list[dict[str, Any]]:
 async def verify_model() -> str:
     """Return the digest Ollama serves for the pinned tag, or refuse to go on.
 
-    Raising here is the point: a parse that ran against the wrong weights would
-    still produce a well-formed draft, and neither the operator nor the audit log
-    would have any way to notice.
+    Raising is the point: a parse against the wrong weights would still produce a
+    well-formed draft that neither the operator nor the audit log could catch.
     """
     global _verified_digest
     if _verified_digest is not None:
@@ -96,7 +91,7 @@ async def warm_model() -> None:
 
     An empty prompt is Ollama's documented preload: no token is decoded, so no output
     can depend on it. `keep_alive` is sent on the native API because the
-    OpenAI-compatible surface drops it, like `num_ctx` (see `app/parse/agent.py`).
+    OpenAI-compatible surface drops it, like `num_ctx` (see `agent.py`).
     """
     await verify_model()  # cached, so the first parse skips the digest check too
 

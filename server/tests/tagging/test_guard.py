@@ -1,4 +1,4 @@
-"""UCM-53 - The guard keeps only the premises the control's own text supports."""
+"""The guard keeps only the premises the control's own text supports."""
 
 from __future__ import annotations
 

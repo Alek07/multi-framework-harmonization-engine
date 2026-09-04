@@ -1,17 +1,14 @@
-"""UCM-53 - The deterministic screen over what the model proposed.
+"""The deterministic screen over what the model proposed.
 
-The model is asked for a premise *and* for the fragment of the control's own
-text it read the premise from. This module is what makes that second half worth
-asking for: the quote has to actually be in the control, so a premise the model
-recalled from its training rather than found in the sentence in front of it is
-dropped mechanically, with a reason, instead of being argued about at review
-time.
+The model is asked for a premise *and* for the fragment of the control's own text
+it read the premise from. This module makes that second half worth asking for: the
+quote has to actually be in the control, so a premise recalled from training
+rather than found in the sentence is dropped mechanically, with a reason, instead
+of being argued about at review time.
 
-Nothing here is thrown away silently. A refused premise travels to the proposal
+Nothing here is thrown away silently: a refused premise travels to the proposal
 file as a `RejectedPremise` carrying the guard's reason, because the reviewer is
-the authority and the guard is a filter that can be wrong — over-eager screening
-that hid its own decisions would be the same failure as a retriever that cuts
-without saying so (UCM-54).
+the authority and the guard is a filter that can be wrong.
 """
 
 from __future__ import annotations

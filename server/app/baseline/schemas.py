@@ -1,28 +1,15 @@
-"""UCM-15/16/21/46 - Contracts of the baseline: composing it, its trail, the list, the declaration.
+"""Contracts of the baseline: composing it, its trail, the list, the declaration.
 
-The request shape was fixed in UCM-15, before the logic existed, so the endpoint
-could be built against a contract rather than the other way round. UCM-16 fills
-that contract in and *enriches the response*; it changes nothing a client sends.
+Shaped by what a sovereign composition has to prove afterwards:
 
-Everything here is shaped by what a *sovereign composition* has to be able to
-prove afterwards, which is the research question of the TFM:
-
-* **A choice without a written justification is not a choice.** `rationale` is
-  non-blank on every entry, exactly as `AuditEventCreate` demands (UCM-11). The
-  point of this engine is not that the operator can choose — it is that the choice
-  is on the record, with its reason, its actor and its moment.
-* **The human's decisions chain onto an engine run.** `run_id` is the one
-  `POST /candidates` returned, so the trail reads as one story: what the engine
-  decided, what it offered, what the human picked, and what they signed.
-* **Tier 0 is verified before signing, not after.** The engine's outstanding
-  mandates are what the human must close — with a mechanism, a compensatory
-  control or a written acceptance — and a signature is *refused* while any of them
-  is open. Everything else in Tier 0 is **ratified** by the signature and recorded
-  as such, which is a different sentence from "the operator chose it".
-* **Nothing about the baseline is implicit.** Every mandatory capability of every
-  zone leaves a human-authored entry in the ledger: chosen, compensated, accepted
-  as a gap, or ratified. There is no path where a mandatory mechanism ends up in a
-  signed baseline with nobody's name on it.
+* Every entry carries a non-blank `rationale` — a choice without a written
+  justification is not a choice.
+* `run_id` chains the human's decisions onto the engine run the candidates came
+  from, so the trail reads as one story.
+* Tier 0 is verified before signing, never after; what the signature does not
+  choose it ratifies, recorded as a distinct act.
+* Every mandatory capability leaves a human-authored entry — nothing ends up in
+  a signed baseline with nobody's name on it.
 """
 
 from __future__ import annotations
@@ -47,10 +34,9 @@ NonBlank = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)
 class ChoiceKind(str, Enum):
     """What the operator did about one capability. Mirrors the human event types.
 
-    These are the four decisions of a composition, and they are the same four the
-    audit log knows how to file (`HUMAN_EVENT_TYPES`, UCM-11). The fifth human
-    event — `baseline_signed` — is not a per-capability choice: it is the act of
-    signing the whole thing, and it is carried by `signature` below.
+    The four per-capability decisions the audit log can file (`HUMAN_EVENT_TYPES`).
+    The fifth human event, `baseline_signed`, is not a per-capability choice — it
+    is carried by `signature` below.
     """
 
     OPTION_SELECTED = "option_selected"
@@ -77,10 +63,9 @@ class CompositionChoice(BaseModel):
     rationale: NonBlank = Field(
         description="Justificación escrita por el operador. Queda en la bitácora tal cual."
     )
-    # SHA-256 of the explanations the operator had on screen when deciding
-    # (`CapabilityExplanations.digest`, UCM-14). Optional, and it never affects the
-    # decision: it records *what was being read*, so a P1 layer that decided
-    # nothing can still be reconstructed from the log.
+    # SHA-256 of the explanations on screen when deciding
+    # (`CapabilityExplanations.digest`). Never affects the decision: it records
+    # *what was being read*, so a P1 layer that decided nothing is reconstructable.
     explanations_digest: str | None = None
 
     @model_validator(mode="after")
@@ -134,11 +119,10 @@ class ComposeRequest(BaseModel):
 class SelectionOrigin(str, Enum):
     """Where a chosen control came from. Provenance, never a quality order.
 
-    A crosswalk translates; this engine advises the selection — so it matters, and
-    it is recorded, whether the operator picked a mechanism the catalog *already
-    maps* to the capability or adopted one that only the RAG pass had suggested.
-    The second is a human judgement on top of the catalog, and calling it anything
-    else would let an embedding distance pass for an authored mapping.
+    Whether the operator picked a mechanism the catalog *already maps* to the
+    capability or adopted one only the RAG pass suggested is recorded, because the
+    second is a human judgement on top of the catalog: calling it anything else
+    would let an embedding distance pass for an authored mapping.
     """
 
     CATALOG_MAPPING = "catalog_mapping"
@@ -289,9 +273,9 @@ class BaselineList(BaseModel):
 class MechanismDisposition(str, Enum):
     """What became of one mechanism for one capability in one zone.
 
-    Three of these are gating's own outcomes (UCM-9) and keep its identifiers on
-    purpose: an exclusion in this document *is* the gating decision that produced
-    it, and renaming it here would create a second vocabulary for one fact.
+    Three of these are gating's own outcomes and keep its identifiers on purpose:
+    an exclusion here *is* the gating decision that produced it, and renaming it
+    would create a second vocabulary for one fact.
     """
 
     # In the baseline, on the human's word.
@@ -322,10 +306,10 @@ INCLUDED_DISPOSITIONS = frozenset(
 class CapabilityOutcome(str, Enum):
     """How one required capability ends up satisfied — or explicitly not.
 
-    There is no `excluded` member and that is the point: gating removes
-    mechanisms, never required capabilities (UCM-9), so no value of this enum can
-    say that a capability does not apply. What varies is *how* it is met, and
-    every way of not meeting it carries someone's written reason.
+    There is no `excluded` member and that is the point: gating removes mechanisms,
+    never required capabilities, so no value here can say a capability does not
+    apply. What varies is *how* it is met, and every way of not meeting it carries
+    someone's written reason.
     """
 
     IMPLEMENTED = "implemented"

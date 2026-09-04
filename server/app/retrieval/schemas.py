@@ -28,8 +28,8 @@ class RetrievalRelation(str, Enum):
 
 
 class FilterAxis(str, Enum):
-    """The axes a payload filter may act on. The first three are UCM-13's own list;
-    `SECTOR` is UCM-52's — sectoral applicability (UCM-47) expressed as a lens."""
+    """The axes a payload filter may act on. `SECTOR` is sectoral applicability
+    expressed as a lens; the other three are the retrieval axes proper."""
 
     JURISDICTION = "jurisdiction"
     ZONE = "zone"
@@ -40,20 +40,14 @@ class FilterAxis(str, Enum):
 class PayloadFilter(BaseModel):
     """A declared lens over the index. Whatever it leaves out is reported back.
 
-    Two kinds of lens share this shape. Most axes are the human's use cases — the
-    regional delta of `GET /delta?regions=US,EU`, and zone-scoped exploration —
-    and the engine never applies those on its own initiative. The `sectors` axis
-    is different (UCM-52): it is the zone's declared sectoral applicability
-    (UCM-47), and the engine *does* build it, because "a norm that does not govern
-    this sector is not a candidate here" is a determination, not a silent
-    restriction — it is the same operation gating performs on the technical
-    dimension. It is safe because the invariant is the same for every axis:
-    everything set aside comes back in `CapabilityRetrieval.set_aside`, marked
-    with the axis that excluded it.
-
-    The zone axis is not invented here: `frameworks` is derived from the versioned
-    precedence rules of the zone's domain (`for_zone`), so a zone lens is a
-    reading of declared data, not a preference hidden in code.
+    Most axes are the human's use cases (the regional delta, zone-scoped
+    exploration) and the engine never applies those on its own. The `sectors` axis
+    is different: the engine builds it, because "a norm that does not govern this
+    sector is not a candidate here" is a determination, not a silent restriction —
+    the same operation gating performs on the technical dimension. It is safe because
+    everything set aside comes back in `CapabilityRetrieval.set_aside`, marked with
+    the axis that excluded it. The zone axis is derived from the versioned precedence
+    rules of the zone's domain, not invented here.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -125,14 +119,14 @@ class SetAsideCandidate(BaseModel):
 
 
 class GatingAnnotation(BaseModel):
-    """Why the engine's gating rules out this control *in this zone* (UCM-52).
+    """Why the engine's gating rules out this control *in this zone*.
 
     Attached to a suggestion the retrieval still shows, so the suggestion cannot
     contradict a gating exclusion in silence. Zone-scoped, not capability-scoped:
-    gating (rule or sectoral applicability) decides a control's fate per control
-    and per zone, so the same annotation holds wherever the control is suggested.
-    A suggestion carrying this is not hidden — it is offered *marked*, and only the
-    human may adopt it (with the compensatory justification gating asks for).
+    gating decides a control's fate per control and per zone, so the same annotation
+    holds wherever the control is suggested. A suggestion carrying this is offered
+    *marked*, not hidden, and only the human may adopt it (with the compensatory
+    justification gating asks for).
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -152,7 +146,7 @@ class CutReason(str, Enum):
 
 
 class CutPolicy(BaseModel):
-    """The rule that decides how many suggestions are shown, and which (UCM-54)."""
+    """The rule that decides how many suggestions are shown, and which."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -190,7 +184,7 @@ class DroppedCandidate(BaseModel):
 
 
 class RetrievalCut(BaseModel):
-    """What the cut left below the line (UCM-54): `retained + dropped == evaluated`."""
+    """What the cut left below the line: `retained + dropped == evaluated`."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -219,7 +213,7 @@ class RetrievalCut(BaseModel):
         if self.dropped and self.first_dropped is None:
             raise ValueError(
                 f"the cut dropped {self.dropped} candidate(s) and names none of them: that is "
-                "the silent omission UCM-54 exists to prevent"
+                "the silent omission the cut must never produce"
             )
         if self.retained > self.band_width:
             raise ValueError(
@@ -261,16 +255,12 @@ class RetrievedControl(BaseModel):
         return self.control.jurisdiction
 
 
-# UCM-53 - How the suggestion tail is ordered once the cut has decided *which*
-# suggestions there are. Versioned for the same reason `CUT_POLICY_VERSION` is:
-# the operator reads the list top down, so the order is part of what the engine
-# says, and a rule that changes without saying so is a rule nobody can audit.
-#
-# It sorts; it never removes. A suggestion the zone's gating already ruled out
-# reads last and reads marked (`gated_out`), because burying it would be the
-# quiet drop UCM-54 exists to prevent, and hiding it would be worse. Applied
-# *after* the cut, never before: ordering before it would change which
-# suggestions survive, and that is the cut's decision, not this one's.
+# How the suggestion tail is ordered once the cut has decided *which* suggestions
+# there are. Versioned like `CUT_POLICY_VERSION`: the operator reads the list top
+# down, so the order is part of what the engine says. It sorts; it never removes —
+# a suggestion the zone's gating already ruled out reads last and reads marked
+# (`gated_out`), never buried or hidden. Applied *after* the cut, so it can move a
+# suggestion but never decide whether it survives; that is the cut's call.
 ORDERING_VERSION = "v1"
 
 
@@ -364,7 +354,7 @@ class CapabilityRetrieval(BaseModel):
 
 
 class RetrievalProvenance(BaseModel):
-    """Everything needed to replay this retrieval on another machine (UCM-22).
+    """Everything needed to replay this retrieval on another machine.
 
     The collection name carries the catalog version *and* a digest of the catalog
     the vectors were built from, so a retrieval can never be silently answered by
@@ -382,9 +372,9 @@ class RetrievalProvenance(BaseModel):
     text_template_version: str
     top_k: int
     cut_policy: CutPolicy
-    # The rule that ordered the suggestion tail (UCM-53), declared beside the one
-    # that bounded it. A constant of the code, recorded so a stored answer says
-    # which reading order produced it.
+    # The rule that ordered the suggestion tail, declared beside the one that
+    # bounded it. A constant of the code, recorded so a stored answer says which
+    # reading order produced it.
     ordering_version: str = ORDERING_VERSION
     payload_filter: PayloadFilter
 

@@ -1,17 +1,10 @@
-"""UCM-47 - Sectoral applicability: a norm outside its sector is excluded, not offered.
+"""Sectoral applicability: a norm outside its sector is excluded, not offered.
 
-The bug this closes: every control was implicitly universal, so IMO MSC.428(98)
-and the six functional elements — which govern ships under the ISM Code — were
-offered to an onshore gas pipeline. Offering a control is an assertion ("this is
-a candidate for you"), so offering a maritime obligation to a pipeline is a wrong
-answer dressed as openness. The fix reuses the gating machinery: a zone whose
-effective sectors do not meet a control's declared scope becomes a justified
-`NOT_APPLICABLE` exclusion, with its rule, the premise read from the profile and
-a written reason — never a silent drop.
-
-The match is set intersection, on lists both sides: a norm applies when any one
-sector coincides. IMO governs one sector; NIS2 enumerates eighteen and applies to
-any of them; the technical frameworks declare none and are transversal.
+A zone whose effective sectors do not meet a control's declared scope becomes a
+justified `NOT_APPLICABLE` exclusion, with its rule, premise and reason — never a
+silent drop. The match is set intersection: a norm applies when any one sector
+coincides. IMO governs one sector; NIS2 enumerates many; the technical frameworks
+declare none and are transversal.
 """
 
 from __future__ import annotations
@@ -65,7 +58,7 @@ def test_a_transversal_control_applies_to_every_sector(catalog: Catalog) -> None
 
 
 def test_an_enumerated_scope_is_not_transversal(catalog: Catalog) -> None:
-    """UCM-47: a list of many sectors is a positive claim, not "applies everywhere"."""
+    """A list of many sectors is a positive claim, not "applies everywhere"."""
     nis2 = control(catalog, NIS2_REPORT)
     assert not nis2.transversal
     assert len(nis2.applies_to_sectors) > 1
@@ -155,11 +148,10 @@ def test_the_multisector_norm_is_not_excluded_from_the_energy_asset(
 
 
 def test_a_maritime_berth_zone_keeps_the_maritime_norm(profile_a: AssetProfile) -> None:
-    """The ACP case: one energy asset with a maritime berth zone (UCM-47).
+    """The ACP case: one energy asset with a maritime berth zone.
 
     The corridor excludes IMO by sector; the berth, declaring `sectors=[maritime]`,
-    keeps it. Same asset, same catalog, different zone — an asset-wide sector would
-    have to be wrong about one of them.
+    keeps it. Same asset, same catalog, different zone.
     """
     berth = profile_a.zones[0].model_copy(
         update={"id": "Z-BERTH", "sectors": [Sector.MARITIME]}
@@ -200,11 +192,11 @@ def priorities(profile: AssetProfile, sectors: list[Sector]) -> ProfilePrioritiz
 
 
 def test_an_out_of_sector_norm_creates_no_legal_mandate(profile_a: AssetProfile) -> None:
-    """The false obligation the ticket removes: a pipeline owes no maritime law.
+    """A pipeline owes no maritime law.
 
-    Forcing the asset to 'energy' alone is also the non-transport case of UCM-48:
-    the TSA (transport) creates no mandate, while CIRCIA (transversal) still does —
-    the US legal reading never collapses to nothing, it degrades gracefully.
+    Forcing the asset to 'energy' alone is the non-transport case: the TSA
+    (transport) creates no mandate, while CIRCIA (transversal) still does — the US
+    legal reading degrades gracefully rather than collapsing to nothing.
     """
     energy = priorities(profile_a, [Sector.ENERGY]).zone(ZONE_OT).capability(REPORT)
     legal = [m for m in energy.mandates if m.source is MandateSource.LEGAL_OBLIGATION]

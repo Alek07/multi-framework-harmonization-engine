@@ -1,11 +1,10 @@
-"""UCM-43 - `strength` is a declared scale, not prose the engine has to parse.
+"""`strength` is a declared scale, not prose the engine has to parse.
 
-Prioritisation reads two of these scales to decide: the CIS Implementation Group
-orders the discretionary IT tier, and the SL of an IEC SR is what puts a control
-in Tier 0 for a zone. While `strength` was free text both readings went through a
-regex, so a reworded catalog string could silently change a baseline. These tests
-pin the structure, the bounds, and the fact that the catalogs already shipped
-still load with the meaning they were authored with.
+Prioritisation reads two of these scales: the CIS Implementation Group orders the
+discretionary IT tier, and the SL of an IEC SR puts a control in Tier 0 for a
+zone. While `strength` was free text a reworded catalog string could silently
+change a baseline, so these tests pin the structure, the bounds and the fact that
+already-shipped catalogs still load with their authored meaning.
 """
 
 import pytest

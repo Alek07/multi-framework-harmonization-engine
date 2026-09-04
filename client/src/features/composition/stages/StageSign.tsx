@@ -1,12 +1,8 @@
 /**
- * Etapa 4 — the signature.
- *
- * What blocks it is not a UI rule: it is the engine's own list of mandates it
- * could not close, plus the contradictions it refused to settle, plus the
- * ledger's refusal to record a decision with a blank justification. Each blocker
- * links to the capability it is about. The server verifies all of it again
- * before signing — this screen exists so the operator is not told at the last
- * step what they could have been told at the first.
+ * Etapa 4 — the signature. What blocks it is not a UI rule but the engine's own
+ * unclosed mandates, the contradictions it refused to settle, and the ledger's
+ * refusal of a blank justification. Each blocker links to its capability. The
+ * server re-verifies before signing; this screen just tells the operator early.
  */
 
 import { useNavigate } from '@tanstack/react-router'

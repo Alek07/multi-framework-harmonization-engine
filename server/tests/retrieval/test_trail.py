@@ -94,7 +94,7 @@ def test_what_a_lens_set_aside_is_recoverable_from_the_log_alone(
 def test_the_cut_is_recoverable_from_the_log_alone(
     service: RetrievalService, resolution_a: ProfileResolution
 ) -> None:
-    """Acceptance (UCM-54): the one bound nobody could audit, now on the record."""
+    """The one bound nobody could audit, now on the record."""
     retrieval = service.retrieve_profile(resolution_a)
     entries = trail_for_retrieval(retrieval, uuid4())
     cuts = [e for e in entries if e.event_type is AuditEventType.CANDIDATES_CUT]

@@ -163,10 +163,8 @@ export function CapabilityCard({
     (hit) => hit.relation === 'widens',
   )
   const options = foldTail(eligible, CATALOG_SHOWN, (o) => o.control.framework)
-  // No framework rule on the suggestions: they are declared *not* to be
-  // equivalences, so there is no side-by-side reading to protect here — only a
-  // long tail of near-matches, in descending similarity, that makes the screen
-  // unreadable before the operator reaches the options that are.
+  // No framework rule on suggestions: they are not equivalences, so there is no
+  // side-by-side reading to protect — just a long similarity-ordered tail to fold.
   const suggested = foldTail(suggestions, SUGGESTIONS_SHOWN, () => '')
   const explanationOf = (controlId: string) =>
     capability.explanations?.explanations.find((e) => e.control_id === controlId)
@@ -184,9 +182,8 @@ export function CapabilityCard({
     (conflict) => !conflict.control_ids.some((id) => picked.includes(id)),
   ).length
 
-  // Step 4 links every blocker to the capability it is about, so a card that is
-  // navigated to opens itself — once. Answering the request rather than obeying
-  // it forever is what lets the operator close the card again afterwards.
+  // A card navigated to from a step-4 blocker opens itself once; answering the
+  // request rather than obeying it forever lets the operator close it again.
   const targeted = expandRequest === domId && fold.honoured !== expandRequest
   const open = targeted || fold.open
   const setOpen = (next: boolean) => setFold({ open: next, honoured: expandRequest })
@@ -596,7 +593,7 @@ function reasonLabel(
 }
 
 
-/** What the retriever's cut left below the line, read off the server's report (UCM-54). */
+/** What the retriever's cut left below the line, read off the server's report. */
 function CutReport({ cut }: { cut: RetrievalCut }) {
   const first = cut.first_dropped
   return (

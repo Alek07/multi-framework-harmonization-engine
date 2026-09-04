@@ -1,28 +1,17 @@
-"""UCM-53 - The tagging instructions, versioned.
+"""The tagging instructions, versioned.
 
 Like the parse and explain prompts, this text is an **input of the result**: the
-same catalog and the same model with a different prompt produce different
-premises, so it is versioned, recorded in `TaggingProvenance`, and changed by
-bumping the version rather than by editing a shipped one.
+same catalog and model with a different prompt produce different premises, so it is
+versioned, recorded in `TaggingProvenance`, and changed by bumping the version.
 
-The failure mode to design against here is over-tagging, not invention. Asked
-"what does this control presuppose?", a 7B will happily find a presupposition in
-every control, because almost any sentence about security can be read as
-implying a computer with a user in front of it. A catalog where every control
-presupposes a general-purpose OS discriminates exactly as badly as one where
-none does — and it would do it while looking like progress. Four devices push
-against that, in the order the model obeys them:
-
-* the default answer is stated first and stated as normal: most controls
-  presuppose nothing;
-* the test is concrete and physical (would this still mean something on a sealed
-  device with no OS, no screen and no user?) rather than definitional;
-* the model must quote the words it read the premise from, which `guard.py`
-  then checks against the control's own text — an inference with no anchor in
-  the sentence in front of it cannot survive;
-* the model is told, explicitly, that it is describing the control and not
-  judging any asset. No zone is in the prompt, and none can be: this runs once,
-  for the catalog, not per asset.
+The failure mode to design against is over-tagging, not invention: asked what a
+control presupposes, a 7B finds a presupposition everywhere, and a catalog where
+every control presupposes a general-purpose OS discriminates as badly as one where
+none does. Four devices push against it: the default answer (nothing) is stated
+first; the test is concrete and physical (would this mean anything on a sealed
+device with no OS, screen or user?); the model must quote the words it read the
+premise from, which `guard.py` checks; and it is told it describes the control, not
+any asset — no zone is in the prompt, and none can be.
 
 Written in English (project language rule); `note` is asked for in Spanish,
 because the operator reads it when the mechanism leaves their baseline.
@@ -32,30 +21,19 @@ from __future__ import annotations
 
 # 0.1.0 — first version.
 #
-# 0.2.0 — calibration. Under 0.1.0 the model answered "nothing" for 96 % of
-# the catalog: 9 of 226 controls, and **zero of the 51 IEC 62443 SRs**, which
-# are the technical controls where a premise actually lives. Of those 9, eight
-# landed on controls that already had a hand-written rule — so precedence made
-# them inert — and the ninth was wrong. The devices against over-tagging worked
-# too well, and in one specific way: the sealed-device test is absolute, so the
-# model applied it to the *outcome* a control asks for ("protect against
-# malicious code" — a sealed device needs that too, so: nothing) instead of to
-# the *mechanism* it names.
+# 0.2.0 — calibration. Under 0.1.0 the model answered "nothing" for 96 % of the
+# catalog and zero of the 51 IEC 62443 SRs, where a premise actually lives: the
+# sealed-device test is absolute, so the model applied it to the *outcome* a
+# control asks for instead of to the *mechanism* it names. Three changes: the test
+# is now two steps and asks about the mechanism; governance and training families
+# are skipped up front (the gating already says `wrong_scope` there); and a worked
+# example shows a technical control read correctly next to one read wrongly.
 #
-# Three changes, all aimed at that. The test is now two steps and asks about
-# the mechanism. The governance and training families are skipped up front, so
-# the model stops spending its answer where the gating already says
-# `wrong_scope` (five of the nine went there, two of them plainly wrong). And a
-# worked example shows a technical control read correctly next to one read
-# wrongly, because an example is the instruction a small model follows.
-#
-# 0.2.1 — the worked examples stop quoting the catalog. Under 0.2.0 the
-# anti-malware example was near-verbatim a real control (CTL-CIS-1001), and on
-# that control the model copied the `quote` out of the *example* instead of out
-# of the control in front of it — which the guard then correctly rejected,
-# losing a premise 0.1.0 had got right. An example a model can plagiarise is a
-# trap, so the examples are now plainly invented controls that appear in no
-# catalog, and only the shape of the reasoning carries over.
+# 0.2.1 — the worked examples stop quoting the catalog. Under 0.2.0 the anti-malware
+# example was near-verbatim a real control, and the model copied the `quote` out of
+# the example instead of the control in front of it, which the guard then rejected.
+# The examples are now plainly invented controls, so only the shape of the
+# reasoning carries over.
 PROMPT_VERSION = "0.2.1"
 
 SYSTEM_PROMPT = """\

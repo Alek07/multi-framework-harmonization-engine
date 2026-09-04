@@ -1,4 +1,4 @@
-"""UCM-8 - Step 2: the three conflict situations, and what the engine must not decide."""
+"""Step 2: the three conflict situations, and what the engine must not decide."""
 
 from app.engine.schemas import (
     CandidateStatus,
@@ -72,7 +72,7 @@ def test_contextual_overlays_do_not_count_as_coverage(resolution_a: ProfileResol
     report = _capability(resolution_a, ZONE_OT, REPORT)
     contextual = [o for o in report.options if o.mapping_type.value == "contextual"]
     # Resolution offers every mapped control (sector gating comes later); the US
-    # legal reporting overlays (UCM-48) join the EU and maritime ones.
+    # legal reporting overlays join the EU and maritime ones.
     assert {o.control_id for o in contextual} == {
         "CTL-NIS2-A23",
         "CTL-IMO-42898",

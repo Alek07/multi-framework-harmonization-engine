@@ -1,10 +1,9 @@
-"""UCM-15 - `POST /asset/parse`: a draft comes back, and nothing is decided.
+"""`POST /asset/parse`: a draft comes back, and nothing is decided.
 
-The parse itself is covered in `tests/parse/`. What is asserted here is what the
-*endpoint* adds: that the draft reaches the client intact, that an empty
-description never reaches the model, that a model that cannot produce a valid
-draft is a 502 rather than a half-parse — and that the whole call leaves the
-append-only ledger untouched, because the LLM is not an actor (UCM-11).
+The parse itself is covered in `tests/parse/`; asserted here is what the endpoint
+adds — the draft reaches the client intact, an empty description never reaches the
+model, an invalid draft is a 502 not a half-parse, and the call leaves the
+append-only ledger untouched because the LLM is not an actor.
 """
 
 from __future__ import annotations

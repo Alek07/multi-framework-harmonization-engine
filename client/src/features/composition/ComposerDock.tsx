@@ -1,11 +1,8 @@
 /**
- * The dock: the state of the composition, always visible, never persuasive.
- *
- * It counts what the engine reported (Tier 0 of every zone, declared gaps, open
- * contradictions) and what the operator has done about it, and when the
- * signature is blocked it says by what and links to it. It never suggests a
- * choice — there is no "recommended", no score and no sorting here, for the same
- * reason there is none in the candidate cards.
+ * The dock: the composition's state, always visible, never persuasive. It counts
+ * what the engine reported (Tier 0 per zone, declared gaps, open contradictions)
+ * and what the operator did about it, and when signing is blocked says by what and
+ * links to it. No "recommended", no score, no sorting — as in the candidate cards.
  */
 
 import { useComposition } from './composition'

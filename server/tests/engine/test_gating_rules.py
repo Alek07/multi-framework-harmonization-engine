@@ -1,4 +1,4 @@
-"""UCM-9 - The gating rules load, only speak of declared premises, and never gate in silence."""
+"""The gating rules load, only speak of declared premises, and never gate in silence."""
 
 import pytest
 from pydantic import ValidationError
@@ -45,7 +45,7 @@ def test_a_rule_cannot_gate_a_control_the_catalog_does_not_have(catalog: Catalog
 
 
 def test_a_condition_on_the_role_reads_what_the_profile_declares() -> None:
-    """The premise UCM-44 added: without it the SIS and the corridor are one zone."""
+    """The `role` premise: without it the SIS and the corridor are one zone."""
     rule = GatingRule.model_validate(
         {
             "id": "GATE-TEST-ROLE",

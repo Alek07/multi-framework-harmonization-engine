@@ -1,4 +1,4 @@
-"""UCM-8 - The zone reading that decides precedence is derived, not assumed."""
+"""The zone reading that decides precedence is derived, not assumed."""
 
 from app.assets.schemas import AssetProfile
 from app.engine.schemas import ZoneDomain

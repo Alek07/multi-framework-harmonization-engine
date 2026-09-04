@@ -1,12 +1,9 @@
 /**
- * The signed baseline as a printable declaration of applicability (UCM-46).
- *
- * What gets printed is the document the server emits — one row per required
- * capability, with its decision, its mechanisms, its justified exclusions and its
- * gap — followed by the whole trail it was projected from. Built from the two
- * responses and nothing else, so the paper says exactly what the ledger says.
- * Printing is the browser's; there is no PDF library here to disagree with the
- * screen.
+ * The signed baseline as a printable declaration of applicability. Prints the
+ * document the server emits — one row per required capability (decision,
+ * mechanisms, justified exclusions, gap) followed by the whole trail it was
+ * projected from — built from the two responses and nothing else. Printing is the
+ * browser's; no PDF library here to disagree with the screen.
  */
 
 import type {
@@ -221,10 +218,8 @@ ${table(
 }
 
 /**
- * Opens the document in its own window and asks the browser to print it.
- *
- * Returns false when the window was blocked, so the caller can say so rather
- * than leave a button that appears to do nothing.
+ * Opens the document in its own window and asks the browser to print it. Returns
+ * false when the window was blocked, so the caller can say so.
  */
 export function printBaseline(statement: BaselineStatement, log: BaselineAuditLog): boolean {
   const target = window.open('', '_blank')

@@ -1,7 +1,6 @@
-"""UCM-16 - Sovereign composition: the human chooses, the engine verifies, both sign.
+"""Sovereign composition: the human chooses, the engine verifies, both sign.
 
-These are the assertions the central contribution of the TFM stands on, so they
-are written about the claims rather than about the code:
+The assertions the central contribution stands on, written about the claims:
 
 * **Tier 0 complete is verified before the signature, never after.** A composition
   that leaves one mandate open is refused, and the refusal names it.
@@ -304,15 +303,11 @@ async def test_the_ledger_tells_a_ratification_from_a_choice(
     accepted = [e for e in human if e.event_type is AuditEventType.GAP_ACCEPTED]
     signed = [e for e in human if e.event_type is AuditEventType.BASELINE_SIGNED]
 
-    # 13 open mandates across the two zones of PROFILE-A (6 in the corridor, 7 in
-    # the crown jewel, which admits less) and 49 mandates the core already closed
-    # and the signature ratifies without asking the operator to re-justify them.
-    #
-    # It was 13 and 47 before catalog v0.6.0. The US legal corpus (UCM-48) makes
-    # the TSA gap assessment (CAP-ID-RISK) a legal mandate in *both* zones — the
-    # asset is a designated pipeline (transport) — and the core already had a
-    # mechanism for it, so each zone ratifies it rather than opening a gap: +2
-    # ratified, the accepted count unchanged.
+    # 13 open mandates across PROFILE-A's two zones (6 corridor, 7 crown jewel)
+    # and 49 the core already closed and the signature ratifies without re-justifying.
+    # Was 13 and 47 before catalog v0.6.0: the US legal corpus made the TSA gap
+    # assessment (CAP-ID-RISK) a legal mandate in both zones, and the core already
+    # had a mechanism, so each zone ratifies it rather than opening a gap (+2 ratified).
     assert len(accepted) == 13
     assert len(ratified) == 49
     assert len(signed) == 1

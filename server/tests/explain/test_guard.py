@@ -1,10 +1,9 @@
-"""UCM-14 - The guard: what counts as a verdict, and what is only a description.
+"""The guard: what counts as a verdict, and what is only a description.
 
-Two failure directions matter here and they pull against each other. A guard that
-lets "debería elegir el control CIS" through puts a decision the LLM is not
-allowed to make on the operator's screen. A guard that withholds "la similitud no
-descarta la equivalencia" teaches the reader that the flag means nothing. So the
-lexicon is asserted in both directions, negations included.
+Two failure directions pull against each other. Letting "debería elegir el control
+CIS" through puts a decision the LLM may not make on the operator's screen;
+withholding "la similitud no descarta la equivalencia" teaches the reader the flag
+means nothing. So the lexicon is asserted in both directions, negations included.
 """
 
 from __future__ import annotations

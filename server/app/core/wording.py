@@ -2,18 +2,13 @@
 
 Every `rationale`, `decision` and `notice` the API returns is read by a human
 (language rule, CLAUDE.md §8). Interpolating an enum with `.value` put English
-snake_case identifiers — `no_effective_mechanism`, `coverage_weights`,
-`objective_without_mechanism` — inside otherwise-Spanish sentences. This module
-is the one lookup table that turns those into words.
+snake_case identifiers inside otherwise-Spanish sentences; this module is the one
+lookup table that turns those into words. It is presentational and nothing else:
+it never decides, filters or orders — only the prose changes.
 
-It is presentational and nothing else: it never decides, filters or orders. The
-identifiers stay the ones the ledger stores and the schemas declare; only the
-prose changes.
-
-Lookup is by the enum's *value* rather than by the enum type, deliberately: this
+Lookup is by the enum's *value* rather than the enum type, deliberately: this
 module is imported by `engine`, `retrieval`, `baseline`, `delta` and `audit`, and
-importing every one of their schema modules back into `core` would close an
-import cycle for nothing.
+importing their schema modules back into `core` would close an import cycle.
 """
 
 from collections.abc import Iterable
@@ -95,7 +90,7 @@ _WORDS: dict[str, str] = {
     # --- jurisdictions, where the raw value is not a word ---
     "INTL-MARITIME": "internacional marítima",
     "INTL": "internacional",
-    # --- sectors (Sector), for the sectoral-applicability exclusion (UCM-47) ---
+    # --- sectors (Sector), for the sectoral-applicability exclusion ---
     "energy": "energía",
     "water": "agua",
     "maritime": "marítimo",
@@ -123,11 +118,10 @@ _WORDS: dict[str, str] = {
     # --- the asset premises a gating rule reads (TechNature) ---
     #
     # Every one of these is read inside the sentence "la zona (no) tiene ...",
-    # both by a gating rule's evidence and by a control's declared premise
-    # (UCM-53), so they have to be nouns that survive it. Two did not until
-    # v0.5.0 and nobody saw it: `networked` and `hybrid_it_ot` conditioned no
-    # hand-written rule at all (UCM-55), so "la zona tiene conectado en red"
-    # never actually rendered. The premises use both, and it did.
+    # both by a gating rule's evidence and by a control's declared premise, so
+    # they have to be nouns that survive it. Two did not until v0.5.0: `networked`
+    # and `hybrid_it_ot` conditioned no hand-written rule at all, so "la zona
+    # tiene conectado en red" never actually rendered. The premises use both.
     "general_purpose_os": "sistema operativo de propósito general",
     "networked": "conexión de red",
     "hybrid_it_ot": "mezcla de IT y OT",

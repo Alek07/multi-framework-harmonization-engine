@@ -1,25 +1,10 @@
 /**
- * Etapa 3 — the regional delta: the same zone under the legal regimes that govern
- * this asset, compared in both directions (UCM-50).
- *
- * The screen answers one question and only that: *which legal obligations does
- * each region impose that the other does not, over this asset*. So it is fixed to
- * the symmetric, legal reading — the difference reported both ways (what the US
- * demands the EU does not, and the reverse), with the common technical ground
- * (CIS/CSF/IEC 62443) held out of it. The cumulative reading and the "all
- * controls" lens still exist in the engine, but they are not this screen's
- * question, so the screen does not offer them.
- *
- * Two properties make the comparison honest and asset-specific:
- *
- * * It is asked about *this* asset — the one described upstairs and reviewed by
- *   the operator — because the request carries the reviewed profile inline.
- * * A regime out of the asset's sector does not appear: TSA governs pipelines,
- *   not hospitals, so it is not a difference a hospital has to answer. That this
- *   is not a silent omission is guaranteed by the applicability panel, which
- *   states, for every compared regime, whether it governs the asset and why.
- *
- * One bound is declared rather than hidden: one zone at a time.
+ * Etapa 3 — the regional delta: the same zone under the legal regimes governing
+ * this asset, compared both ways. Fixed to the symmetric, legal reading — the
+ * difference each way, with the common technical ground held out — because that is
+ * the one question the screen asks. It carries the reviewed profile inline, so the
+ * comparison is asset-specific; regimes out of the asset's sector are disclosed in
+ * the applicability panel rather than silently dropped. Bound: one zone at a time.
  */
 
 import { useEffect } from 'react'
@@ -35,12 +20,10 @@ import { useComposition } from '../composition'
 import { Caps, Hint, Notice, Section, Tag } from '../../../components/ui'
 
 /**
- * Which regimes govern this asset, as the engine determined (UCM-50, on UCM-47).
- *
- * The engine never chooses the comparison, but it *does* determine applicability
- * and say so: TSA governs transport, CIRCIA is transversal. A regime that does
- * not govern the asset is left out of the comparison below — and this panel is
- * where that is stated, so the exclusion is disclosed, not silent.
+ * Which regimes govern this asset, as the engine determined. The engine never
+ * chooses the comparison but does determine applicability and say so; a regime
+ * that does not govern the asset is left out of the comparison, and this panel is
+ * where that exclusion is disclosed rather than left silent.
  */
 function RegimePanel({ delta }: { delta: RegionalDelta }) {
   if (delta.regime_applicability.length === 0) return null

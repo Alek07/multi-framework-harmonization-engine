@@ -1,4 +1,4 @@
-"""UCM-53 - The tagging agent is configured the way reproducibility needs (invariant 3)."""
+"""The tagging agent is configured the way reproducibility needs (invariant 3)."""
 
 from __future__ import annotations
 
@@ -43,9 +43,8 @@ def test_the_prompt_is_versioned_and_states_the_closed_vocabulary() -> None:
         assert premise in SYSTEM_PROMPT
     # The over-tagging guard-rail: an empty answer has to read as normal.
     assert "AN EMPTY LIST IS A NORMAL ANSWER" in SYSTEM_PROMPT
-    # And the 0.2.0 calibration, which is what the first real run bought: the test
-    # asks about the mechanism a control names, not the outcome it pursues, and the
-    # families the gating already answers are skipped instead of reasoned about.
+    # The calibration: ask about the mechanism a control names, not the outcome it
+    # pursues, and skip the families the gating already answers.
     assert "WHAT MECHANISM DOES THE CONTROL NAME" in SYSTEM_PROMPT
     assert "SKIP THESE ENTIRELY" in SYSTEM_PROMPT
 

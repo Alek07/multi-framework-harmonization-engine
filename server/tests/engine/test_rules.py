@@ -1,4 +1,4 @@
-"""UCM-8 - The rule set loads, is a total order and only names things the catalog has."""
+"""The rule set loads, is a total order and only names things the catalog has."""
 
 import pytest
 
@@ -19,7 +19,7 @@ def test_precedence_is_a_total_order_per_domain(rules: RuleSet) -> None:
 
 
 def test_precedence_encodes_ics_to_ot_and_nist_to_it(rules: RuleSet) -> None:
-    # The two precedences the ticket demands, and the reason they are not the same.
+    # The two precedences, and the reason they are not the same.
     assert rules.framework_precedence[ZoneDomain.OT][0] is Framework.IEC62443
     assert rules.framework_precedence[ZoneDomain.IT][0] is Framework.CSF
     assert rules.framework_precedence[ZoneDomain.HYBRID][0] is Framework.CSF
@@ -27,9 +27,9 @@ def test_precedence_encodes_ics_to_ot_and_nist_to_it(rules: RuleSet) -> None:
 
 def test_legal_overlays_never_lead_the_precedence(rules: RuleSet) -> None:
     # The legal frameworks trail the order: NIS2/IMO/CIRCIA are contextual
-    # obligations, and even the TSA — whose SD-02 prescribes a zone mechanism
-    # (UCM-48) — sits behind the technical norm that dictates *how* the zone
-    # implements it. Law demands the outcome; engineering picks the mechanism.
+    # obligations, and even the TSA — whose SD-02 prescribes a zone mechanism —
+    # sits behind the technical norm that dictates *how* the zone implements it.
+    # Law demands the outcome; engineering picks the mechanism.
     legal = {Framework.NIS2, Framework.IMO, Framework.CIRCIA, Framework.TSA}
     for domain in ZoneDomain:
         order = rules.framework_precedence[domain]
