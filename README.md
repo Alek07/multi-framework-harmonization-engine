@@ -1,15 +1,81 @@
-# Motor de armonización multi-marco (TFM POC)
+# Motor de armonización multi-marco
 
-POC del TFM (Máster en Ciberseguridad UCM) que asiste a un operador de infraestructura crítica en
-la **composición soberana** de la línea base de ciberseguridad de un activo OT/IT/híbrido.
+Un operador de infraestructura crítica describe un activo OT/IT/híbrido en texto libre y el motor
+le ayuda a **componer de forma soberana** su línea base de ciberseguridad: la IA local sugiere y
+recupera, un núcleo determinista decide, y el humano compone y firma —con una bitácora trazable de
+punta a punta.
 
-- La IA (local, acotada) parsea la descripción del activo y recupera controles candidatos (RAG).
-- Un **núcleo determinista** mapea, resuelve conflictos, aplica gating y prioriza.
-- El **humano compone y firma** la baseline final, con bitácora trazable de punta a punta.
+> **IA sugiere y recupera · las reglas deciden · el humano compone y firma.**
+> Nada se restringe ni se borra en silencio. Reproducibilidad total: temperatura 0, semilla fija,
+> modelo fijado, catálogo y mapeos versionados.
 
-**Invariantes:** IA sugiere/recupera · reglas deciden · humano compone y firma. Nada se restringe
-ni se borra en silencio. Reproducibilidad total (temp 0, seed fija, modelo fijado, mapeos
-versionados).
+## El flujo, de un vistazo
+
+```mermaid
+flowchart TD
+    IN["📝 Descripción del activo<br/>(texto libre)"]
+
+    subgraph AI["🔵 IA · sugiere y recupera"]
+        direction TB
+        PARSE["Parseo<br/>Ollama · temp 0 · semilla fija"]
+        RAG["Recuperación RAG<br/>Qdrant · ensancha, nunca restringe"]
+    end
+
+    PROFILE["Borrador de perfil del activo<br/>cita cada campo · lo no ubicado se lista, no se descarta"]
+    REVIEW["✏️ Revisión y corrección ◆<br/>ningún campo obligatorio queda sin decidir"]
+
+    subgraph CORE["🟢 Reglas · deciden — núcleo determinista, sin IA"]
+        direction TB
+        MAP["1 · Mapeo<br/>capacidades ↔ controles de cada marco"]
+        CONF["2 · Conflictos<br/>solape · granularidad · contradicción real"]
+        GATE["3 · Gating<br/>quita mecanismos, nunca capacidades, nunca en silencio"]
+        PRIO["4 · Priorización<br/>Tier 0 obligatorio · Tier 1 por fases"]
+        MAP --> CONF --> GATE --> PRIO
+    end
+
+    CAND["Opciones equivalentes lado a lado<br/>marco · jurisdicción · fuerza · tier — por zona"]
+
+    subgraph HUMAN["🟡 Humano · compone y firma"]
+        direction TB
+        COMPOSE["Composición soberana<br/>elige por zona"]
+        T0{"¿Bloque Tier 0<br/>completo?"}
+        SIGN["Firma"]
+    end
+
+    BASE[("Línea base firmada")]
+    AUDIT[("Bitácora append-only<br/>cadena SHA-256")]
+    EXPORT["Declaración de aplicabilidad<br/>SoA · OSCAL"]
+
+    IN --> PARSE --> PROFILE --> REVIEW --> MAP
+    RAG -. candidatos .-> CAND
+    PRIO --> CAND --> COMPOSE --> T0
+    T0 -- "no · faltan mandatos" --> COMPOSE
+    T0 -- "sí" --> SIGN --> BASE --> EXPORT
+    SIGN --> AUDIT
+    REVIEW -. registra .-> AUDIT
+    COMPOSE -. cada elección + motivo .-> AUDIT
+
+    classDef ai fill:#e8f0fe,stroke:#4285f4,color:#1a1a1a
+    classDef rule fill:#e6f4ea,stroke:#34a853,color:#1a1a1a
+    classDef human fill:#fef7e0,stroke:#f9ab00,color:#1a1a1a
+    classDef store fill:#f1f3f4,stroke:#5f6368,color:#1a1a1a
+    class PARSE,RAG ai
+    class MAP,CONF,GATE,PRIO rule
+    class REVIEW,COMPOSE,T0,SIGN human
+    class BASE,AUDIT,EXPORT store
+```
+
+**Cómo leerlo.** Cada color es un actor y la frontera entre ellos es innegociable: la IA (azul)
+solo lee la descripción y recupera candidatos —nunca decide, ordena ni filtra—; las reglas (verde)
+son deterministas y no tocan la IA; el humano (amarillo) es el único que elige y firma. La firma
+está bloqueada hasta que el bloque obligatorio (Tier 0) esté completo, y **todo** —tanto lo que
+decide el motor como lo que decide la persona— queda escrito en una bitácora que solo crece,
+encadenada por SHA-256. El resultado firmado se puede exportar como declaración de aplicabilidad
+(SoA) o como plan parcial OSCAL.
+
+La contribución central está en el paso amarillo **Composición soberana**: no traduce un marco a
+otro (A≈B, como haría un *crosswalk*), sino que pone las opciones equivalentes lado a lado y
+**aconseja la selección** por zona.
 
 ## Arrancar
 
@@ -17,75 +83,26 @@ versionados).
 make up
 ```
 
-| Comando | Qué hace |
-| -- | -- |
-| `make up` | Arranca detectando el hardware (NVIDIA → AMD → CPU) |
-| `make up-cpu` | Fuerza la ruta portable (CPU), la reproducible |
-| `make up-gpu` | Fuerza la ruta NVIDIA (CUDA) |
-| `make up-rocm` | Fuerza la ruta AMD (ROCm, sólo Linux) |
-| `make build` | Reconstruye las imágenes y arranca (tras tocar el código) |
-| `make down` | Para el sistema (los volúmenes se conservan) |
-| `make logs` | Sigue los registros de los cuatro servicios |
-| `make help` | Lista los comandos |
-
-No hace falta llamar a `docker compose` por tu cuenta: `make` delega en `./scripts/start.sh`, que
-comprueba primero Docker, el hardware y el modelo, y con eso resuelto ejecuta él mismo
-`docker compose up -d` con los ficheros que correspondan. En Windows, `make` usa Git Bash; si no
-tienes `make`, el mismo lanzador está en `.\scripts\start.ps1` (opciones `-Cpu`, `-Gpu`, `-Build`,
-`-Down`, `-Logs`).
-
 | | URL |
 | -- | -- |
 | Aplicación | <http://localhost:8080> |
 | Swagger — plan B declarado de la demo | <http://localhost:8000/docs> |
 
-**El primer arranque descarga ~5,8 GB** (el modelo de ~4,7 GB y los *embeddings* de ~1,1 GB) y tarda
-entre 15 y 30 minutos; los siguientes tardan menos de un minuto. Nada de eso se hornea en las
-imágenes: vive en volúmenes y se reutiliza.
+`make up` detecta el hardware (NVIDIA → AMD → CPU) y levanta los cuatro contenedores; `make help`
+lista el resto. **El primer arranque descarga ~5,8 GB** (modelo + *embeddings*) y tarda 15–30 min;
+los siguientes, menos de un minuto. Componer, firmar, leer la bitácora y el delta regional
+funcionan **sin IA**: lo único que espera al modelo es leer una descripción.
 
-El lanzador elige la ruta según el hardware —**NVIDIA (CUDA) → AMD (ROCm, sólo Linux) → CPU**, en
-ese orden—, espera a los cuatro contenedores y comprueba dónde ha quedado el modelo. La CPU es el
-último recurso: funciona en cualquier máquina pero un parseo tarda minutos en vez de segundos. Si
-detecta una NVIDIA que Docker no expone (falta el *toolkit* / GPU sin activar en WSL2), lo dice y da
-el comando para arreglarlo, en vez de caer a CPU en silencio.
+## Probar la aplicación
 
-El camino AMD/ROCm se provee pero se ha verificado sólo contra NVIDIA y CPU: no había tarjeta AMD
-donde medir. Igual que con NVIDIA, la reproducibilidad se sostiene dentro de cada ruta, no entre
-ellas.
-
-**Si has tocado el código, hace falta `make build`.** Las imágenes llevan etiqueta fija, así que sin
-esa reconstrucción Docker reutiliza la que ya tiene y el contenedor sigue sirviendo la versión
-anterior.
-
-Para iterar sobre la interfaz es mucho más rápido dejar el sistema arrancado y levantar Vite aparte
-(`cd client && bun run dev`, <http://localhost:5173>): recarga en caliente y habla con el mismo
-backend del puerto 8000. La imagen solo hay que reconstruirla para comprobar el empaquetado.
-
-## Usar la aplicación
-
-Una sola vista, cinco pasos. Se puede recorrer entera sin IA salvo el primero.
-
-| Paso | Qué se hace |
-| -- | -- |
-| **1 · Describir** | Se pega la descripción del activo en texto libre. El modelo extrae y **cita** cada campo; lo que no ha podido situar se lista, no se descarta. |
-| **1b · Revisar** | Todo campo es editable y `◆` marca tus correcciones. No deja continuar con un valor obligatorio sin decidir. |
-| **2 · Elegir** | Opciones equivalentes lado a lado por capacidad — marco, jurisdicción, fuerza, tier — y qué ha quitado el gating y por qué. Se elige por zona. Es la contribución central. |
-| **3 · Comparar** | Una zona leída bajo US y bajo +EU. Lecturas acumulativas, nunca un catálogo paralelo. |
-| **4 · Firmar** | Se verifica que el bloque obligatorio está completo y se firma. Nada obligatorio llega a la baseline sin un nombre detrás: elegido, compensado, hueco aceptado por escrito o ratificado. |
-| **5 · Registro** | Bitácora *append-only*, cadena verificada contra su SHA-256 y el evento anterior. Cada línea base firmada se puede descargar como **declaración de aplicabilidad** (SoA, JSON), como **plan SSP parcial de OSCAL** o imprimir con su bitácora entera. |
-
-Componer, firmar, leer la bitácora y el delta regional **no necesitan IA**: funcionan con Ollama y
-Qdrant apagados. Lo único que espera al modelo es leer una descripción, y eso también puede hacerse
-a mano.
-
-Cinco descripciones de ejemplo, de cinco sectores distintos, y lo que produjo cada una cuando se
-ejecutó de verdad: **[docs/demo-playbook.md](docs/demo-playbook.md)**.
+Una sola vista, cinco pasos: **describir → revisar → elegir → comparar → firmar → registro**. Hay
+cinco descripciones de ejemplo, de cinco sectores distintos, listas para pegar, y una guía de cómo
+recorrerlas: **[docs/demo-playbook.md](docs/demo-playbook.md)**.
 
 ## API
 
-Superficie **cerrada**: siete endpoints. La lista se declara como dato en
-`server/app/api/router.py` para que una prueba lo compruebe (`tests/api/test_surface.py`), y
-añadir uno obliga a justificarlo por escrito en ese mismo módulo.
+Superficie **cerrada**: siete endpoints declarados como dato en `server/app/api/router.py`, y una
+prueba (`tests/api/test_surface.py`) falla si aparece uno de más.
 
 | Endpoint | Función |
 | -- | -- |
@@ -93,59 +110,11 @@ añadir uno obliga a justificarlo por escrito en ese mismo módulo.
 | `POST /candidates` | Perfil → opciones equivalentes por capacidad y zona |
 | `POST /baseline/compose` | Elecciones del humano → línea base firmada |
 | `GET /baseline/{id}/audit-log` | Trazabilidad completa, con verificación de la cadena |
-| `GET /baseline/{id}/statement` | Declaración de aplicabilidad de la línea base (`?format=soa\|oscal`) |
+| `GET /baseline/{id}/statement` | Declaración de aplicabilidad (`?format=soa\|oscal`) |
 | `POST /delta` | Delta regional para una zona del perfil |
-| `GET /baselines` | Líneas base firmadas en esta bitácora, de la más reciente a la más antigua |
+| `GET /baselines` | Líneas base firmadas, de la más reciente a la más antigua |
 
-Los dos últimos no calculan nada: se **proyectan** de la bitácora, así que no hay ninguna copia que
-pueda contradecir la traza.
+## Más
 
-`GET /api/v1/health` no forma parte de la superficie: es la sonda del `healthcheck` de compose.
-
-## Estructura
-
-| Ruta | Contenido |
-| -- | -- |
-| `server/` | FastAPI + Python 3.12 (uv): núcleo determinista, API, bitácora |
-| `server/data/` | Catálogo, reglas del motor y perfiles, versionados y congelados en Git |
-| `server/app/parse/`, `retrieval/` | Las dos pasadas de IA: borrador de perfil y recuperación de candidatos |
-| `server/app/candidates/`, `baseline/`, `delta/` | Opciones por capacidad, composición y firma, delta regional |
-| `client/` | React + Vite + TypeScript: UI de una vista |
-| `docs/` | Playbook de la demo, crosswalk con OSCAL y nota de alineación con marcos reconocidos |
-
-## Configuración
-
-Todo tiene valor por defecto: **no hace falta ningún `.env`**. Para cambiar algo, copia
-`.env.example` a `.env` en la raíz (modelo, puertos, capa de explicaciones). El backend nativo lee
-`server/.env` (ver `server/.env.example`).
-
-Las versiones fijadas — imágenes con su digest, modelo con su digest, catálogo y reglas — están en
-`docker-compose.yml` y en `.env.example`.
-
-En máquinas de 8 GB, el lanzador recomienda por consola el modelo de respaldo
-(`qwen2.5:3b-instruct-q4_K_M`, con su digest). Se cambia a mano en `.env` y **no se aplica solo**:
-unos pesos distintos producen un borrador distinto, y elegirlos por tamaño de máquina haría que el
-resultado dependiera de la máquina.
-
-Por la misma razón hay que decir esto tal cual: **la reproducibilidad se sostiene dentro de cada
-ruta de hardware, no entre ellas.** CPU y GPU resuelven de otra forma un empate ajustado en los
-*logits*, así que la memoria tiene que nombrar en cuál se produjeron los números de la evaluación.
-El lanzador dice siempre qué ruta ha usado.
-
-## Desarrollo
-
-```bash
-docker compose up -d ollama qdrant     # solo la capa IA
-
-cd server && uv sync
-uv run uvicorn app.main:app --reload   # http://localhost:8000/api/v1
-uv run pytest
-
-cd client && bun install
-bun run dev                            # http://localhost:5173
-```
-
-La suite corre en cualquier máquina, sin contenedores y sin red: las pruebas que necesitan los
-servicios reales quedan deseleccionadas salvo que se pidan (`pytest -m llm`, `pytest -m rag`).
-
-Las reglas, invariantes y convenciones de trabajo del proyecto están en [CLAUDE.md](CLAUDE.md).
+Reglas del proyecto, invariantes, arquitectura, reproducibilidad por ruta de hardware y
+convenciones de trabajo: **[CLAUDE.md](CLAUDE.md)**.
