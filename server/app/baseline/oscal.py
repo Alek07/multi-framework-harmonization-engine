@@ -6,8 +6,8 @@ profile tailoring it for one asset, a plan recording what that asset implements
 model (v1.1.3), for the subset of fields the engine has facts for.
 
 It is a partial export and says so in its own metadata: nothing here is a
-conformance claim. Four mapping decisions carry the weight, each written up in
-`docs/oscal-crosswalk.md` with the alternative that was rejected:
+conformance claim. Four mapping decisions carry the weight, each with the
+alternative that was rejected:
 
 * `control-id` is the capability, not the framework control: OSCAL resolves
   control ids against the imported profile, whose members are the capabilities.

@@ -130,8 +130,7 @@ invariant 5 is untouched and there is no copy that can drift from the trail.
 
 The statement is the one artefact the engine emits for a third party, so it also carries what it
 is **not**: `limitations` travels inside the document, and the OSCAL branch declares itself a
-partial export. Crosswalk in `docs/oscal-crosswalk.md`, alignment note in
-`docs/nota-de-alineacion.md`.
+partial export.
 
 Sovereign composition (`UCM-16`) is the **central contribution**: equivalent options side by side
 (framework, jurisdiction, strength/SL, tier); the human chooses per zone and signs. Differentiator
