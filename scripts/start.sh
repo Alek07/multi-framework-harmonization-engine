@@ -21,7 +21,8 @@ Uso: ./scripts/start.sh [opción]
   (sin opción)   Detecta el hardware, arranca los cuatro contenedores, espera a
                  que estén listos y comprueba dónde quedó el modelo.
   --cpu          Fuerza la ruta portable (CPU). Es la ruta reproducible.
-  --gpu          Fuerza la ruta GPU. Falla si Docker no puede ceder una tarjeta.
+  --gpu          Fuerza la ruta NVIDIA (CUDA). Falla si Docker no expone el runtime.
+  --rocm         Fuerza la ruta AMD (ROCm, sólo Linux). Falla si no hay /dev/kfd.
   --build        Reconstruye las imágenes de frontend y backend antes de
                  arrancar. Sin esto, Docker reutiliza la imagen ya construida y
                  los cambios en el código no llegan al contenedor.
@@ -41,6 +42,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --cpu)   MODE=cpu ;;
     --gpu)   MODE=gpu ;;
+    --rocm)  MODE=rocm ;;
     --build) BUILD="--build" ;;
     --down)  exec docker compose -p "$PROJECT" down ;;
     --logs)  exec docker compose -p "$PROJECT" logs -f ;;
@@ -67,6 +69,18 @@ gpu_name() {
   nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null | head -1
 }
 
+# The card may be physically present yet invisible to Docker (toolkit missing): a
+# fixable setup, worth telling apart from having no GPU at all.
+has_nvidia_host() {
+  nvidia-smi -L >/dev/null 2>&1
+}
+
+# AMD ROCm has no Docker runtime to ask; the amdgpu kernel driver exposes these nodes,
+# and their absence (Windows/macOS VM, no driver) is exactly when the overlay would fail.
+has_amd_gpu() {
+  [ -e /dev/kfd ] && [ -e /dev/dri ]
+}
+
 gpu_vram_gb() {
   mib=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 2>/dev/null | head -1)
   [ -n "${mib:-}" ] && echo $(( mib / 1024 )) || echo 0
@@ -86,12 +100,26 @@ case "$MODE" in
       exit 1
     fi
     FILES="-f docker-compose.yml -f docker-compose.gpu.yml"
-    PATH_LABEL="GPU (forzada)"
+    PATH_LABEL="GPU NVIDIA (forzada)"
+    ;;
+  rocm)
+    if ! has_amd_gpu; then
+      say "${RED}Se pidió --rocm, pero el host no expone /dev/kfd + /dev/dri.${R}"
+      say "ROCm sólo funciona en Linux con el driver amdgpu; en Windows/macOS no hay paso."
+      say "Arranca sin la opción (o con --cpu) para usar la ruta portable."
+      exit 1
+    fi
+    FILES="-f docker-compose.yml -f docker-compose.rocm.yml"
+    PATH_LABEL="GPU AMD (forzada)"
     ;;
   auto)
+    # NVIDIA first (works on every OS Docker runs on), then AMD (Linux only), then CPU.
     if has_gpu_runtime; then
       FILES="-f docker-compose.yml -f docker-compose.gpu.yml"
-      PATH_LABEL="GPU"
+      PATH_LABEL="GPU NVIDIA"
+    elif has_amd_gpu; then
+      FILES="-f docker-compose.yml -f docker-compose.rocm.yml"
+      PATH_LABEL="GPU AMD"
     fi
     ;;
 esac
@@ -108,28 +136,42 @@ say "  ${B}Motor de armonización multi-marco${R}"
 say ""
 say "  Docker         ${GREEN}ok${R}  Compose %s, %s GB de memoria" "$compose_version" "$mem_gb"
 case "$PATH_LABEL" in
-  GPU*)
+  "GPU NVIDIA"*)
     card=$(gpu_name)
     say "  Hardware       ${GREEN}ok${R}  %s" "${card:-tarjeta NVIDIA accesible desde Docker}"
     ;;
+  "GPU AMD"*)
+    say "  Hardware       ${GREEN}ok${R}  GPU AMD (ROCm) vía /dev/kfd"
+    ;;
   *)
-    # A card present but unused must not read as absent, or --cpu looks broken.
+    # CPU. A card present but unused must not read as absent (--cpu would look broken);
+    # and a card present but invisible to Docker must say *why*, or a one-command fix
+    # reads as 'no hay GPU' and the operator waits minutes for nothing.
     if has_gpu_runtime; then
       card=$(gpu_name)
       say "  Hardware       %s ${DIM}(disponible, sin usar por elección)${R}" \
         "${card:-tarjeta NVIDIA}"
+    elif has_amd_gpu; then
+      say "  Hardware       GPU AMD ${DIM}(disponible, sin usar por elección)${R}"
+    elif has_nvidia_host; then
+      card=$(gpu_name)
+      say "  ${YELLOW}Hardware${R}       %s detectada, pero Docker no la expone." "${card:-tarjeta NVIDIA}"
+      say "                 Instala el NVIDIA Container Toolkit y reinicia Docker para"
+      say "                 pasar de minutos a segundos por parseo:"
+      say "                 ${DIM}https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html${R}"
     else
-      say "  Hardware       sin GPU accesible desde Docker"
+      say "  Hardware       sin GPU utilizable desde Docker (se usa CPU)"
     fi
     ;;
 esac
 say "  Ruta           ${B}%s${R}  %s" "$PATH_LABEL" "$FILES"
 say "  Modelo         %s" "$model"
 
-# On GPU the weights live in VRAM, so the RAM Docker got is the wrong yardstick.
+# On NVIDIA the weights live in VRAM, so the RAM Docker got is the wrong yardstick.
+# (nvidia-smi cannot read an AMD card, so ROCm falls back to the RAM measure.)
 case "$PATH_LABEL" in
-  GPU*) have_gb=$(gpu_vram_gb); where="en la tarjeta" ;;
-  *)    have_gb=$mem_gb;        where="disponibles para Docker" ;;
+  "GPU NVIDIA"*) have_gb=$(gpu_vram_gb); where="en la tarjeta" ;;
+  *)             have_gb=$mem_gb;        where="disponibles para Docker" ;;
 esac
 
 # Recommend only: picking weights by machine size would break invariant 3.
@@ -157,14 +199,11 @@ else
   say "  Arrancando cuatro contenedores..."
 fi
 
-# A build is the one thing worth watching: `--progress quiet` would hide a
-# compile error behind a spinner for minutes.
-PROGRESS="--progress quiet"
-[ -n "$BUILD" ] && PROGRESS=""
-
-# `--progress quiet`, not a redirect: a redirect would also hide why a start failed.
-# shellcheck disable=SC2086 -- FILES, PROGRESS and BUILD are deliberate flag lists.
-if ! docker compose -p "$PROJECT" $FILES $PROGRESS up -d $BUILD; then
+# Let compose show its usual output — the pull, the layer bars, the per-service
+# "Created/Started" lines. It is what the operator expects to see, and on a build
+# it is the only place a compile error surfaces.
+# shellcheck disable=SC2086 -- FILES and BUILD are deliberate flag lists.
+if ! docker compose -p "$PROJECT" $FILES up -d $BUILD; then
   say ""
   say "  ${RED}El arranque ha fallado.${R}"
   exit 1
@@ -233,11 +272,14 @@ if [ -n "$ps_json" ]; then
       say "  ${YELLOW}Verificado${R}     sólo el %s %% del modelo en GPU; el resto en CPU" "$pct"
     else
       say "  Verificado     modelo en CPU (size_vram = 0)"
-      if [ "$PATH_LABEL" = "GPU" ] || [ "$PATH_LABEL" = "GPU (forzada)" ]; then
-        say "  ${YELLOW}Atención${R}       se pidió la ruta GPU y el modelo no ha entrado en la tarjeta."
-        say "                 Suele ser un driver del host más antiguo que el runtime CUDA"
-        say "                 del contenedor: 'docker compose logs ollama' lo dice."
-      fi
+      case "$PATH_LABEL" in
+        GPU*)
+          say "  ${YELLOW}Atención${R}       se pidió la ruta GPU y el modelo no ha entrado en la tarjeta."
+          say "                 Míralo con 'docker compose logs ollama'. En NVIDIA suele ser un"
+          say "                 driver del host más antiguo que el runtime CUDA; en AMD, una ISA"
+          say "                 que ROCm no trae (prueba HSA_OVERRIDE_GFX_VERSION en el overlay)."
+          ;;
+      esac
     fi
   fi
 fi

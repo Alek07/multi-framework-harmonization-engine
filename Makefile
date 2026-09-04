@@ -11,38 +11,42 @@ PROJECT := tfm-harmonization-engine
 BACKEND := $(PROJECT)-backend
 COMPOSE := docker compose -f docker-compose.yml
 
-GPU ?= 1
-ifeq ($(GPU),1)
-COMPOSE_UP := $(COMPOSE) -f docker-compose.gpu.yml
-else
-COMPOSE_UP := $(COMPOSE)
-endif
+# The launcher is the single front door: it detects the hardware (NVIDIA -> AMD -> CPU),
+# picks the matching overlay, and reports what it chose. Every target below delegates to
+# it so `make` and the raw script can never disagree on how the stack comes up.
+LAUNCH := ./scripts/start.sh
 
 RUN_DIR := server/eval/runs
 STAMP := $(shell date +%Y%m%d-%H%M%S)
 ASSET ?=
 E2E_ARGS := $(if $(ASSET),--asset $(ASSET),)
 
-.PHONY: help up up-cpu build down logs e2e
+.PHONY: help up up-cpu up-gpu up-rocm build down logs e2e
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) \
 		| awk 'BEGIN{FS=":.*?## "}{printf "  \033[1m%-10s\033[0m %s\n", $$1, $$2}'
 
-up: ## Start the stack (GPU by default; GPU=0 for the CPU path)
-	$(COMPOSE_UP) up -d
+up: ## Start the stack, auto-detecting the hardware (NVIDIA -> AMD -> CPU)
+	$(LAUNCH)
 
-up-cpu: ## Start the stack forcing the CPU path
-	@$(MAKE) up GPU=0
+up-cpu: ## Start forcing the portable CPU path (the reproducible one)
+	$(LAUNCH) --cpu
 
-build: ## Rebuild images so code changes reach the containers
-	$(COMPOSE_UP) up -d --build
+up-gpu: ## Start forcing the NVIDIA (CUDA) path
+	$(LAUNCH) --gpu
+
+up-rocm: ## Start forcing the AMD (ROCm, Linux only) path
+	$(LAUNCH) --rocm
+
+build: ## Rebuild images so code changes reach the containers, then start
+	$(LAUNCH) --build
 
 down: ## Stop the stack (volumes are kept)
-	$(COMPOSE) down
+	$(LAUNCH) --down
 
 logs: ## Follow the logs of all services
-	$(COMPOSE) logs -f
+	$(LAUNCH) --logs
 
 # MSYS_NO_PATHCONV stops Git Bash rewriting the container path /tmp/... on Windows.
 e2e: ## Run scripts/e2e_flow.py in the backend, dumping to server/eval/runs/

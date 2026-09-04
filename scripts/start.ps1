@@ -6,6 +6,7 @@
 param(
     [switch]$Cpu,
     [switch]$Gpu,
+    [switch]$Rocm,
     [switch]$Build,
     [switch]$Down,
     [switch]$Logs,
@@ -31,7 +32,8 @@ if ($Help) {
     Say "  (sin opción)   Detecta el hardware, arranca los cuatro contenedores, espera a"
     Say "                 que estén listos y comprueba dónde quedó el modelo."
     Say "  -Cpu           Fuerza la ruta portable (CPU). Es la ruta reproducible."
-    Say "  -Gpu           Fuerza la ruta GPU. Falla si Docker no puede ceder una tarjeta."
+    Say "  -Gpu           Fuerza la ruta NVIDIA (CUDA). Falla si Docker no expone el runtime."
+    Say "  -Rocm          Ruta AMD (ROCm). Sólo Linux; en Windows no hay paso de GPU AMD."
     Say "  -Build         Reconstruye las imágenes de frontend y backend antes de"
     Say "                 arrancar. Sin esto, Docker reutiliza la imagen ya construida"
     Say "                 y los cambios en el código no llegan al contenedor."
@@ -74,11 +76,27 @@ function Get-GpuName {
     return $name
 }
 
+# The card may be physically present yet invisible to Docker (GPU support off in Docker
+# Desktop / WSL2): a fixable setup, worth telling apart from having no GPU at all.
+function Test-NvidiaHost {
+    & nvidia-smi -L > $null 2>&1
+    return ($LASTEXITCODE -eq 0)
+}
+
 function Get-GpuVramGb {
     $mib = & nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits
     if ($LASTEXITCODE -ne 0) { return 0 }
     if ($mib -is [array]) { $mib = $mib[0] }
     return [math]::Floor([double]$mib / 1024)
+}
+
+if ($Rocm) {
+    Say ""
+    Say "  La ruta AMD (ROCm) sólo funciona en Linux." 'Red'
+    Say "  Docker Desktop en Windows corre una VM sin /dev/kfd, así que no hay paso de GPU AMD."
+    Say "  Usa una NVIDIA (arranca sin opción o con -Gpu) o la ruta CPU (-Cpu)."
+    Say ""
+    exit 1
 }
 
 $files = @('-f', 'docker-compose.yml')
@@ -96,10 +114,10 @@ if ($Cpu) {
         exit 1
     }
     $files = @('-f', 'docker-compose.yml', '-f', 'docker-compose.gpu.yml')
-    $pathLabel = 'GPU (forzada)'
+    $pathLabel = 'GPU NVIDIA (forzada)'
 } elseif (Test-GpuRuntime) {
     $files = @('-f', 'docker-compose.yml', '-f', 'docker-compose.gpu.yml')
-    $pathLabel = 'GPU'
+    $pathLabel = 'GPU NVIDIA'
 }
 
 # Docker's MemTotal, not the host's: on Docker Desktop the VM's share is what binds.
@@ -126,8 +144,16 @@ if ($pathLabel -like 'GPU*') {
     $card = Get-GpuName
     if (-not $card) { $card = 'tarjeta NVIDIA' }
     Say ("  Hardware       {0} (disponible, sin usar por elección)" -f $card)
+} elseif (Test-NvidiaHost) {
+    # Present but invisible to Docker: name why, or a fixable setup reads as 'no hay GPU'
+    # and the operator waits minutes for nothing.
+    $card = Get-GpuName
+    if (-not $card) { $card = 'tarjeta NVIDIA' }
+    Say ("  Hardware       {0} detectada, pero Docker no la expone." -f $card) 'Yellow'
+    Say "                 Actívala en Docker Desktop (Settings > Resources) con GPU en WSL2 y"
+    Say "                 drivers al día, para pasar de minutos a segundos por parseo."
 } else {
-    Say "  Hardware       sin GPU accesible desde Docker"
+    Say "  Hardware       sin GPU utilizable desde Docker (se usa CPU)"
 }
 Say ("  Ruta           {0}  {1}" -f $pathLabel, ($files -join ' '))
 Say ("  Modelo         {0}" -f $model)
@@ -159,14 +185,14 @@ Say ""
 if ($Build) { Say "  Reconstruyendo las imágenes y arrancando cuatro contenedores..." }
 else        { Say "  Arrancando cuatro contenedores..." }
 
-# `--progress quiet`, not a redirect: in PS 5.1 redirecting a native command's
-# stderr wraps each line in an ErrorRecord, which aborts the script.
+# Let compose print its usual output — the pull, the layer bars, the per-service
+# "Created/Started" lines — instead of the previous `--progress quiet`, which hid all
+# of it. We do NOT redirect its stderr: in PS 5.1 that wraps each line in an ErrorRecord
+# and aborts the script; letting it write straight to the console is safe.
 $upArgs = @('up', '-d')
-$progress = @('--progress', 'quiet')
-# A build is worth watching: a quiet progress bar would hide a compile error.
-if ($Build) { $upArgs += '--build'; $progress = @() }
+if ($Build) { $upArgs += '--build' }
 
-& docker compose -p $Project @files @progress @upArgs
+& docker compose -p $Project @files @upArgs
 if ($LASTEXITCODE -ne 0) {
     Say ""
     Say "  El arranque ha fallado." 'Red'
