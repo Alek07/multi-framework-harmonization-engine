@@ -1,4 +1,4 @@
-"""UCM-53/UCM-19 - The whole flow through the API, on several assets, against a deployment.
+"""The whole flow through the API, on several assets, against a deployment.
 
 Not a unit of it: the seven declared endpoints in the order an operator walks
 them -- free text in, signed baseline and declaration of applicability out -- and
@@ -10,18 +10,22 @@ makes them fast and what lets them run on a laptop with nothing installed, and i
 is also what they cannot prove -- that the seams hold, and that a decision taken
 in the catalog survives the whole chain.
 
-The claim under test is UCM-53's: a premise the catalog declares about a control
+The claim under test: a premise the catalog declares about a control
 becomes a justified exclusion in the zone that does not meet it, and that
 exclusion is still legible, with its rule and its evidence, in the signed
 document at the far end. If it were lost anywhere between the gating and the
 declaration, everything else could still be green.
 
-The three assets bracket the premise space rather than trying to be realistic in
-every detail: one that can host almost nothing, one that can host almost
-everything, and one that is two zones at once and carries a maritime obligation.
-They are given as *prose*, because the flow starts at the parse and an asset
-handed over as a ready-made profile would skip the half of the argument that is
-hardest.
+The first three assets bracket the premise space rather than trying to be
+realistic in every detail: one that can host almost nothing, one that can host
+almost everything, and one that is two zones at once and carries a maritime
+obligation. They are given as *prose*, because the flow starts at the parse and
+an asset handed over as a ready-made profile would skip the half of the argument
+that is hardest.
+
+The last two -- a water plant and a hospital -- are outside the pipeline's
+sectors, so the maritime and transport norms must come out as justified
+exclusions, scored against `server/eval/applicability_ground_truth.json`.
 
 Two things it deliberately reports instead of asserting. Which premises the parse
 captures is measured and printed, never required -- a miss there is the argument
@@ -41,6 +45,7 @@ import argparse
 import json
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -158,6 +163,70 @@ ASSETS: list[Asset] = [
             "conduit_control": "it_hygiene_and_identity",
         },
     ),
+    # Two assets outside the pipeline's sectors: maritime and transport norms
+    # must be excluded by sector, not offered.
+    Asset(
+        id="ESC-WATER",
+        label="Planta potabilizadora, sector agua",
+        description=(
+            "La planta potabilizadora abastece de agua de consumo a una ciudad y opera en el "
+            "sector del agua. Su SCADA corre sobre estaciones Windows conectadas a la red, que "
+            "gobiernan las bombas de captacion y la dosificacion de cloro a traves de PLCs en la "
+            "red de control; la instalacion es a la vez de tecnologia de la informacion y de "
+            "operacion. El personal de planta inicia sesion de forma interactiva en las "
+            "estaciones de operacion, pero en ellas no se manejan correo ni documentos "
+            "ofimaticos. El objetivo de nivel de seguridad es 3. Un ataque que manipule la "
+            "dosificacion provocaria la "
+            "contaminacion del agua distribuida, de consecuencia catastrofica, y el modelo de "
+            "amenaza de referencia es ATT&CK for ICS."
+        ),
+        review={
+            "name": "Planta potabilizadora municipal",
+            "case": "HYBRID_IT_OT",
+            "sectors": ["water"],
+            "target_sl": 3,
+            "nature": {
+                "general_purpose_os": True,
+                "networked": True,
+                "hybrid_it_ot": True,
+                "interactive_users": True,
+                "office_it_surface": False,
+            },
+            "criticality": {
+                "physical_consequence": "drinking_water_contamination",
+                "scale": "catastrophic",
+                "threat_model": "ATTACK_for_ICS",
+            },
+            "conduit_control": "mediated_scada_interface",
+        },
+    ),
+    Asset(
+        id="ESC-HOSPITAL",
+        label="Hospital, sector salud",
+        description=(
+            "El sistema de informacion clinica de un hospital opera en el sector de la salud. Son "
+            "servidores y estaciones Windows conectados a la red, con la historia clinica "
+            "electronica, correo, navegacion web y documentos ofimaticos, y ademas dan servicio a "
+            "equipos medicos conectados a la misma red: es un entorno mixto de tecnologia de la "
+            "informacion y de operacion. El personal sanitario inicia sesion de forma interactiva. "
+            "El objetivo de nivel de seguridad es 2. Un incidente interrumpiria la atencion a "
+            "pacientes, de consecuencia alta, y el modelo de amenaza de referencia es ATT&CK "
+            "empresarial."
+        ),
+        review={
+            "name": "Sistema de informacion clinica hospitalario",
+            "case": "HYBRID_IT_OT",
+            "sectors": ["health"],
+            "target_sl": 2,
+            "nature": NATURE_ALL_TRUE,
+            "criticality": {
+                "physical_consequence": "disruption_of_patient_care",
+                "scale": "high",
+                "threat_model": "ATTACK_enterprise",
+            },
+            "conduit_control": "it_hygiene_and_identity",
+        },
+    ),
 ]
 
 SIGNATURE = {
@@ -169,6 +238,13 @@ SIGNATURE = {
 }
 
 PREMISE_RULE = "GATE-PREMISE-UNMET"
+SECTOR_RULE = "APPLIC-SECTOR"
+
+GROUND_TRUTH_PATH = Path(__file__).resolve().parents[1] / "eval" / "applicability_ground_truth.json"
+
+
+def load_ground_truth() -> dict[str, Any]:
+    return json.loads(GROUND_TRUTH_PATH.read_text(encoding="utf-8"))["assets"]
 
 
 class Report:
@@ -340,6 +416,108 @@ def candidates(client: httpx.Client, asset: Asset, profile: dict, r: Report) -> 
     return run
 
 
+def applicability(asset: Asset, run: dict[str, Any], truth: dict[str, Any], r: Report) -> None:
+    """Spurious inclusions: out-of-sector norms offered instead of excluded by sector."""
+    r.step("2b/7", "Precision de aplicabilidad  -- inclusiones espurias")
+    entry = truth.get(asset.id)
+    if entry is None:
+        r.note("sin verdad de referencia para este activo", asset.id)
+        return
+
+    out_of_scope = set(entry["out_of_scope"])
+    governs = set(entry["governs"])
+    r.note(
+        "juicio experto",
+        f"rigen {sorted(governs)}; fuera de sector {sorted(out_of_scope) or '-'}",
+    )
+
+    # control_id -> control object; options carry every control in play.
+    meta = {
+        option["control"]["id"]: option["control"]
+        for zone in run["zones"]
+        for capability in zone["capabilities"]
+        for option in capability["resolution"]["options"]
+    }
+
+    spurious: list[tuple[str, str]] = []
+    excluded_other: list[tuple[str, str]] = []
+    silent: list[tuple[str, str]] = []
+    overreach: list[tuple[str, str]] = []
+    correct = 0
+
+    for zone in run["zones"]:
+        zid = zone["zone"]["zone_id"]
+        caps = zone["capabilities"]
+        retained = {
+            control_id
+            for c in caps
+            for control_id in (
+                *c["gating"]["retained_control_ids"],
+                *c["gating"]["compensatory_control_ids"],
+            )
+        }
+        by_sector = {
+            d["control_id"]
+            for c in caps
+            for d in c["gating"]["excluded"]
+            if d["rule_id"] == SECTOR_RULE
+        }
+        excluded_any = {d["control_id"] for c in caps for d in c["gating"]["excluded"]}
+        in_play = {o["control"]["id"] for c in caps for o in c["resolution"]["options"]}
+
+        for control_id in sorted(in_play):
+            framework = meta[control_id]["framework"]
+            if framework in out_of_scope:
+                if control_id in retained:
+                    spurious.append((control_id, zid))
+                elif control_id in by_sector:
+                    correct += 1
+                elif control_id in excluded_any:
+                    excluded_other.append((control_id, zid))
+                else:
+                    silent.append((control_id, zid))
+            elif framework in governs and control_id in by_sector:
+                overreach.append((control_id, zid))
+
+    oos_total = correct + len(spurious) + len(excluded_other) + len(silent)
+    precision = correct / (correct + len(spurious)) if (correct + len(spurious)) else 1.0
+
+    if oos_total:
+        r.check(not spurious, "0 inclusiones espurias (norma fuera de sector ofrecida)",
+                str(sorted(c for c, _ in spurious)))
+        r.check(not silent, "0 silencio sobre normas fuera de sector",
+                str(sorted(c for c, _ in silent)))
+        r.note(
+            "precision de aplicabilidad",
+            f"{precision:.2f} ({correct}/{correct + len(spurious)})",
+        )
+        r.note("normas fuera de sector excluidas por ambito", f"{correct} de {oos_total} en juego")
+        if excluded_other:
+            r.note("fuera de sector, excluidas por otra razon (no por ambito)",
+                   sorted(c for c, _ in excluded_other))
+        for control_id, zid in spurious:
+            control = meta[control_id]
+            r.note(
+                f"espuria {control_id}",
+                f"{control['framework']} ({control['official_id']}) rige "
+                f"{control['applies_to_sectors']}, ofrecida en {zid} "
+                f"(sectores del activo {entry['sectors']})",
+            )
+    else:
+        r.note("normas fuera de sector", "ninguna: todo lo que rige este activo esta en sector")
+
+    r.check(not overreach, "0 exclusiones indebidas (norma en sector excluida por ambito)",
+            str(sorted(c for c, _ in overreach)))
+
+    asset.summary.update(
+        oos_norms=oos_total,
+        spurious=len(spurious),
+        applic_precision=round(precision, 4),
+        sector_excluded=correct,
+        overreach=len(overreach),
+    )
+
+
 def delta(client: httpx.Client, asset: Asset, profile: dict, zone_id: str, r: Report) -> None:
     r.step("3/7", "POST /delta  -- que anade responder tambien ante la UE")
     body = client.post(
@@ -438,7 +616,7 @@ def statement(client: httpx.Client, asset: Asset, baseline: dict, r: Report) -> 
     r.check(soa["chain"]["valid"] is True, "el documento verifica su propia cadena")
     r.check(bool(soa["limitations"]), "el documento declara lo que no es")
 
-    # The claim of UCM-53, at the far end of the chain.
+    # The claim, at the far end of the chain.
     mechs = [m for row in rows for m in row["mechanisms"]]
     by_premise = [m for m in mechs if m["rule_id"] == PREMISE_RULE]
     expected = asset.summary.get("by_premise", 0)
@@ -457,6 +635,19 @@ def statement(client: httpx.Client, asset: Asset, baseline: dict, r: Report) -> 
         r.note("evidencia", sample["evidence"][0] if sample["evidence"] else "-")
     else:
         r.note("exclusiones por premisa", "ninguna en este activo, y eso es la respuesta")
+
+    # A sectoral exclusion must survive into the signed declaration too.
+    by_sector = [m for m in mechs if m["rule_id"] == SECTOR_RULE]
+    if asset.summary.get("sector_excluded", 0):
+        r.check(
+            bool(by_sector),
+            "las exclusiones por ambito llegan a la declaracion firmada",
+            f"{len(by_sector)} mecanismo(s)",
+        )
+        r.check(
+            all(m["disposition"] == "not_applicable" and m["evidence"] for m in by_sector),
+            "cada una llega como exclusion justificada por ambito, con su evidencia",
+        )
 
     # Counted over what the gating did *not* exclude, not over what the signature
     # took: a contextual obligation -- which is most of what the IMO contributes --
@@ -477,13 +668,14 @@ def statement(client: httpx.Client, asset: Asset, baseline: dict, r: Report) -> 
     )
 
 
-def walk(client: httpx.Client, asset: Asset, r: Report) -> None:
+def walk(client: httpx.Client, asset: Asset, truth: dict[str, Any], r: Report) -> None:
     """One asset, all seven endpoints, in the order the operator walks them."""
     print()
     print(f"=== {asset.id}  {asset.label}")
     parsed = parse_asset(client, asset, r)
     profile = complete(asset, parsed["draft"], parsed["missing_required"], r)
     run = candidates(client, asset, profile, r)
+    applicability(asset, run, truth, r)
     delta(client, asset, profile, run["zones"][0]["zone"]["zone_id"], r)
     baseline = compose(client, asset, run, profile, r)
     trail(client, asset, baseline, r)
@@ -493,10 +685,11 @@ def walk(client: httpx.Client, asset: Asset, r: Report) -> None:
 
 def compare(assets: list[Asset]) -> None:
     print()
-    print("=== Mismo catalogo, mismas reglas, tres activos")
+    print(f"=== Mismo catalogo, mismas reglas, {len(assets)} activo(s)")
     header = (
         f"{'activo':12} {'zonas':>6} {'premisas':>9} {'sobreviven':>22} "
-        f"{'excl':>5} {'prem':>5} {'abiertos':>9} {'IMO':>4}"
+        f"{'excl':>5} {'prem':>5} {'abiertos':>9} {'IMO':>4} "
+        f"{'f/sec':>6} {'esp':>4} {'prec':>5}"
     )
     print(header)
     print("-" * len(header))
@@ -507,13 +700,17 @@ def compare(assets: list[Asset]) -> None:
         surviving = "/".join(str(v) for v in s["surviving"].values())
         premises = f"{s['premises_read']}/{s['premises_read'] + s['premises_supplied']}"
         imo = "si" if "IMO" in s.get("frameworks", []) else "-"
+        precision = f"{s['applic_precision']:.2f}" if "applic_precision" in s else "-"
         print(
             f"{a.id:12} {len(s['zones']):6} {premises:>9} {surviving:>22} "
-            f"{s['excluded']:5} {s['by_premise']:5} {s['outstanding']:9} {imo:>4}"
+            f"{s['excluded']:5} {s['by_premise']:5} {s['outstanding']:9} {imo:>4} "
+            f"{s.get('oos_norms', 0):>6} {s.get('spurious', 0):>4} {precision:>5}"
         )
     print()
     print("   premisas = leidas por el modelo / totales; el resto las declaro la persona")
     print("   sobreviven = controles del catalogo que el gating no excluyo, por zona")
+    print("   f/sec = normas fuera de sector en juego; esp = inclusiones espurias;")
+    print("   prec = precision de aplicabilidad (correctas / (correctas + espurias)), meta 1.00")
 
 
 def parse_args() -> argparse.Namespace:
@@ -531,11 +728,12 @@ def main() -> int:
         print(f"   no hay ningun activo llamado {args.asset}")
         return 2
 
+    truth = load_ground_truth()
     r = Report()
     print(f"   flujo completo contra {args.base_url} - {len(chosen)} activo(s)")
     with httpx.Client(base_url=args.base_url) as client:
         for asset in chosen:
-            walk(client, asset, r)
+            walk(client, asset, truth, r)
 
     compare(chosen)
     print()
