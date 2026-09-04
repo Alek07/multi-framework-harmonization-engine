@@ -51,7 +51,7 @@ function RegimePanel({ delta }: { delta: RegionalDelta }) {
               {regime.applicable ? 'aplica' : 'no aplica'}
             </Tag>
             <span
-              className={`rounded-sm px-1.25 py-0.25 text-[9.5px] font-semibold ${FRAMEWORK[regime.framework].className}`}
+              className={`rounded-sm px-1.25 py-px text-[9.5px] font-semibold ${FRAMEWORK[regime.framework].className}`}
             >
               {FRAMEWORK[regime.framework].label}
             </span>
@@ -134,6 +134,13 @@ function Comparison({ delta }: { delta: RegionalDelta }) {
     changed.filter((capability) => capability.added.some((r) => r.added_by === region)).length
   const forRegion = (capability: CapabilityDelta, region: Jurisdiction) =>
     capability.added.filter((requirement) => requirement.added_by === region)
+  // Both-sided demands (US and EU) first; single-sided last. Stable sort keeps
+  // the engine's order within each group.
+  const bothSided = (capability: CapabilityDelta) =>
+    forRegion(capability, first).length > 0 && forRegion(capability, second).length > 0
+  const orderedChanged = [...changed].sort(
+    (a, b) => Number(bothSided(b)) - Number(bothSided(a)),
+  )
 
   return (
     <>
@@ -173,7 +180,7 @@ function Comparison({ delta }: { delta: RegionalDelta }) {
         </Notice>
       ) : null}
 
-      {changed.map((capability) => (
+      {orderedChanged.map((capability) => (
         <div
           key={capability.capability_id}
           className="mb-3 overflow-hidden rounded-[7px] border border-line-2 bg-surface"
