@@ -1,0 +1,27 @@
+# UCM-20 — optional overlay: let Ollama use an AMD GPU through ROCm. `./scripts/start.sh`
+# applies it when the host exposes the amdgpu compute nodes (/dev/kfd + /dev/dri) and no
+# NVIDIA runtime took precedence. Separate file — and a *different image* — because ROCm
+# ships in its own build and the device mounts make `docker compose up` *fail* where the
+# amdgpu kernel driver is absent (the same reason the NVIDIA overlay is split off).
+#
+# ROCm passthrough is Linux-only: Docker Desktop on Windows/macOS runs a Linux VM with no
+# /dev/kfd, so there the launcher never reaches this path and CPU stays the fallback.
+#
+# Reproducibility holds within a hardware path, not across them: a GPU can resolve a logit
+# near-tie differently from CPU (see docker-compose.gpu.yml). This path is provided and
+# verified against NVIDIA and CPU only — no AMD card was available to measure on.
+
+services:
+  ollama:
+    # Same version and provenance as the base image, ROCm build. Pinned by tag *and*
+    # digest: a tag alone is mutable and pins nothing (UCM-22).
+    image: ollama/ollama:0.32.5-rocm@sha256:f5d30b387649cf60baa2678a88240eb5c9a5f43382a1c965b18c798deebee4d1
+    devices:
+      # The compute node and the render nodes; ROCm needs both.
+      - /dev/kfd
+      - /dev/dri
+    # environment:
+    #   # Uncomment for a card whose gfx ISA ROCm ships no prebuilt kernel for (some
+    #   # RDNA parts, most APUs). Set it to the nearest supported ISA, e.g. "10.3.0"
+    #   # (RDNA2) or "11.0.0" (RDNA3). `docker compose logs ollama` names the ISA it saw.
+    #   HSA_OVERRIDE_GFX_VERSION: "10.3.0"

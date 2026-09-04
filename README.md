@@ -14,13 +14,25 @@ versionados).
 ## Arrancar
 
 ```bash
-./scripts/start.sh        # Linux y macOS
-.\scripts\start.ps1       # Windows
+make up
 ```
 
-No hace falta llamar a `docker compose` por tu cuenta: el script comprueba primero Docker, el
-hardware y el modelo, y con eso resuelto ejecuta él mismo `docker compose up -d` con los ficheros
-que correspondan.
+| Comando | Qué hace |
+| -- | -- |
+| `make up` | Arranca detectando el hardware (NVIDIA → AMD → CPU) |
+| `make up-cpu` | Fuerza la ruta portable (CPU), la reproducible |
+| `make up-gpu` | Fuerza la ruta NVIDIA (CUDA) |
+| `make up-rocm` | Fuerza la ruta AMD (ROCm, sólo Linux) |
+| `make build` | Reconstruye las imágenes y arranca (tras tocar el código) |
+| `make down` | Para el sistema (los volúmenes se conservan) |
+| `make logs` | Sigue los registros de los cuatro servicios |
+| `make help` | Lista los comandos |
+
+No hace falta llamar a `docker compose` por tu cuenta: `make` delega en `./scripts/start.sh`, que
+comprueba primero Docker, el hardware y el modelo, y con eso resuelto ejecuta él mismo
+`docker compose up -d` con los ficheros que correspondan. En Windows, `make` usa Git Bash; si no
+tienes `make`, el mismo lanzador está en `.\scripts\start.ps1` (opciones `-Cpu`, `-Gpu`, `-Build`,
+`-Down`, `-Logs`).
 
 | | URL |
 | -- | -- |
@@ -31,17 +43,19 @@ que correspondan.
 entre 15 y 30 minutos; los siguientes tardan menos de un minuto. Nada de eso se hornea en las
 imágenes: vive en volúmenes y se reutiliza.
 
-El lanzador elige la ruta según el hardware, espera a los cuatro contenedores y comprueba dónde ha
-quedado el modelo. Opciones: `--cpu` fuerza la ruta portable, `--gpu` la fuerza al revés, `--build`
-reconstruye las imágenes, `--down` para el sistema, `--logs` sigue los registros. Se pueden
-combinar (`--cpu --build`).
+El lanzador elige la ruta según el hardware —**NVIDIA (CUDA) → AMD (ROCm, sólo Linux) → CPU**, en
+ese orden—, espera a los cuatro contenedores y comprueba dónde ha quedado el modelo. La CPU es el
+último recurso: funciona en cualquier máquina pero un parseo tarda minutos en vez de segundos. Si
+detecta una NVIDIA que Docker no expone (falta el *toolkit* / GPU sin activar en WSL2), lo dice y da
+el comando para arreglarlo, en vez de caer a CPU en silencio.
 
-**Si has tocado el código, hace falta `--build`.** Las imágenes llevan etiqueta fija, así que sin
-esa opción Docker reutiliza la que ya tiene y el contenedor sigue sirviendo la versión anterior:
+El camino AMD/ROCm se provee pero se ha verificado sólo contra NVIDIA y CPU: no había tarjeta AMD
+donde medir. Igual que con NVIDIA, la reproducibilidad se sostiene dentro de cada ruta, no entre
+ellas.
 
-```bash
-./scripts/start.sh --build      # .\scripts\start.ps1 -Build en Windows
-```
+**Si has tocado el código, hace falta `make build`.** Las imágenes llevan etiqueta fija, así que sin
+esa reconstrucción Docker reutiliza la que ya tiene y el contenedor sigue sirviendo la versión
+anterior.
 
 Para iterar sobre la interfaz es mucho más rápido dejar el sistema arrancado y levantar Vite aparte
 (`cd client && bun run dev`, <http://localhost:5173>): recarga en caliente y habla con el mismo
