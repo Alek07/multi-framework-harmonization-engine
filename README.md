@@ -79,6 +79,15 @@ otro (A≈B, como haría un *crosswalk*), sino que pone las opciones equivalente
 
 ## Arrancar
 
+La primera vez —y después de cualquier cambio de código— hay que construir las imágenes de backend
+y frontend:
+
+```bash
+make build
+```
+
+A partir de ahí, para arrancar reutilizando esas imágenes:
+
 ```bash
 make up
 ```
@@ -88,10 +97,13 @@ make up
 | Aplicación | <http://localhost:8080> |
 | Swagger — plan B declarado de la demo | <http://localhost:8000/docs> |
 
-`make up` detecta el hardware (NVIDIA → AMD → CPU) y levanta los cuatro contenedores; `make help`
-lista el resto. **El primer arranque descarga ~5,8 GB** (modelo + *embeddings*) y tarda 15–30 min;
-los siguientes, menos de un minuto. Componer, firmar, leer la bitácora y el delta regional
-funcionan **sin IA**: lo único que espera al modelo es leer una descripción.
+`make build` y `make up` detectan el hardware (NVIDIA → AMD → CPU) y levantan los cuatro
+contenedores; la diferencia es que `make build` reconstruye las imágenes de backend y frontend y
+`make up` reutiliza las ya construidas (por eso, sin haberlas construido antes, `make up` intenta
+descargarlas y falla). `make help` lista el resto. **El primer arranque descarga ~5,8 GB** (modelo
++ *embeddings*) y tarda 15–30 min; los siguientes, menos de un minuto. Componer, firmar, leer la
+bitácora y el delta regional funcionan **sin IA**: lo único que espera al modelo es leer una
+descripción.
 
 ## Probar la aplicación
 
