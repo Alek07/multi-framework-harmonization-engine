@@ -2,11 +2,13 @@
 
 import { create } from 'zustand'
 
-import { ApiError, OfflineError, fetchBaselines } from '../../api/client'
+import { ApiError, OfflineError, catalogVersion, fetchBaselines } from '../../api/client'
 import type { BaselineSummary } from '../../api/types'
 
 interface BaselinesState {
   baselines: BaselineSummary[]
+  /** The running catalog version, so the "Catálogo" field has a source with an empty ledger. */
+  catalogVersion: string | null
   loading: boolean
   error: string | null
   loaded: boolean
@@ -15,6 +17,7 @@ interface BaselinesState {
 
 export const useBaselines = create<BaselinesState>()((set, get) => ({
   baselines: [],
+  catalogVersion: null,
   loading: false,
   error: null,
   loaded: false,
@@ -22,6 +25,8 @@ export const useBaselines = create<BaselinesState>()((set, get) => ({
   load: async () => {
     if (get().loading) return
     set({ loading: true, error: null })
+    // Best-effort and independent of the list: a blank field, never a failed load.
+    void catalogVersion().then((version) => version && set({ catalogVersion: version }))
     try {
       const list = await fetchBaselines()
       set({ baselines: list.baselines, loaded: true })

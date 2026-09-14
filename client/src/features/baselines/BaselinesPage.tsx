@@ -103,7 +103,7 @@ function DraftRow({ onContinue }: { onContinue: () => void }) {
 
 export function BaselinesPage() {
   const navigate = useNavigate()
-  const { baselines, loading, error, loaded, load } = useBaselines()
+  const { baselines, catalogVersion, loading, error, loaded, load } = useBaselines()
   const session = useSession()
   const [filter, setFilter] = useState<Filter>('todas')
   const [confirming, setConfirming] = useState(false)
@@ -115,7 +115,9 @@ export function BaselinesPage() {
   const draft = isResumable(session)
   const showSigned = filter !== 'borradores'
   const showDraft = draft && filter !== 'firmadas'
-  const catalog = baselines[0]?.versions.catalog
+  // The running catalog (from /health) is authoritative and available before any
+  // baseline exists; a signed baseline's own version is the fallback.
+  const catalog = catalogVersion ?? baselines[0]?.versions.catalog
 
   function startNew() {
     useSession.getState().reset()

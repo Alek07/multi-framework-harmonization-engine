@@ -126,12 +126,21 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     # Liveness probe, not part of the closed API surface; it lets the compose
-    # healthcheck tell a started container from a serving one.
+    # healthcheck tell a started container from a serving one. It also carries the
+    # loaded catalog version, so the UI can name the running catalog before any
+    # baseline exists to read it from — an empty ledger left the "Catálogo" field
+    # blank, which reads as "nothing loaded". Read defensively: the probe must stay
+    # a 200 even if the catalog cannot be resolved, or it stops being a liveness probe.
     health_router = APIRouter()
 
     @health_router.get("/health")
     def health_check() -> dict[str, str]:
-        return {"status": "ok"}
+        version = ""
+        with suppress(Exception):
+            from app.catalog.loader import get_catalog
+
+            version = get_catalog().catalog_version
+        return {"status": "ok", "catalog_version": version}
 
     root_router = APIRouter()
     root_router.include_router(health_router, tags=["health"])

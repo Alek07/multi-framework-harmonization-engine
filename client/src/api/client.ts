@@ -143,6 +143,20 @@ export async function health(): Promise<boolean> {
   }
 }
 
+/**
+ * The loaded catalog version, from the same probe. Its home: the "Catálogo" field
+ * of the baselines list, which otherwise has no source with an empty ledger.
+ * Best-effort like `health`: a null just leaves the field blank, never an error.
+ */
+export async function catalogVersion(): Promise<string | null> {
+  try {
+    const data = await get<{ catalog_version?: string }>('/health', { timeout: 4_000 })
+    return data.catalog_version || null
+  } catch {
+    return null
+  }
+}
+
 /** 1/5 — free text in, a reviewable draft out. The operator corrects it. */
 export function parseAsset(body: AssetParseRequest): Promise<ParseResult> {
   return post<ParseResult>('/asset/parse', body, TIMEOUTS.parse)
