@@ -61,6 +61,13 @@ MISSING_NOTICE = (
     "determinista del motor; el candidato sigue disponible sin ningún cambio."
 )
 
+UNGROUNDED_NOTICE = (
+    "Explicación retenida: el texto generado no citaba ninguna evidencia verificable de este "
+    "candidato, y una explicación que no se apoya en nada comprobable es justo lo que esta capa "
+    "no puede mostrar. Se muestra la justificación determinista del motor; el candidato sigue "
+    "disponible sin ningún cambio."
+)
+
 
 class CandidateExplanationService:
     """Explained candidates for one capability. The agent is injectable for tests."""
@@ -210,6 +217,18 @@ class CandidateExplanationService:
         if not verdict.passed:
             return self._candidate(candidate, ExplanationStatus.WITHHELD, notice=verdict.reason)
 
+        # The guard checks that `basis` is a subset of what the candidate has, not
+        # that it is non-empty — but `CandidateExplanation` forbids generated prose
+        # that cites nothing (leaning on nothing checkable is what this layer may
+        # not show). Reconcile it here: an empty basis is a withhold, not a raise,
+        # so the layer keeps failing open instead of turning a 45-word paragraph
+        # into a 500.
+        basis = list(dict.fromkeys(draft.basis))
+        if not basis:
+            return self._candidate(
+                candidate, ExplanationStatus.WITHHELD, notice=UNGROUNDED_NOTICE
+            )
+
         return CandidateExplanation(
             control_id=candidate.control_id,
             official_id=candidate.official_id,
@@ -220,7 +239,7 @@ class CandidateExplanationService:
             status=ExplanationStatus.GENERATED,
             # Deduplicated, in the order the model gave them, and already known to
             # be a subset of what this candidate has: the guard checked it.
-            basis=list(dict.fromkeys(draft.basis)),
+            basis=basis,
         )
 
     def _flat(
