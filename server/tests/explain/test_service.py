@@ -131,6 +131,35 @@ async def test_an_ungrounded_citation_is_withheld(case: Case) -> None:
     assert explanation.text == suggestion.fallback
 
 
+async def test_generated_text_with_no_basis_is_withheld_not_raised(case: Case) -> None:
+    """A well-formed, verdict-free paragraph that cites nothing must not 500.
+
+    The guard passes it (empty basis is a subset of anything), but a generated
+    explanation that leans on nothing checkable is what `CandidateExplanation`
+    refuses to build. The layer reconciles that by withholding, so the candidate
+    keeps the engine's own rationale instead of the whole request failing.
+    """
+    facts = case.facts
+    reply = batch_json(
+        [entry(c.control_id, "Aparece por su relación declarada.", []) for c in facts.candidates]
+    )
+
+    with scripted(reply) as (service, _):
+        result = await service.explain_capability(
+            case.resolution, case.retrieval, case.catalog_version, case.zone
+        )
+
+    assert result.offered_control_ids == case.offered
+    assert [e.control_id for e in result.explanations] == case.offered
+    assert all(e.status is ExplanationStatus.WITHHELD for e in result.explanations)
+    assert all(
+        e.text == c.fallback
+        for e, c in zip(result.explanations, facts.candidates, strict=True)
+    )
+    assert all(e.basis == [] for e in result.explanations)
+    assert all(e.notice and "verificable" in e.notice for e in result.explanations)
+
+
 async def test_a_candidate_the_model_invents_never_reaches_the_screen(case: Case) -> None:
     reply = batch_json(
         [entry("CTL-DOES-NOT-EXIST", "Un control que nadie ofreció.", ["control_text"])]
