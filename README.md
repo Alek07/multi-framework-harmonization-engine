@@ -100,14 +100,14 @@ make up
 `make build` y `make up` detectan el hardware (NVIDIA → AMD → CPU) y levantan los cuatro
 contenedores; la diferencia es que `make build` reconstruye las imágenes de backend y frontend y
 `make up` reutiliza las ya construidas (por eso, sin haberlas construido antes, `make up` intenta
-descargarlas y falla). `make help` lista el resto. **El primer arranque descarga ~5,8 GB** (modelo
-+ *embeddings*) y tarda 15–30 min; los siguientes, menos de un minuto. Componer, firmar, leer la
+descargarlas y falla). `make help` lista el resto. **El primer arranque descarga ~5,8 GB**
+(modelo + embeddings) y tarda 15–30 min; los siguientes, menos de un minuto. Componer, firmar, leer la
 bitácora y el delta regional funcionan **sin IA**: lo único que espera al modelo es leer una
 descripción.
 
 ## Probar la aplicación
 
-Una sola vista, cinco pasos: **describir → revisar → elegir → comparar → firmar → registro**. Hay
+Una sola vista, cinco pasos: **describir → revisar → elegir → comparar → firmar (con registro)**. Hay
 cinco descripciones de ejemplo, de cinco sectores distintos, listas para pegar, y una guía de cómo
 recorrerlas: **[docs/demo-playbook.md](docs/demo-playbook.md)**.
 
@@ -130,3 +130,6 @@ prueba (`tests/api/test_surface.py`) falla si aparece uno de más.
 
 Reglas del proyecto, invariantes, arquitectura, reproducibilidad por ruta de hardware y
 convenciones de trabajo: **[CLAUDE.md](CLAUDE.md)**.
+
+Anexos del trabajo de fin de máster, con el mapa que lleva de cada referencia `[A-N]` de la
+memoria a la ruta donde el material vive: **[docs/anexos/README.md](docs/anexos/README.md)**.

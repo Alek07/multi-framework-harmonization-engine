@@ -149,10 +149,9 @@ adding JSON + repopulating Qdrant, configuration not redesign).
 - `docker compose up` = full system; complete `requirements.txt`/lockfiles and documented
   versions/env vars (explicit TFM-guide requirement). Reproducibility verified on a foreign
   machine **before** submission (`UCM-22`), including the real 3B fallback on 8 GB.
-- Memoir ≤ 20 pages (7-section plan), video ≤ 5 min MP4/MKV, annexes (code, mapping tables with
-  jurisdiction, gating rules, data-model schema, profiles, UI captures). Repo must be accessible
-  to tutors Prof. Domínguez Gómez and Prof. Ramírez Giménez. No topic changes < 15 days before
-  submission. Delivery zip: `Nombre_Apellido1_Apellido2_Titulo.zip`.
+- Memoir ≤ 20 pages (7-section plan), video ≤ 5 min MP4/MKV. Repo must be accessible to tutors
+  Prof. Domínguez Gómez and Prof. Ramírez Giménez. No topic changes < 15 days before submission.
+  Delivery zip: `Nombre_Apellido1_Apellido2_Titulo.zip`.
 
 ## Workflow conventions
 
