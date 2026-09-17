@@ -10,8 +10,10 @@ Linear project: [TFM](https://linear.app/checkpoint-std/project/tfm-5febd8144146
 
 ## Invariants (non-negotiable — enforce in every change)
 
-1. **AI suggests/retrieves · rules decide · human composes and signs.** The LLM never decides,
-   ranks, or filters; it only parses (with human review) and explains (P1, presentational only).
+1. **AI extracts/retrieves · rules decide · human composes and signs.** The LLM never decides,
+   ranks, or filters, and never proposes anything the source text does not state; it only extracts
+   the structured profile from the free-text description (with human review), retrieves candidates,
+   and explains (P1, presentational only).
 2. **Nothing is restricted or silently dropped.** Silent omissions target = **0** (measured
    invariant). Required capabilities without candidates are surfaced as explicit gaps, never
    swallowed. RAG only *widens* coverage, never restricts it.
