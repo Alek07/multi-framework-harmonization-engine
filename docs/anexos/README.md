@@ -77,7 +77,7 @@ El resto de `server/tests/api/` cubre cada endpoint por separado.
 ## [A-6] Flujo de composición, los cinco pasos
 
 `docs/anexos/capturas/` — una captura por paso de una única corrida por la interfaz sobre el
-activo de referencia (el gasoducto de transporte del apartado 5.1):
+activo de referencia (el conducto interoceánico y su corredor de transporte, apartado 5.1):
 
 | Paso | Captura |
 |---|---|
@@ -95,18 +95,24 @@ El código de la interfaz está en `client/`.
 ## [A-7] Línea base firmada, bitácora y declaración de aplicabilidad
 
 La misma corrida del flujo completo que produce las capturas del [A-6] firma una línea base de
-ejemplo (`baseline_id` `f5a58d60-1c3a-402a-aa1f-098fe1613b75`, dos zonas del gasoducto de
+ejemplo (`baseline_id` `f5a58d60-1c3a-402a-aa1f-098fe1613b75`, dos zonas del corredor de
 transporte, 62/62 requisitos obligatorios decididos). De ahí salen sus tres artefactos, leídos de
 la misma bitácora encadenada:
 
 | Qué | Dónde |
 |---|---|
-| Bitácora encadenada completa (1055 anotaciones: 988 del motor y 67 humanas; cadena SHA-256 verificada) | `linea-base-firmada.bitacora.json` |
+| Bitácora encadenada completa (1055 asientos: 988 del motor y 67 humanos; cadena SHA-256 verificada) | `linea-base-firmada.bitacora.json` |
 | Declaración de aplicabilidad (SoA) | `linea-base-firmada.soa.json` |
 | Plan de seguridad OSCAL 1.1.3 (export parcial declarado en sus metadatos) | `linea-base-firmada.oscal.json` |
 
 Los tres se descargaron por la propia interfaz sobre la línea base ya firmada; SoA y OSCAL son el
 mismo documento en dos vocabularios.
+
+**Esta no es la corrida que mide el apartado 6.2.** Aquella es la corrida guionizada de extremo a
+extremo sobre una sola zona, un sistema instrumentado de seguridad aislado, y sus cifras (547
+asientos, 8 mandatos cerrados, 37 filas de declaración) son las que la memoria publica como
+medida. Esta de aquí recorre la interfaz sobre dos zonas del corredor y sirve para enseñar el
+flujo, no para medirlo. Su evidencia está en el `[A-8]`.
 
 El código que los produce está en `server/app/baseline/` y `server/app/audit/`; las pruebas de la
 cadena SHA-256 en `server/tests/audit/test_log.py` y `test_trail.py`.
@@ -118,16 +124,30 @@ Los informes viven en `docs/anexos/eval/`. Los generadores que los producen est�
 
 | Medida del apartado 6 | Informe | Generador |
 |---|---|---|
-| Escalado del recuperador: recall en cuatro tamaños de catálogo | `experimento-escalado-recuperador.md` y su `.json` | `retrieval_scaling.py` |
+| Corrida de referencia de extremo a extremo: invariantes medidos del apartado 6.2 | `corrida-e2e-resumen.json`, `corrida-e2e-consola.log` | `e2e_flow.py` |
+| Escalado del recuperador: recall en cuatro cortes de catálogo | `experimento-escalado-recuperador.md` y su `.json` | `retrieval_scaling.py` |
 | Corte auditable, tres brazos | `corte-del-recuperador.md` | `retrieval_cut.py` |
-| Etiquetado de premisas, dos *prompts* | `premisas-del-control.md`, `premisas-propuestas.json` | `tag_presuppositions.py`, `merge_presuppositions.py` |
+| Etiquetado de premisas sobre el catálogo v0.5.0 | `premisas-del-control.md`, `premisas-propuestas.json` | `tag_presuppositions.py`, `merge_presuppositions.py` |
 | Delta regional, las dos lecturas | `ucm48-delta-evidencia.md`, `ucm48-delta-US-EU.json`, `ucm48-delta-EU-US.json` | flujo del motor |
 | Precisión de aplicabilidad | `precision-de-aplicabilidad.md` | `gating_report.py` |
 | Correspondencia con OSCAL | `oscal-crosswalk.md` | — |
 | Alineación con los marcos reconocidos | `nota-de-alineacion.md` | — |
 
-Estos informes se habían retirado del repositorio en el commit `b5a9261`; se restituyen aquí
-porque son la evidencia que respalda las cifras que la memoria publica.
+El resumen de la corrida de referencia trae los invariantes uno a uno: 96 controles que
+sobreviven al gating, 165 exclusiones de las cuales 14 por premisa, 15 normas apartadas por
+ámbito sectorial, 8 mandatos
+pendientes que el humano cerró, precisión de aplicabilidad 1,0 sin inclusiones espurias, 547
+asientos de bitácora con la cadena verificada y una declaración de 37 filas. El registro de
+consola detalla las comprobaciones de los siete pasos.
+
+**Sobre las latencias del escalado.** El experimento se corrió dos veces y entre una y otra solo
+se movieron los tiempos. La tabla de latencias del informe en markdown es de la primera corrida;
+el `.json` es de la segunda y es el que la memoria publica, por ser el artefacto que el script
+genera y el que se puede volver a calcular. El hallazgo es el mismo en las dos: el costo está en
+codificar la consulta y no en el tamaño del índice.
+
+Los informes de evaluación se habían retirado del repositorio en el commit `b5a9261`; se
+restituyen aquí porque son la evidencia que respalda las cifras que la memoria publica.
 
 La verdad de referencia de aplicabilidad, congelada y externa al motor, está en
 `server/eval/applicability_ground_truth.json`. El motor nunca la lee.

@@ -1,0 +1,35 @@
+{
+  "ESC-AIRGAP": {
+    "label": "Sistema instrumentado de seguridad, aislado",
+    "zones": [
+      "Z-SISTEMA_INSTRUMENTADO_SEGuridad"
+    ],
+    "premises_read": 5,
+    "premises_supplied": 0,
+    "surviving": {
+      "Z-SISTEMA_INSTRUMENTADO_SEGuridad": 96
+    },
+    "excluded": 165,
+    "by_premise": 14,
+    "suggestions": 549,
+    "outstanding": 8,
+    "oos_norms": 15,
+    "spurious": 0,
+    "applic_precision": 1.0,
+    "sector_excluded": 15,
+    "overreach": 0,
+    "delta_changed": 16,
+    "delta_added": 19,
+    "baseline": "2b6bce9e-97d7-4079-99f0-46d2564603b6",
+    "events": 547,
+    "human_events": 31,
+    "chain_valid": true,
+    "statement_rows": 37,
+    "premise_in_statement": 14,
+    "frameworks": [
+      "CIS",
+      "CSF",
+      "IEC62443"
+    ]
+  }
+}
