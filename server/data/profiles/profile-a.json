@@ -1,0 +1,46 @@
+{
+  "id": "PROFILE-A",
+  "name": "Pipeline corridor SCADA/PLC",
+  "case": "PURE_OT",
+  "sectors": ["energy", "transport"],
+  "zones": [
+    {
+      "id": "Z-OT-CORRIDOR",
+      "purdue": "L1",
+      "target_sl": 3,
+      "nature": {
+        "general_purpose_os": false,
+        "networked": true,
+        "hybrid_it_ot": false,
+        "interactive_users": false,
+        "office_it_surface": false
+      },
+      "sl_vector": { "FR1": 3, "FR2": 3, "FR3": 3, "FR4": 2, "FR5": 3, "FR6": 3, "FR7": 3 }
+    },
+    {
+      "id": "Z-SIS",
+      "role": "crown_jewel",
+      "target_sl": 3,
+      "nature": {
+        "general_purpose_os": false,
+        "networked": true,
+        "hybrid_it_ot": false,
+        "interactive_users": false,
+        "office_it_surface": false
+      },
+      "safety_out_of_scope": true,
+      "reference": "TRITON/TRISIS"
+    }
+  ],
+  "conduits": [
+    { "id": "C-FIELD", "endpoints": ["Z-OT-CORRIDOR", "L0-field"], "control": "command_monitoring" },
+    { "id": "C-SUPERVISORY", "endpoints": ["Z-OT-CORRIDOR", "L2-scada"], "control": "command_allowlisting" },
+    { "id": "C-IDMZ", "endpoints": ["Z-OT-CORRIDOR", "IDMZ"], "control": "no_direct_ot_it_path" },
+    { "id": "C-SIS", "endpoints": ["Z-OT-CORRIDOR", "Z-SIS"], "control": "restricted_max_anti_triton" }
+  ],
+  "criticality": {
+    "physical_consequence": "overpressure_rupture_leak",
+    "scale": "catastrophic",
+    "threat_model": "ATTACK_for_ICS"
+  }
+}

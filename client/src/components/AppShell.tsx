@@ -1,0 +1,50 @@
+/**
+ * Wraps both routes with the composition session and the engine-down screen. The
+ * provider sits above the outlet, so returning to the list does not unmount the
+ * in-progress composition; discarding one does, via the `generation` key `reset` bumps.
+ */
+
+import { Outlet } from '@tanstack/react-router'
+
+import { CompositionProvider } from '../features/composition/CompositionProvider'
+import { useComposition } from '../features/composition/composition'
+import { useSession } from '../features/composition/session'
+
+function BackendDown() {
+  return (
+    <div className="fixed inset-0 z-200 flex items-center justify-center bg-page p-6">
+      <div className="max-w-115 text-center">
+        <div className="mb-3 text-[11px] font-semibold tracking-widest text-ink-4 uppercase">
+          Servicio no disponible
+        </div>
+        <h2 className="m-0 mb-2.5 text-xl font-semibold">No se puede conectar con el sistema</h2>
+        <p className="m-0 mb-5 text-sm leading-[1.6] text-ink-3">
+          La aplicación no ha podido contactar con el servicio que compone las líneas base. No se ha
+          perdido nada: nada se guarda hasta que firmas. Comprueba que el sistema esté arrancado y
+          vuelve a intentarlo.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="cursor-pointer rounded-md border-none bg-accent px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-accent-ink"
+        >
+          Reintentar
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function Gate() {
+  const { backendUp } = useComposition()
+  return backendUp === false ? <BackendDown /> : <Outlet />
+}
+
+export function AppShell() {
+  const generation = useSession((state) => state.generation)
+  return (
+    <CompositionProvider key={generation}>
+      <Gate />
+    </CompositionProvider>
+  )
+}

@@ -1,0 +1,55 @@
+{
+  "rules_version": "0.1.0",
+  "schema": "TFM-motor-armonizacion/rules",
+  "generated_for": "UCM-8 — resolución de conflictos del núcleo determinista",
+  "language_policy": "identificadores en inglés; rationale/notas en español",
+  "scope_note": "Reglas de precedencia y contradicciones declaradas del núcleo determinista. Son política del motor, no catálogo: viven aparte para que el catálogo permanezca congelado y para poder anexarlas y revisarlas con el CISO sin tocar código. Nunca eliminan candidatos: marcan cuál prevalece y por qué, y exponen al humano lo que el motor no debe decidir.",
+  "principles": [
+    "Nunca 'el más restrictivo gana': la precedencia la fija el contexto de la zona, no la exigencia del control.",
+    "Ningún candidato se descarta: el no prevalente queda marcado como superseded, visible y trazable.",
+    "La resolución es independiente del orden de ingesta del catálogo.",
+    "El override de seguridad OT no resuelve: expone el conflicto al humano (frontera security/safety, IEC 61511/61508 fuera de alcance)."
+  ],
+  "framework_precedence": {
+    "OT": ["IEC62443", "CSF", "CIS", "NIS2", "IMO"],
+    "IT": ["CSF", "CIS", "IEC62443", "NIS2", "IMO"],
+    "HYBRID": ["CSF", "CIS", "IEC62443", "NIS2", "IMO"]
+  },
+  "framework_precedence_rationale": {
+    "OT": "ICS→OT: en zonas de control el mecanismo lo dicta la norma OT (IEC 62443); CSF aporta el resultado y CIS la acción IT, subordinados.",
+    "IT": "NIST→IT: en zonas IT el resultado CSF y la acción CIS son el mecanismo natural; el SR de 62443 queda subordinado.",
+    "HYBRID": "La cara IT del host dicta el mecanismo (SO de propósito general, usuarios interactivos); la cara OT se protege por conductos y, donde aplica, por el override de seguridad. NIS2 e IMO son overlays legales contextuales: nunca son mecanismo, van siempre al final."
+  },
+  "contradictions": [
+    {
+      "id": "CONTRA-MALWARE-AGENT-OT",
+      "capability_id": "CAP-PR-MALWARE",
+      "control_ids": ["CTL-CIS-1001", "CTL-IEC-SR32"],
+      "applies_to_domains": ["OT", "IT", "HYBRID"],
+      "requires_safety_relevant_zone": false,
+      "resolution": "framework_precedence",
+      "rationale": "Contradicción real de mecanismo sobre la misma capacidad: un agente antimalware residente basado en firmas (CIS 10.1) frente a la protección de código malicioso propia del sistema de control (SR 3.2). En zonas OT el agente no suele estar soportado por el fabricante y su escaneo compite con el lazo de control (disponibilidad, FR7): prevalece el mecanismo OT. En zonas IT/híbridas, sobre SO de propósito general, el mecanismo adecuado es el agente: prevalece CIS aunque la exigencia del SR sea mayor — el contexto decide, no la restricción.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Regla propuesta contra el catálogo v0.1.0; pendiente de revisión del CISO de la ACP."
+      }
+    },
+    {
+      "id": "CONTRA-AUTH-EMERGENCY-ACCESS",
+      "capability_id": "CAP-PR-MFA",
+      "control_ids": ["CTL-CIS-0605", "CTL-IEC-SR17", "CTL-IEC-SR113"],
+      "applies_to_domains": ["OT"],
+      "requires_safety_relevant_zone": true,
+      "resolution": "safety_override",
+      "rationale": "Override de seguridad OT: en una zona de control con consecuencia física, un mecanismo de autenticación reforzada no puede impedir la actuación del operador en una emergencia. El conflicto es real y no es del motor: la capacidad sigue siendo exigida, los mecanismos quedan marcados como contested con la salvedad de acceso de emergencia y la elección se expone al humano. El motor no diseña la función de seguridad (IEC 61511/61508 fuera de alcance).",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera security/safety declarada por el TFM; referencia TRITON/TRISIS. Pendiente de revisión del CISO de la ACP."
+      }
+    }
+  ],
+  "limitations": [
+    "Conjunto mínimo y deliberado de contradicciones declaradas: solo las que el catálogo v0.1.0 sostiene con evidencia. Ampliarlo es configuración (añadir entradas), no rediseño.",
+    "Las reglas son juicio de autor sobre fuentes secundarias; el instrumento de medida (baseline dorada, UCM-5) es independiente y el motor no la ve."
+  ]
+}

@@ -1,0 +1,3530 @@
+{
+ "profile_id": "PROFILE-B",
+ "profile_name": "Pipeline engineering workstation",
+ "zone": {
+  "zone_id": "Z-ENG-STATION",
+  "domain": "HYBRID",
+  "target_sl": 3,
+  "safety_relevant": false,
+  "role": null,
+  "derivation": "nivel Purdue L3 con naturaleza híbrida IT/OT -> dominio híbrido; sin consecuencia física directa desde la zona -> override de seguridad no aplicable",
+  "nature": {
+   "general_purpose_os": true,
+   "networked": true,
+   "hybrid_it_ot": true,
+   "interactive_users": true,
+   "office_it_surface": true
+  },
+  "sl_vector": {
+   "FR1": 3,
+   "FR2": 3,
+   "FR3": 3,
+   "FR4": 3,
+   "FR5": 3,
+   "FR6": 3,
+   "FR7": 2
+  },
+  "sectors": [
+   "energy",
+   "transport"
+  ]
+ },
+ "catalog_version": "0.6.0",
+ "rules_version": "0.2.0",
+ "regions": [
+  "US",
+  "EU"
+ ],
+ "common_jurisdictions": [
+  "INTL",
+  "INTL-MARITIME"
+ ],
+ "lenses": [
+  {
+   "jurisdictions": [
+    "US",
+    "INTL",
+    "INTL-MARITIME"
+   ],
+   "frameworks": null,
+   "mapping_types": null,
+   "sectors": null,
+   "zone_domain": null,
+   "rationale": "Lectura «US»: se ofrecen los controles de jurisdicción internacional, internacional marítima, US. Las lecturas son acumulativas — «+EU» es la lectura estadounidense más la capa de obligación europea, no un catálogo paralelo. Lo que esta lente aparta se devuelve igualmente, marcado como apartado: apartar no es descartar."
+  },
+  {
+   "jurisdictions": [
+    "US",
+    "EU",
+    "INTL",
+    "INTL-MARITIME"
+   ],
+   "frameworks": null,
+   "mapping_types": null,
+   "sectors": null,
+   "zone_domain": null,
+   "rationale": "Lectura «+EU»: se ofrecen los controles de jurisdicción EU, internacional, internacional marítima, US. Las lecturas son acumulativas — «+EU» es la lectura estadounidense más la capa de obligación europea, no un catálogo paralelo. Lo que esta lente aparta se devuelve igualmente, marcado como apartado: apartar no es descartar."
+  }
+ ],
+ "capabilities": [
+  {
+   "capability_id": "CAP-DE-ANOMALY",
+   "capability_name": "Análisis y correlación de eventos adversos",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-DEAE02",
+    "CTL-CSF-DEAE03",
+    "CTL-CSF-DEAE04",
+    "CTL-CIS-0811",
+    "CTL-CSF-DEAE07",
+    "CTL-CSF-DEAE08",
+    "CTL-CIS-1301"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-DEAE02",
+      "CTL-CSF-DEAE03",
+      "CTL-CSF-DEAE04",
+      "CTL-CIS-0811",
+      "CTL-CSF-DEAE07",
+      "CTL-CSF-DEAE08",
+      "CTL-CIS-1301"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Análisis y correlación de eventos adversos»: 7 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-DEAE02",
+      "CTL-CSF-DEAE03",
+      "CTL-CSF-DEAE04",
+      "CTL-CIS-0811",
+      "CTL-CSF-DEAE07",
+      "CTL-CSF-DEAE08",
+      "CTL-CIS-1301"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Análisis y correlación de eventos adversos»: 7 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Análisis y correlación de eventos adversos»: idéntica en todas las lecturas — 7 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-DE-LOG",
+   "capability_name": "Registro y auditoría de eventos",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRPS04",
+    "CTL-CIS-0802",
+    "CTL-IEC-SR28",
+    "CTL-IEC-SR61",
+    "CTL-CSF-DEAE02",
+    "CTL-IEC-SR39",
+    "CTL-CIS-0811",
+    "CTL-IEC-SR210",
+    "CTL-IEC-SR29",
+    "CTL-CSF-DEAE06",
+    "CTL-IEC-SR211"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRPS04",
+      "CTL-CIS-0802",
+      "CTL-IEC-SR28",
+      "CTL-IEC-SR61",
+      "CTL-CSF-DEAE02",
+      "CTL-IEC-SR39",
+      "CTL-CIS-0811",
+      "CTL-IEC-SR210",
+      "CTL-IEC-SR29",
+      "CTL-CSF-DEAE06",
+      "CTL-IEC-SR211"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Registro y auditoría de eventos»: 11 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRPS04",
+      "CTL-CIS-0802",
+      "CTL-IEC-SR28",
+      "CTL-IEC-SR61",
+      "CTL-CSF-DEAE02",
+      "CTL-IEC-SR39",
+      "CTL-CIS-0811",
+      "CTL-IEC-SR210",
+      "CTL-IEC-SR29",
+      "CTL-CSF-DEAE06",
+      "CTL-IEC-SR211"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Registro y auditoría de eventos»: 11 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Registro y auditoría de eventos»: idéntica en todas las lecturas — 11 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-DE-MONITOR",
+   "capability_name": "Monitorización continua y de comandos",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-DECM01",
+    "CTL-IEC-SR62",
+    "CTL-CSF-DECM09",
+    "CTL-CIS-1301",
+    "CTL-CSF-DECM03",
+    "CTL-CSF-DECM06",
+    "CTL-CSF-DECM02",
+    "CTL-TSA-SD02-MONITOR",
+    "CTL-IMO-FAL3DE"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-DECM01",
+      "CTL-IEC-SR62",
+      "CTL-CSF-DECM09",
+      "CTL-CIS-1301",
+      "CTL-CSF-DECM03",
+      "CTL-CSF-DECM06",
+      "CTL-CSF-DECM02",
+      "CTL-TSA-SD02-MONITOR",
+      "CTL-IMO-FAL3DE"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS",
+      "TSA",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Monitorización continua y de comandos»: 9 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-DECM01",
+      "CTL-IEC-SR62",
+      "CTL-CSF-DECM09",
+      "CTL-CIS-1301",
+      "CTL-CSF-DECM03",
+      "CTL-CSF-DECM06",
+      "CTL-CSF-DECM02",
+      "CTL-TSA-SD02-MONITOR",
+      "CTL-IMO-FAL3DE"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS",
+      "TSA",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Monitorización continua y de comandos»: 9 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Monitorización continua y de comandos»: idéntica en todas las lecturas — 9 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-GOV-CONTEXT",
+   "capability_name": "Contexto organizativo y obligaciones aplicables",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-GVOC01",
+    "CTL-CSF-GVOC03",
+    "CTL-CSF-GVOC02",
+    "CTL-CSF-GVOC04",
+    "CTL-CSF-GVOC05"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVOC01",
+      "CTL-CSF-GVOC03",
+      "CTL-CSF-GVOC02",
+      "CTL-CSF-GVOC04",
+      "CTL-CSF-GVOC05"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Contexto organizativo y obligaciones aplicables»: 5 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVOC01",
+      "CTL-CSF-GVOC03",
+      "CTL-CSF-GVOC02",
+      "CTL-CSF-GVOC04",
+      "CTL-CSF-GVOC05"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Contexto organizativo y obligaciones aplicables»: 5 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Contexto organizativo y obligaciones aplicables»: idéntica en todas las lecturas — 5 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-GOV-OVERSIGHT",
+   "capability_name": "Supervisión de la estrategia de ciberseguridad",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-GVOV01",
+    "CTL-CSF-GVOV02",
+    "CTL-CSF-GVOV03",
+    "CTL-TSA-SD02-PLAN"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVOV01",
+      "CTL-CSF-GVOV02",
+      "CTL-CSF-GVOV03",
+      "CTL-TSA-SD02-PLAN"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21F"
+     ],
+     "frameworks": [
+      "CSF",
+      "TSA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Supervisión de la estrategia de ciberseguridad»: 4 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21F']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVOV01",
+      "CTL-CSF-GVOV02",
+      "CTL-CSF-GVOV03",
+      "CTL-NIS2-A21F",
+      "CTL-TSA-SD02-PLAN"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21F"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "NIS2",
+      "TSA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Supervisión de la estrategia de ciberseguridad»: 5 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21F'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21F",
+     "official_id": "Art. 21(2)(f)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(f) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Supervisión de la estrategia de ciberseguridad» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Supervisión de la estrategia de ciberseguridad»: la lectura cambia con la región. Art. 21(2)(f) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-GOV-POLICY",
+   "capability_name": "Política de ciberseguridad",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-GVPO01",
+    "CTL-CSF-GVPO02",
+    "CTL-IMO-FAL3GOV"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVPO01",
+      "CTL-CSF-GVPO02",
+      "CTL-IMO-FAL3GOV"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21A"
+     ],
+     "frameworks": [
+      "CSF",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Política de ciberseguridad»: 3 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21A']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVPO01",
+      "CTL-CSF-GVPO02",
+      "CTL-NIS2-A21A",
+      "CTL-IMO-FAL3GOV"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21A"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "NIS2",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Política de ciberseguridad»: 4 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21A'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21A",
+     "official_id": "Art. 21(2)(a)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(a) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Política de ciberseguridad» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Política de ciberseguridad»: la lectura cambia con la región. Art. 21(2)(a) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-GOV-RISK",
+   "capability_name": "Gestión del riesgo de ciberseguridad",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-GVRM01",
+    "CTL-CSF-GVRM02",
+    "CTL-CSF-GVRM06",
+    "CTL-CSF-GVRM03",
+    "CTL-CSF-GVRM04",
+    "CTL-CSF-GVRM05",
+    "CTL-CSF-GVRM07",
+    "CTL-IMO-42898"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVRM01",
+      "CTL-CSF-GVRM02",
+      "CTL-CSF-GVRM06",
+      "CTL-CSF-GVRM03",
+      "CTL-CSF-GVRM04",
+      "CTL-CSF-GVRM05",
+      "CTL-CSF-GVRM07",
+      "CTL-IMO-42898"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21",
+      "CTL-NIS2-A21A"
+     ],
+     "frameworks": [
+      "CSF",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Gestión del riesgo de ciberseguridad»: 8 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 2 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21', 'CTL-NIS2-A21A']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVRM01",
+      "CTL-CSF-GVRM02",
+      "CTL-CSF-GVRM06",
+      "CTL-CSF-GVRM03",
+      "CTL-CSF-GVRM04",
+      "CTL-CSF-GVRM05",
+      "CTL-CSF-GVRM07",
+      "CTL-NIS2-A21",
+      "CTL-NIS2-A21A",
+      "CTL-IMO-42898"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21",
+      "CTL-NIS2-A21A"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "NIS2",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Gestión del riesgo de ciberseguridad»: 10 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21', 'CTL-NIS2-A21A'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21",
+     "official_id": "Art. 21",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21 (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Gestión del riesgo de ciberseguridad» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    },
+    {
+     "control_id": "CTL-NIS2-A21A",
+     "official_id": "Art. 21(2)(a)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(a) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Gestión del riesgo de ciberseguridad» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Gestión del riesgo de ciberseguridad»: la lectura cambia con la región. Art. 21 (EU), Art. 21(2)(a) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-GOV-ROLES",
+   "capability_name": "Roles, responsabilidades y rendición de cuentas",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-GVRR01",
+    "CTL-CSF-GVRR02",
+    "CTL-CSF-GVRR03",
+    "CTL-CSF-GVRR04",
+    "CTL-TSA-SD01-COORD",
+    "CTL-IMO-FAL3GOV"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVRR01",
+      "CTL-CSF-GVRR02",
+      "CTL-CSF-GVRR03",
+      "CTL-CSF-GVRR04",
+      "CTL-TSA-SD01-COORD",
+      "CTL-IMO-FAL3GOV"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A20"
+     ],
+     "frameworks": [
+      "CSF",
+      "TSA",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Roles, responsabilidades y rendición de cuentas»: 6 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A20']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVRR01",
+      "CTL-CSF-GVRR02",
+      "CTL-CSF-GVRR03",
+      "CTL-CSF-GVRR04",
+      "CTL-NIS2-A20",
+      "CTL-TSA-SD01-COORD",
+      "CTL-IMO-FAL3GOV"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A20"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "NIS2",
+      "TSA",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Roles, responsabilidades y rendición de cuentas»: 7 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A20'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A20",
+     "official_id": "Art. 20",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 20 (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Roles, responsabilidades y rendición de cuentas» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Roles, responsabilidades y rendición de cuentas»: la lectura cambia con la región. Art. 20 (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-GOV-SUPPLY",
+   "capability_name": "Gestión del riesgo de la cadena de suministro",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-GVSC01",
+    "CTL-CSF-GVSC04",
+    "CTL-CSF-GVSC05",
+    "CTL-CSF-GVSC07",
+    "CTL-CIS-1501",
+    "CTL-CSF-GVSC02",
+    "CTL-CSF-GVSC03",
+    "CTL-CSF-GVSC06",
+    "CTL-CSF-IDRA10",
+    "CTL-CIS-1504",
+    "CTL-CSF-GVSC08",
+    "CTL-CSF-GVSC09",
+    "CTL-CSF-IDAM04",
+    "CTL-CSF-IDRA09",
+    "CTL-CSF-GVSC10"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVSC01",
+      "CTL-CSF-GVSC04",
+      "CTL-CSF-GVSC05",
+      "CTL-CSF-GVSC07",
+      "CTL-CIS-1501",
+      "CTL-CSF-GVSC02",
+      "CTL-CSF-GVSC03",
+      "CTL-CSF-GVSC06",
+      "CTL-CSF-IDRA10",
+      "CTL-CIS-1504",
+      "CTL-CSF-GVSC08",
+      "CTL-CSF-GVSC09",
+      "CTL-CSF-IDAM04",
+      "CTL-CSF-IDRA09",
+      "CTL-CSF-GVSC10"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21",
+      "CTL-NIS2-A21D"
+     ],
+     "frameworks": [
+      "CSF",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Gestión del riesgo de la cadena de suministro»: 15 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 2 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21', 'CTL-NIS2-A21D']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-GVSC01",
+      "CTL-CSF-GVSC04",
+      "CTL-CSF-GVSC05",
+      "CTL-CSF-GVSC07",
+      "CTL-CIS-1501",
+      "CTL-CSF-GVSC02",
+      "CTL-CSF-GVSC03",
+      "CTL-CSF-GVSC06",
+      "CTL-CSF-IDRA10",
+      "CTL-CIS-1504",
+      "CTL-CSF-GVSC08",
+      "CTL-CSF-GVSC09",
+      "CTL-CSF-IDAM04",
+      "CTL-CSF-IDRA09",
+      "CTL-CSF-GVSC10",
+      "CTL-NIS2-A21",
+      "CTL-NIS2-A21D"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21",
+      "CTL-NIS2-A21D"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "NIS2"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Gestión del riesgo de la cadena de suministro»: 17 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21', 'CTL-NIS2-A21D'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21",
+     "official_id": "Art. 21",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21 (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Gestión del riesgo de la cadena de suministro» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    },
+    {
+     "control_id": "CTL-NIS2-A21D",
+     "official_id": "Art. 21(2)(d)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(d) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Gestión del riesgo de la cadena de suministro» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Gestión del riesgo de la cadena de suministro»: la lectura cambia con la región. Art. 21 (EU), Art. 21(2)(d) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-ID-ASSET",
+   "capability_name": "Inventario y gestión de activos",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-IDAM01",
+    "CTL-CIS-0101",
+    "CTL-IEC-SR78",
+    "CTL-CSF-IDAM02",
+    "CTL-CIS-0201",
+    "CTL-CSF-IDAM03",
+    "CTL-CSF-IDAM05",
+    "CTL-CSF-IDAM08",
+    "CTL-CIS-0102",
+    "CTL-CSF-IDAM07",
+    "CTL-CIS-0302",
+    "CTL-CIS-0308",
+    "CTL-CSF-PRPS03",
+    "CTL-IMO-FAL3ID"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-IDAM01",
+      "CTL-CIS-0101",
+      "CTL-IEC-SR78",
+      "CTL-CSF-IDAM02",
+      "CTL-CIS-0201",
+      "CTL-CSF-IDAM03",
+      "CTL-CSF-IDAM05",
+      "CTL-CSF-IDAM08",
+      "CTL-CIS-0102",
+      "CTL-CSF-IDAM07",
+      "CTL-CIS-0302",
+      "CTL-CIS-0308",
+      "CTL-CSF-PRPS03",
+      "CTL-IMO-FAL3ID"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21I"
+     ],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Inventario y gestión de activos»: 14 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21I']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-IDAM01",
+      "CTL-CIS-0101",
+      "CTL-IEC-SR78",
+      "CTL-CSF-IDAM02",
+      "CTL-CIS-0201",
+      "CTL-CSF-IDAM03",
+      "CTL-CSF-IDAM05",
+      "CTL-CSF-IDAM08",
+      "CTL-CIS-0102",
+      "CTL-CSF-IDAM07",
+      "CTL-CIS-0302",
+      "CTL-CIS-0308",
+      "CTL-CSF-PRPS03",
+      "CTL-NIS2-A21I",
+      "CTL-IMO-FAL3ID"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21I"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443",
+      "NIS2",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Inventario y gestión de activos»: 15 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21I'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21I",
+     "official_id": "Art. 21(2)(i)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.2,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(i) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.2 y la cobertura de «Inventario y gestión de activos» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Inventario y gestión de activos»: la lectura cambia con la región. Art. 21(2)(i) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-ID-IMPROVE",
+   "capability_name": "Mejora continua del programa",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-IDIM01",
+    "CTL-CSF-IDIM02",
+    "CTL-CSF-IDIM03",
+    "CTL-CSF-IDIM04",
+    "CTL-CIS-1708"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-IDIM01",
+      "CTL-CSF-IDIM02",
+      "CTL-CSF-IDIM03",
+      "CTL-CSF-IDIM04",
+      "CTL-CIS-1708"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Mejora continua del programa»: 5 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-IDIM01",
+      "CTL-CSF-IDIM02",
+      "CTL-CSF-IDIM03",
+      "CTL-CSF-IDIM04",
+      "CTL-CIS-1708"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Mejora continua del programa»: 5 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Mejora continua del programa»: idéntica en todas las lecturas — 5 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-ID-RISK",
+   "capability_name": "Evaluación de riesgos y amenazas",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-IDRA01",
+    "CTL-CSF-IDRA03",
+    "CTL-CSF-IDRA04",
+    "CTL-CSF-IDRA05",
+    "CTL-CSF-IDRA06",
+    "CTL-CSF-IDRA07",
+    "CTL-IMO-FAL3ID",
+    "CTL-TSA-SD01-ASSESS"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-IDRA01",
+      "CTL-CSF-IDRA03",
+      "CTL-CSF-IDRA04",
+      "CTL-CSF-IDRA05",
+      "CTL-CSF-IDRA06",
+      "CTL-CSF-IDRA07",
+      "CTL-IMO-FAL3ID",
+      "CTL-TSA-SD01-ASSESS"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IMO",
+      "TSA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Evaluación de riesgos y amenazas»: 8 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-IDRA01",
+      "CTL-CSF-IDRA03",
+      "CTL-CSF-IDRA04",
+      "CTL-CSF-IDRA05",
+      "CTL-CSF-IDRA06",
+      "CTL-CSF-IDRA07",
+      "CTL-IMO-FAL3ID",
+      "CTL-TSA-SD01-ASSESS"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IMO",
+      "TSA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Evaluación de riesgos y amenazas»: 8 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Evaluación de riesgos y amenazas»: idéntica en todas las lecturas — 8 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-ID-THREAT",
+   "capability_name": "Inteligencia de amenazas y divulgación de vulnerabilidades",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-IDRA02",
+    "CTL-CSF-IDRA08"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-IDRA02",
+      "CTL-CSF-IDRA08"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21E"
+     ],
+     "frameworks": [
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Inteligencia de amenazas y divulgación de vulnerabilidades»: 2 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21E']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-IDRA02",
+      "CTL-CSF-IDRA08",
+      "CTL-NIS2-A21E"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21E"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "NIS2"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Inteligencia de amenazas y divulgación de vulnerabilidades»: 3 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21E'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21E",
+     "official_id": "Art. 21(2)(e)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(e) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Inteligencia de amenazas y divulgación de vulnerabilidades» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Inteligencia de amenazas y divulgación de vulnerabilidades»: la lectura cambia con la región. Art. 21(2)(e) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-PR-ACCESS",
+   "capability_name": "Control de acceso y mínimo privilegio",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRAA05",
+    "CTL-IEC-SR21",
+    "CTL-CIS-0303",
+    "CTL-CIS-0601",
+    "CTL-CIS-0602",
+    "CTL-CIS-0608",
+    "CTL-CIS-0607",
+    "CTL-IEC-SR16",
+    "CTL-IEC-SR22",
+    "CTL-CSF-PRAA06",
+    "CTL-IMO-FAL3PR"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRAA05",
+      "CTL-IEC-SR21",
+      "CTL-CIS-0303",
+      "CTL-CIS-0601",
+      "CTL-CIS-0602",
+      "CTL-CIS-0608",
+      "CTL-CIS-0607",
+      "CTL-IEC-SR16",
+      "CTL-IEC-SR22",
+      "CTL-CSF-PRAA06",
+      "CTL-IMO-FAL3PR"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21I"
+     ],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Control de acceso y mínimo privilegio»: 11 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21I']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRAA05",
+      "CTL-IEC-SR21",
+      "CTL-CIS-0303",
+      "CTL-CIS-0601",
+      "CTL-CIS-0602",
+      "CTL-CIS-0608",
+      "CTL-CIS-0607",
+      "CTL-IEC-SR16",
+      "CTL-IEC-SR22",
+      "CTL-CSF-PRAA06",
+      "CTL-NIS2-A21I",
+      "CTL-IMO-FAL3PR"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21I"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS",
+      "NIS2",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Control de acceso y mínimo privilegio»: 12 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21I'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21I",
+     "official_id": "Art. 21(2)(i)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(i) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Control de acceso y mínimo privilegio» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Control de acceso y mínimo privilegio»: la lectura cambia con la región. Art. 21(2)(i) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-PR-ALLOWLIST",
+   "capability_name": "Allowlisting de ejecución",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRPS05",
+    "CTL-CIS-0205",
+    "CTL-IEC-SR24",
+    "CTL-CIS-0203",
+    "CTL-IEC-SR77"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRPS05",
+      "CTL-CIS-0205",
+      "CTL-IEC-SR24",
+      "CTL-CIS-0203",
+      "CTL-IEC-SR77"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Allowlisting de ejecución»: 5 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRPS05",
+      "CTL-CIS-0205",
+      "CTL-IEC-SR24",
+      "CTL-CIS-0203",
+      "CTL-IEC-SR77"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Allowlisting de ejecución»: 5 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Allowlisting de ejecución»: idéntica en todas las lecturas — 5 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-AWARENESS",
+   "capability_name": "Concienciación y formación",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRAT01",
+    "CTL-CIS-1401",
+    "CTL-CSF-PRAT02",
+    "CTL-CIS-1409"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRAT01",
+      "CTL-CIS-1401",
+      "CTL-CSF-PRAT02",
+      "CTL-CIS-1409"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A20",
+      "CTL-NIS2-A21G"
+     ],
+     "frameworks": [
+      "CSF",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Concienciación y formación»: 4 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 2 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A20', 'CTL-NIS2-A21G']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRAT01",
+      "CTL-CIS-1401",
+      "CTL-CSF-PRAT02",
+      "CTL-CIS-1409",
+      "CTL-NIS2-A21G",
+      "CTL-NIS2-A20"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21G",
+      "CTL-NIS2-A20"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "NIS2"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Concienciación y formación»: 6 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21G', 'CTL-NIS2-A20'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21G",
+     "official_id": "Art. 21(2)(g)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(g) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Concienciación y formación» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    },
+    {
+     "control_id": "CTL-NIS2-A20",
+     "official_id": "Art. 20",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.2,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 20 (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.2 y la cobertura de «Concienciación y formación» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Concienciación y formación»: la lectura cambia con la región. Art. 21(2)(g) (EU), Art. 20 (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-PR-BACKUP",
+   "capability_name": "Copias de seguridad y recuperación",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRDS11",
+    "CTL-CIS-1101",
+    "CTL-IEC-SR73",
+    "CTL-CIS-1102",
+    "CTL-CSF-PRIR04",
+    "CTL-CIS-1103",
+    "CTL-CIS-1105",
+    "CTL-CSF-RCRP03",
+    "CTL-IMO-FAL3GOV"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRDS11",
+      "CTL-CIS-1101",
+      "CTL-IEC-SR73",
+      "CTL-CIS-1102",
+      "CTL-CSF-PRIR04",
+      "CTL-CIS-1103",
+      "CTL-CIS-1105",
+      "CTL-CSF-RCRP03",
+      "CTL-IMO-FAL3GOV"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21C"
+     ],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Copias de seguridad y recuperación»: 9 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21C']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRDS11",
+      "CTL-CIS-1101",
+      "CTL-IEC-SR73",
+      "CTL-CIS-1102",
+      "CTL-CSF-PRIR04",
+      "CTL-CIS-1103",
+      "CTL-CIS-1105",
+      "CTL-CSF-RCRP03",
+      "CTL-NIS2-A21C",
+      "CTL-IMO-FAL3GOV"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21C"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443",
+      "NIS2",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Copias de seguridad y recuperación»: 10 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21C'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21C",
+     "official_id": "Art. 21(2)(c)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(c) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Copias de seguridad y recuperación» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Copias de seguridad y recuperación»: la lectura cambia con la región. Art. 21(2)(c) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-PR-CRYPTO",
+   "capability_name": "Criptografía y gestión de claves",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-IEC-SR43",
+    "CTL-IEC-SR18",
+    "CTL-CIS-0310",
+    "CTL-CIS-0311",
+    "CTL-IEC-SR19",
+    "CTL-CSF-PRDS01",
+    "CTL-CSF-PRAA04"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-IEC-SR43",
+      "CTL-IEC-SR18",
+      "CTL-CIS-0310",
+      "CTL-CIS-0311",
+      "CTL-IEC-SR19",
+      "CTL-CSF-PRDS01",
+      "CTL-CSF-PRAA04"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21H"
+     ],
+     "frameworks": [
+      "IEC62443",
+      "CIS",
+      "CSF"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-CRYPTO",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «US» de «Criptografía y gestión de claves»: 7 candidato(s), cobertura 0.9. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21H']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-IEC-SR43",
+      "CTL-IEC-SR18",
+      "CTL-CIS-0310",
+      "CTL-CIS-0311",
+      "CTL-IEC-SR19",
+      "CTL-CSF-PRDS01",
+      "CTL-CSF-PRAA04",
+      "CTL-NIS2-A21H"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21H"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "IEC62443",
+      "CIS",
+      "CSF",
+      "NIS2"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-CRYPTO",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «+EU» de «Criptografía y gestión de claves»: 8 candidato(s), cobertura 0.9. Aporta ['CTL-NIS2-A21H'] que la lectura anterior no ofrecía. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21H",
+     "official_id": "Art. 21(2)(h)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(h) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Criptografía y gestión de claves» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Criptografía y gestión de claves»: la lectura cambia con la región. Art. 21(2)(h) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-PR-DATACONF",
+   "capability_name": "Confidencialidad de la información",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRDS01",
+    "CTL-CSF-PRDS02",
+    "CTL-IEC-SR41",
+    "CTL-CIS-0310",
+    "CTL-CIS-0311",
+    "CTL-IEC-SR43",
+    "CTL-IEC-SR42",
+    "CTL-CSF-PRDS10",
+    "CTL-CIS-0305",
+    "CTL-CIS-0307"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRDS01",
+      "CTL-CSF-PRDS02",
+      "CTL-IEC-SR41",
+      "CTL-CIS-0310",
+      "CTL-CIS-0311",
+      "CTL-IEC-SR43",
+      "CTL-IEC-SR42",
+      "CTL-CSF-PRDS10",
+      "CTL-CIS-0305",
+      "CTL-CIS-0307"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Confidencialidad de la información»: 10 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRDS01",
+      "CTL-CSF-PRDS02",
+      "CTL-IEC-SR41",
+      "CTL-CIS-0310",
+      "CTL-CIS-0311",
+      "CTL-IEC-SR43",
+      "CTL-IEC-SR42",
+      "CTL-CSF-PRDS10",
+      "CTL-CIS-0305",
+      "CTL-CIS-0307"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Confidencialidad de la información»: 10 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Confidencialidad de la información»: idéntica en todas las lecturas — 10 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-HARDENING",
+   "capability_name": "Configuración segura / endurecimiento",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRPS01",
+    "CTL-CIS-0401",
+    "CTL-CIS-0402",
+    "CTL-IEC-SR76",
+    "CTL-IEC-SR77"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRPS01",
+      "CTL-CIS-0401",
+      "CTL-CIS-0402",
+      "CTL-IEC-SR76",
+      "CTL-IEC-SR77"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Configuración segura / endurecimiento»: 5 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRPS01",
+      "CTL-CIS-0401",
+      "CTL-CIS-0402",
+      "CTL-IEC-SR76",
+      "CTL-IEC-SR77"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IEC62443"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Configuración segura / endurecimiento»: 5 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Configuración segura / endurecimiento»: idéntica en todas las lecturas — 5 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-IDENTITY",
+   "capability_name": "Identidad y autenticación",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRAA01",
+    "CTL-IEC-SR11",
+    "CTL-CSF-PRAA03",
+    "CTL-IEC-SR12",
+    "CTL-CSF-PRAA02",
+    "CTL-CIS-0501",
+    "CTL-CIS-0506",
+    "CTL-IEC-SR13",
+    "CTL-IEC-SR15",
+    "CTL-CSF-PRAA04",
+    "CTL-IEC-SR14",
+    "CTL-IEC-SR110"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRAA01",
+      "CTL-IEC-SR11",
+      "CTL-CSF-PRAA03",
+      "CTL-IEC-SR12",
+      "CTL-CSF-PRAA02",
+      "CTL-CIS-0501",
+      "CTL-CIS-0506",
+      "CTL-IEC-SR13",
+      "CTL-IEC-SR15",
+      "CTL-CSF-PRAA04",
+      "CTL-IEC-SR14",
+      "CTL-IEC-SR110"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Identidad y autenticación»: 12 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRAA01",
+      "CTL-IEC-SR11",
+      "CTL-CSF-PRAA03",
+      "CTL-IEC-SR12",
+      "CTL-CSF-PRAA02",
+      "CTL-CIS-0501",
+      "CTL-CIS-0506",
+      "CTL-IEC-SR13",
+      "CTL-IEC-SR15",
+      "CTL-CSF-PRAA04",
+      "CTL-IEC-SR14",
+      "CTL-IEC-SR110"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Identidad y autenticación»: 12 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Identidad y autenticación»: idéntica en todas las lecturas — 12 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-INTEGRITY",
+   "capability_name": "Integridad de software, firmware y lógica",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-IEC-SR34",
+    "CTL-IEC-SR33",
+    "CTL-CSF-PRPS01",
+    "CTL-IEC-SR31",
+    "CTL-IEC-SR35",
+    "CTL-CSF-IDRA09",
+    "CTL-CSF-PRPS06"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-IEC-SR34",
+      "CTL-IEC-SR33",
+      "CTL-CSF-PRPS01",
+      "CTL-IEC-SR31",
+      "CTL-IEC-SR35",
+      "CTL-CSF-IDRA09",
+      "CTL-CSF-PRPS06"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "IEC62443",
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Integridad de software, firmware y lógica»: 7 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-IEC-SR34",
+      "CTL-IEC-SR33",
+      "CTL-CSF-PRPS01",
+      "CTL-IEC-SR31",
+      "CTL-IEC-SR35",
+      "CTL-CSF-IDRA09",
+      "CTL-CSF-PRPS06"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "IEC62443",
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Integridad de software, firmware y lógica»: 7 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Integridad de software, firmware y lógica»: idéntica en todas las lecturas — 7 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-MALWARE",
+   "capability_name": "Protección frente a código malicioso",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CIS-1001",
+    "CTL-IEC-SR32",
+    "CTL-CIS-1007"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-1001",
+      "CTL-IEC-SR32",
+      "CTL-CIS-1007"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "IEC62443"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-MALWARE",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «US» de «Protección frente a código malicioso»: 3 candidato(s), cobertura 0.9. Es la lectura de partida: sobre ella se suman las regiones siguientes. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-1001",
+      "CTL-IEC-SR32",
+      "CTL-CIS-1007"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "IEC62443"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-MALWARE",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «+EU» de «Protección frente a código malicioso»: 3 candidato(s), cobertura 0.9. No añade nada a la lectura anterior. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Protección frente a código malicioso»: idéntica en todas las lecturas — 3 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-MEDIA",
+   "capability_name": "Control de medios extraíbles",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CIS-1003",
+    "CTL-IEC-SR23",
+    "CTL-CSF-PRPS05"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-1003",
+      "CTL-IEC-SR23",
+      "CTL-CSF-PRPS05"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "IEC62443",
+      "CSF"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-MEDIA",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «US» de «Control de medios extraíbles»: 3 candidato(s), cobertura 0.9. Es la lectura de partida: sobre ella se suman las regiones siguientes. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-1003",
+      "CTL-IEC-SR23",
+      "CTL-CSF-PRPS05"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "IEC62443",
+      "CSF"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-MEDIA",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «+EU» de «Control de medios extraíbles»: 3 candidato(s), cobertura 0.9. No añade nada a la lectura anterior. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Control de medios extraíbles»: idéntica en todas las lecturas — 3 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-MFA",
+   "capability_name": "Autenticación reforzada (MFA/fortaleza)",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CIS-0605",
+    "CTL-IEC-SR113",
+    "CTL-CIS-0603",
+    "CTL-CIS-0604",
+    "CTL-IEC-SR17",
+    "CTL-IEC-SR19",
+    "CTL-CSF-PRAA03",
+    "CTL-TSA-SD02-MFA"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-0605",
+      "CTL-IEC-SR113",
+      "CTL-CIS-0603",
+      "CTL-CIS-0604",
+      "CTL-IEC-SR17",
+      "CTL-IEC-SR19",
+      "CTL-CSF-PRAA03",
+      "CTL-TSA-SD02-MFA"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21J"
+     ],
+     "frameworks": [
+      "CIS",
+      "IEC62443",
+      "CSF",
+      "TSA"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-MFA",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «US» de «Autenticación reforzada (MFA/fortaleza)»: 8 candidato(s), cobertura 0.9. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21J']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-0605",
+      "CTL-IEC-SR113",
+      "CTL-CIS-0603",
+      "CTL-CIS-0604",
+      "CTL-IEC-SR17",
+      "CTL-IEC-SR19",
+      "CTL-CSF-PRAA03",
+      "CTL-TSA-SD02-MFA",
+      "CTL-NIS2-A21J"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21J"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "IEC62443",
+      "CSF",
+      "TSA",
+      "NIS2"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-MFA",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «+EU» de «Autenticación reforzada (MFA/fortaleza)»: 9 candidato(s), cobertura 0.9. Aporta ['CTL-NIS2-A21J'] que la lectura anterior no ofrecía. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21J",
+     "official_id": "Art. 21(2)(j)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(j) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Autenticación reforzada (MFA/fortaleza)» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Autenticación reforzada (MFA/fortaleza)»: la lectura cambia con la región. Art. 21(2)(j) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-PR-PAM",
+   "capability_name": "Gestión de acceso privilegiado",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CIS-0504",
+    "CTL-CSF-PRAA05"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-0504",
+      "CTL-CSF-PRAA05"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "CSF"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-PAM",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «US» de «Gestión de acceso privilegiado»: 2 candidato(s), cobertura 0.9. Es la lectura de partida: sobre ella se suman las regiones siguientes. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-0504",
+      "CTL-CSF-PRAA05"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "CSF"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-PAM",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «+EU» de «Gestión de acceso privilegiado»: 2 candidato(s), cobertura 0.9. No añade nada a la lectura anterior. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Gestión de acceso privilegiado»: idéntica en todas las lecturas — 2 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-PATCH",
+   "capability_name": "Gestión de vulnerabilidades y parches",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRPS02",
+    "CTL-CIS-0701",
+    "CTL-CIS-0702",
+    "CTL-CSF-IDRA01",
+    "CTL-CIS-0202",
+    "CTL-TSA-SD02-PATCH"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRPS02",
+      "CTL-CIS-0701",
+      "CTL-CIS-0702",
+      "CTL-CSF-IDRA01",
+      "CTL-CIS-0202",
+      "CTL-TSA-SD02-PATCH"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21E"
+     ],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "TSA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Gestión de vulnerabilidades y parches»: 6 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21E']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRPS02",
+      "CTL-CIS-0701",
+      "CTL-CIS-0702",
+      "CTL-CSF-IDRA01",
+      "CTL-CIS-0202",
+      "CTL-NIS2-A21E",
+      "CTL-TSA-SD02-PATCH"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21E"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "NIS2",
+      "TSA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Gestión de vulnerabilidades y parches»: 7 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21E'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21E",
+     "official_id": "Art. 21(2)(e)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(e) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Gestión de vulnerabilidades y parches» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Gestión de vulnerabilidades y parches»: la lectura cambia con la región. Art. 21(2)(e) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-PR-REMOTE",
+   "capability_name": "Acceso remoto controlado",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CIS-0604",
+    "CTL-IEC-SR113",
+    "CTL-CIS-1207",
+    "CTL-IEC-SR26",
+    "CTL-CSF-PRAA03"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-0604",
+      "CTL-IEC-SR113",
+      "CTL-CIS-1207",
+      "CTL-IEC-SR26",
+      "CTL-CSF-PRAA03"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "IEC62443",
+      "CSF"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-REMOTE",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «US» de «Acceso remoto controlado»: 5 candidato(s), cobertura 0.9. Es la lectura de partida: sobre ella se suman las regiones siguientes. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CIS-0604",
+      "CTL-IEC-SR113",
+      "CTL-CIS-1207",
+      "CTL-IEC-SR26",
+      "CTL-CSF-PRAA03"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CIS",
+      "IEC62443",
+      "CSF"
+     ],
+     "coverage": 0.9,
+     "has_full_mechanism": true,
+     "gap": {
+      "capability_id": "CAP-PR-REMOTE",
+      "zone_id": "Z-ENG-STATION",
+      "kind": "residual_coverage",
+      "coverage": 0.9,
+      "residual": 0.1,
+      "rationale": "El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa)."
+     },
+     "rationale": "Lectura «+EU» de «Acceso remoto controlado»: 5 candidato(s), cobertura 0.9. No añade nada a la lectura anterior. Sin candidato en esta lectura: El mejor mecanismo total cubre 0.9: queda un residuo declarado de 0.1 (el catálogo no afirma cobertura completa). Es un hueco regional, señalado y no omitido."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Acceso remoto controlado»: idéntica en todas las lecturas — 5 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-RESILIENCE",
+   "capability_name": "Resiliencia y disponibilidad de la infraestructura",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRIR03",
+    "CTL-IEC-SR71",
+    "CTL-CSF-PRIR04",
+    "CTL-IEC-SR72",
+    "CTL-IEC-SR36",
+    "CTL-IEC-SR75",
+    "CTL-CSF-PRIR02",
+    "CTL-IEC-SR37"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRIR03",
+      "CTL-IEC-SR71",
+      "CTL-CSF-PRIR04",
+      "CTL-IEC-SR72",
+      "CTL-IEC-SR36",
+      "CTL-IEC-SR75",
+      "CTL-CSF-PRIR02",
+      "CTL-IEC-SR37"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Resiliencia y disponibilidad de la infraestructura»: 8 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRIR03",
+      "CTL-IEC-SR71",
+      "CTL-CSF-PRIR04",
+      "CTL-IEC-SR72",
+      "CTL-IEC-SR36",
+      "CTL-IEC-SR75",
+      "CTL-CSF-PRIR02",
+      "CTL-IEC-SR37"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Resiliencia y disponibilidad de la infraestructura»: 8 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Resiliencia y disponibilidad de la infraestructura»: idéntica en todas las lecturas — 8 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-SEGMENT",
+   "capability_name": "Segmentación de red y frontera de zona/conducto",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-PRIR01",
+    "CTL-IEC-SR51",
+    "CTL-IEC-SR52",
+    "CTL-CIS-1202",
+    "CTL-IEC-SR54",
+    "CTL-TSA-SD02-SEGMENT",
+    "CTL-CSF-IDAM03",
+    "CTL-CIS-0312",
+    "CTL-IEC-SR53",
+    "CTL-CIS-0308"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRIR01",
+      "CTL-IEC-SR51",
+      "CTL-IEC-SR52",
+      "CTL-CIS-1202",
+      "CTL-IEC-SR54",
+      "CTL-TSA-SD02-SEGMENT",
+      "CTL-CSF-IDAM03",
+      "CTL-CIS-0312",
+      "CTL-IEC-SR53",
+      "CTL-CIS-0308"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS",
+      "TSA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Segmentación de red y frontera de zona/conducto»: 10 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-PRIR01",
+      "CTL-IEC-SR51",
+      "CTL-IEC-SR52",
+      "CTL-CIS-1202",
+      "CTL-IEC-SR54",
+      "CTL-TSA-SD02-SEGMENT",
+      "CTL-CSF-IDAM03",
+      "CTL-CIS-0312",
+      "CTL-IEC-SR53",
+      "CTL-CIS-0308"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS",
+      "TSA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Segmentación de red y frontera de zona/conducto»: 10 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Segmentación de red y frontera de zona/conducto»: idéntica en todas las lecturas — 10 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-PR-SESSION",
+   "capability_name": "Control de sesión",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-IEC-SR25",
+    "CTL-CIS-0403",
+    "CTL-IEC-SR26",
+    "CTL-IEC-SR27",
+    "CTL-IEC-SR38",
+    "CTL-IEC-SR111",
+    "CTL-CSF-PRAA05",
+    "CTL-IEC-SR112"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-IEC-SR25",
+      "CTL-CIS-0403",
+      "CTL-IEC-SR26",
+      "CTL-IEC-SR27",
+      "CTL-IEC-SR38",
+      "CTL-IEC-SR111",
+      "CTL-CSF-PRAA05",
+      "CTL-IEC-SR112"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "IEC62443",
+      "CIS",
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Control de sesión»: 8 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-IEC-SR25",
+      "CTL-CIS-0403",
+      "CTL-IEC-SR26",
+      "CTL-IEC-SR27",
+      "CTL-IEC-SR38",
+      "CTL-IEC-SR111",
+      "CTL-CSF-PRAA05",
+      "CTL-IEC-SR112"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "IEC62443",
+      "CIS",
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Control de sesión»: 8 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Control de sesión»: idéntica en todas las lecturas — 8 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-RC-COMMS",
+   "capability_name": "Comunicación de la recuperación",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-RCCO03",
+    "CTL-CSF-RCCO04"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RCCO03",
+      "CTL-CSF-RCCO04"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Comunicación de la recuperación»: 2 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RCCO03",
+      "CTL-CSF-RCCO04"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Comunicación de la recuperación»: 2 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Comunicación de la recuperación»: idéntica en todas las lecturas — 2 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-RC-RECOVER",
+   "capability_name": "Recuperación y reconstitución",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-RCRP01",
+    "CTL-IEC-SR74",
+    "CTL-CSF-RCRP02",
+    "CTL-CSF-RCRP05",
+    "CTL-CIS-1105",
+    "CTL-CSF-RCRP04",
+    "CTL-CSF-RCRP06",
+    "CTL-IMO-FAL3RC"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RCRP01",
+      "CTL-IEC-SR74",
+      "CTL-CSF-RCRP02",
+      "CTL-CSF-RCRP05",
+      "CTL-CIS-1105",
+      "CTL-CSF-RCRP04",
+      "CTL-CSF-RCRP06",
+      "CTL-IMO-FAL3RC"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21C"
+     ],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Recuperación y reconstitución»: 8 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21C']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RCRP01",
+      "CTL-IEC-SR74",
+      "CTL-CSF-RCRP02",
+      "CTL-CSF-RCRP05",
+      "CTL-CIS-1105",
+      "CTL-CSF-RCRP04",
+      "CTL-CSF-RCRP06",
+      "CTL-NIS2-A21C",
+      "CTL-IMO-FAL3RC"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21C"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIS",
+      "NIS2",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Recuperación y reconstitución»: 9 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21C'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21C",
+     "official_id": "Art. 21(2)(c)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(c) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Recuperación y reconstitución» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Recuperación y reconstitución»: la lectura cambia con la región. Art. 21(2)(c) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-RS-ANALYSIS",
+   "capability_name": "Análisis forense del incidente",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-RSAN03",
+    "CTL-CSF-RSAN07",
+    "CTL-CSF-RSAN06",
+    "CTL-CSF-RSAN08",
+    "CTL-IEC-SR212",
+    "CTL-IEC-SR211",
+    "CTL-IEC-SR39",
+    "CTL-CIRCIA-PRESERVE"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RSAN03",
+      "CTL-CSF-RSAN07",
+      "CTL-CSF-RSAN06",
+      "CTL-CSF-RSAN08",
+      "CTL-IEC-SR212",
+      "CTL-IEC-SR211",
+      "CTL-IEC-SR39",
+      "CTL-CIRCIA-PRESERVE"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIRCIA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Análisis forense del incidente»: 8 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RSAN03",
+      "CTL-CSF-RSAN07",
+      "CTL-CSF-RSAN06",
+      "CTL-CSF-RSAN08",
+      "CTL-IEC-SR212",
+      "CTL-IEC-SR211",
+      "CTL-IEC-SR39",
+      "CTL-CIRCIA-PRESERVE"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "IEC62443",
+      "CIRCIA"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Análisis forense del incidente»: 8 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Análisis forense del incidente»: idéntica en todas las lecturas — 8 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-RS-CONTAIN",
+   "capability_name": "Contención y erradicación del incidente",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-RSMI01",
+    "CTL-CSF-RSMI02",
+    "CTL-CIS-1704"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RSMI01",
+      "CTL-CSF-RSMI02",
+      "CTL-CIS-1704"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Contención y erradicación del incidente»: 3 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RSMI01",
+      "CTL-CSF-RSMI02",
+      "CTL-CIS-1704"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Contención y erradicación del incidente»: 3 candidato(s), cobertura 1.0. No añade nada a la lectura anterior."
+    }
+   ],
+   "added": [],
+   "changed": false,
+   "changes_coverage": false,
+   "rationale": "«Contención y erradicación del incidente»: idéntica en todas las lecturas — 3 candidato(s) del terreno común. La jurisdicción no cambia lo que se puede componer aquí."
+  },
+  {
+   "capability_id": "CAP-RS-IR",
+   "capability_name": "Gestión de respuesta a incidentes",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-RSMA01",
+    "CTL-CIS-1701",
+    "CTL-CIS-1704",
+    "CTL-CSF-RSMA02",
+    "CTL-CSF-RSMA03",
+    "CTL-CSF-RSMA04",
+    "CTL-CSF-IDIM04",
+    "CTL-CSF-RSMA05",
+    "CTL-CSF-GVSC08",
+    "CTL-IMO-FAL3RS"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RSMA01",
+      "CTL-CIS-1701",
+      "CTL-CIS-1704",
+      "CTL-CSF-RSMA02",
+      "CTL-CSF-RSMA03",
+      "CTL-CSF-RSMA04",
+      "CTL-CSF-IDIM04",
+      "CTL-CSF-RSMA05",
+      "CTL-CSF-GVSC08",
+      "CTL-IMO-FAL3RS"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A21B"
+     ],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Gestión de respuesta a incidentes»: 10 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A21B']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RSMA01",
+      "CTL-CIS-1701",
+      "CTL-CIS-1704",
+      "CTL-CSF-RSMA02",
+      "CTL-CSF-RSMA03",
+      "CTL-CSF-RSMA04",
+      "CTL-CSF-IDIM04",
+      "CTL-CSF-RSMA05",
+      "CTL-CSF-GVSC08",
+      "CTL-NIS2-A21B",
+      "CTL-IMO-FAL3RS"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A21B"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "NIS2",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Gestión de respuesta a incidentes»: 11 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A21B'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A21B",
+     "official_id": "Art. 21(2)(b)",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": ""
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 21(2)(b) (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Gestión de respuesta a incidentes» no se mueve. Lo que cambia es lo que se debe — «obligación legal» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Gestión de respuesta a incidentes»: la lectura cambia con la región. Art. 21(2)(b) (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  },
+  {
+   "capability_id": "CAP-RS-REPORT",
+   "capability_name": "Notificación y comunicación de incidentes",
+   "zone_id": "Z-ENG-STATION",
+   "common_control_ids": [
+    "CTL-CSF-RSCO02",
+    "CTL-CSF-RSCO03",
+    "CTL-CIS-1702",
+    "CTL-CIRCIA-INCIDENT",
+    "CTL-TSA-SD01-REPORT",
+    "CTL-IMO-42898",
+    "CTL-CIRCIA-RANSOM",
+    "CTL-CIRCIA-SUPPLEMENT"
+   ],
+   "regions": [
+    {
+     "region": "US",
+     "label": "US",
+     "jurisdictions": [
+      "US",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RSCO02",
+      "CTL-CSF-RSCO03",
+      "CTL-CIS-1702",
+      "CTL-CIRCIA-INCIDENT",
+      "CTL-TSA-SD01-REPORT",
+      "CTL-IMO-42898",
+      "CTL-CIRCIA-RANSOM",
+      "CTL-CIRCIA-SUPPLEMENT"
+     ],
+     "only_here_control_ids": [],
+     "set_aside_control_ids": [
+      "CTL-NIS2-A23"
+     ],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "CIRCIA",
+      "TSA",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «US» de «Notificación y comunicación de incidentes»: 8 candidato(s), cobertura 1.0. Es la lectura de partida: sobre ella se suman las regiones siguientes. 1 candidato(s) apartado(s) por la lente de esta lectura (['CTL-NIS2-A23']): pertenecen a una región que todavía no se ha sumado. Apartar no es descartar — están aquí, con nombre."
+    },
+    {
+     "region": "EU",
+     "label": "+EU",
+     "jurisdictions": [
+      "US",
+      "EU",
+      "INTL",
+      "INTL-MARITIME"
+     ],
+     "offered_control_ids": [
+      "CTL-CSF-RSCO02",
+      "CTL-CSF-RSCO03",
+      "CTL-CIS-1702",
+      "CTL-NIS2-A23",
+      "CTL-CIRCIA-INCIDENT",
+      "CTL-TSA-SD01-REPORT",
+      "CTL-IMO-42898",
+      "CTL-CIRCIA-RANSOM",
+      "CTL-CIRCIA-SUPPLEMENT"
+     ],
+     "only_here_control_ids": [
+      "CTL-NIS2-A23"
+     ],
+     "set_aside_control_ids": [],
+     "frameworks": [
+      "CSF",
+      "CIS",
+      "NIS2",
+      "CIRCIA",
+      "TSA",
+      "IMO"
+     ],
+     "coverage": 1.0,
+     "has_full_mechanism": true,
+     "gap": null,
+     "rationale": "Lectura «+EU» de «Notificación y comunicación de incidentes»: 9 candidato(s), cobertura 1.0. Aporta ['CTL-NIS2-A23'] que la lectura anterior no ofrecía."
+    }
+   ],
+   "added": [
+    {
+     "control_id": "CTL-NIS2-A23",
+     "official_id": "Art. 23",
+     "framework": "NIS2",
+     "jurisdiction": "EU",
+     "mapping_type": "contextual",
+     "coverage_weight": 0.3,
+     "strength": {
+      "kind": "legal",
+      "level": null,
+      "note": "aviso temprano 24 h, notificación 72 h, informe final 1 mes"
+     },
+     "added_by": "EU",
+     "changes_coverage": false,
+     "rationale": "Art. 23 (NIS2, EU) añade exigencia, no mecanismo: es un mapeo contextual de peso 0.3 y la cobertura de «Notificación y comunicación de incidentes» no se mueve. Lo que cambia es lo que se debe — «obligación legal (aviso temprano 24 h, notificación 72 h, informe final 1 mes)» — sobre una capacidad que el terreno común ya cubre técnicamente."
+    }
+   ],
+   "changed": true,
+   "changes_coverage": false,
+   "rationale": "«Notificación y comunicación de incidentes»: la lectura cambia con la región. Art. 23 (EU) añade(n) obligación sin mover la cobertura: mapeo contextual sobre una capacidad que el terreno común ya cubre. La diferencia está en la exigencia — «obligación legal (aviso temprano 24 h, notificación 72 h, informe final 1 mes)» — no en el mecanismo. El motor no elige por el operador: muestra ambas lecturas lado a lado."
+  }
+ ],
+ "changed_capability_ids": [
+  "CAP-GOV-OVERSIGHT",
+  "CAP-GOV-POLICY",
+  "CAP-GOV-RISK",
+  "CAP-GOV-ROLES",
+  "CAP-GOV-SUPPLY",
+  "CAP-ID-ASSET",
+  "CAP-ID-THREAT",
+  "CAP-PR-ACCESS",
+  "CAP-PR-AWARENESS",
+  "CAP-PR-BACKUP",
+  "CAP-PR-CRYPTO",
+  "CAP-PR-MFA",
+  "CAP-PR-PATCH",
+  "CAP-RC-RECOVER",
+  "CAP-RS-IR",
+  "CAP-RS-REPORT"
+ ],
+ "unchanged_capability_ids": [
+  "CAP-DE-ANOMALY",
+  "CAP-DE-LOG",
+  "CAP-DE-MONITOR",
+  "CAP-GOV-CONTEXT",
+  "CAP-ID-IMPROVE",
+  "CAP-ID-RISK",
+  "CAP-PR-ALLOWLIST",
+  "CAP-PR-DATACONF",
+  "CAP-PR-HARDENING",
+  "CAP-PR-IDENTITY",
+  "CAP-PR-INTEGRITY",
+  "CAP-PR-MALWARE",
+  "CAP-PR-MEDIA",
+  "CAP-PR-PAM",
+  "CAP-PR-REMOTE",
+  "CAP-PR-RESILIENCE",
+  "CAP-PR-SEGMENT",
+  "CAP-PR-SESSION",
+  "CAP-RC-COMMS",
+  "CAP-RS-ANALYSIS",
+  "CAP-RS-CONTAIN"
+ ],
+ "regional_gap_capability_ids": [],
+ "rationale": "Delta regional sobre Z-ENG-STATION (mixto IT/OT, SL-objetivo 3), lecturas US → +EU: 16 de 37 capacidades cambian y en 0 el hueco depende de la región. De las que cambian, 16 lo hacen añadiendo obligación sin mover la cobertura — la diferencia regional de este catálogo es sobre todo legal, no técnica, y decirlo así es el resultado, no una carencia. Los huecos que declara el núcleo por cobertura parcial o residual vienen del terreno común y salen iguales en todas las lecturas: se muestran por lectura, pero no se cuentan como regionales. Las lecturas son acumulativas: «+EU» es la lectura anterior más la capa europea, nunca un catálogo paralelo. La comparación se hace sobre una sola zona: para el resto del activo, repítala zona a zona."
+}

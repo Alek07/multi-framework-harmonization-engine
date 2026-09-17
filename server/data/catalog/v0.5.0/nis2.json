@@ -1,0 +1,544 @@
+{
+  "framework": "NIS2",
+  "note": "Directiva (UE) 2022/2555. El art. 21(2) se desglosa medida a medida — (a) a (j) — en lugar de viajar como un único artículo: el delta regional compara obligaciones concretas, y 'el art. 21 aplica' no le dice nada al operador sobre qué le falta. Todo mapeo es contextual y de peso bajo por diseño: una obligación legal exige, no implementa, y nunca es el mecanismo. Se conserva CTL-NIS2-A21 como enunciado agregado del artículo porque las reglas de v0.1.0 lo citan y porque el desglose no lo sustituye: lo detalla.",
+  "controls": [
+    {
+      "id": "CTL-NIS2-A20",
+      "framework": "NIS2",
+      "official_id": "Art. 20",
+      "title": "Governance",
+      "paraphrased_description": "Los órganos de dirección aprueban y supervisan las medidas y reciben formación; responsabilidad de la gestión.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21",
+      "framework": "NIS2",
+      "official_id": "Art. 21",
+      "title": "Cybersecurity risk-management measures",
+      "paraphrased_description": "Medidas mínimas de gestión de riesgo exigidas por ley, incluida la seguridad de la cadena de suministro (21(2)(d)).",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21A",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(a)",
+      "title": "Policies on risk analysis and information system security",
+      "paraphrased_description": "Exige políticas de análisis de riesgos y de seguridad de los sistemas de información.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21B",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(b)",
+      "title": "Incident handling",
+      "paraphrased_description": "Exige capacidad de gestión de incidentes.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21C",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(c)",
+      "title": "Business continuity, such as backup management and disaster recovery, and crisis management",
+      "paraphrased_description": "Exige continuidad de negocio: copias, recuperación ante desastres y gestión de crisis.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21D",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(d)",
+      "title": "Supply chain security, including security-related aspects concerning the relationships between each entity and its direct suppliers or service providers",
+      "paraphrased_description": "Exige seguridad de la cadena de suministro y de la relación con proveedores directos.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21E",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(e)",
+      "title": "Security in network and information systems acquisition, development and maintenance, including vulnerability handling and disclosure",
+      "paraphrased_description": "Exige seguridad en adquisición, desarrollo y mantenimiento, con tratamiento y divulgación de vulnerabilidades.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21F",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(f)",
+      "title": "Policies and procedures to assess the effectiveness of cybersecurity risk-management measures",
+      "paraphrased_description": "Exige evaluar la eficacia de las propias medidas de gestión del riesgo.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21G",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(g)",
+      "title": "Basic cyber hygiene practices and cybersecurity training",
+      "paraphrased_description": "Exige prácticas básicas de higiene cibernética y formación.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21H",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(h)",
+      "title": "Policies and procedures regarding the use of cryptography and, where appropriate, encryption",
+      "paraphrased_description": "Exige políticas de uso de criptografía y, cuando proceda, de cifrado.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21I",
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(i)",
+      "title": "Human resources security, access control policies and asset management",
+      "paraphrased_description": "Exige seguridad en recursos humanos, políticas de control de acceso y gestión de activos.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A21J",
+      "presupposes": [{"premise": "interactive_users", "expected": true, "note": "Presupone que hay usuarios interactivos en el ente que requieren autenticación multifactor o continua y comunicaciones seguras."}],
+      "framework": "NIS2",
+      "official_id": "Art. 21(2)(j)",
+      "title": "Use of multi-factor authentication or continuous authentication solutions, secured voice, video and text communications and secured emergency communication systems within the entity, where appropriate",
+      "paraphrased_description": "Exige autenticación multifactor o continua y comunicaciones seguras, incluidas las de emergencia.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    },
+    {
+      "id": "CTL-NIS2-A23",
+      "framework": "NIS2",
+      "official_id": "Art. 23",
+      "title": "Reporting obligations",
+      "paraphrased_description": "Notificación obligatoria de incidentes significativos: aviso temprano 24 h, notificación 72 h e informe final 1 mes.",
+      "jurisdiction": "EU",
+      "strength": {
+        "kind": "legal",
+        "note": "aviso temprano 24 h, notificación 72 h, informe final 1 mes"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "energy",
+        "water",
+        "maritime",
+        "transport",
+        "health",
+        "digital_infrastructure",
+        "banking_finance",
+        "public_administration",
+        "manufacturing",
+        "chemical",
+        "food"
+      ]
+    }
+  ],
+  "mappings": [
+    {
+      "capability_id": "CAP-GOV-RISK",
+      "control_id": "CTL-NIS2-A21",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "medidas de gestión de riesgo exigidas por ley"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-RISK",
+      "control_id": "CTL-NIS2-A21A",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "análisis de riesgos exigido por el 21(2)(a)"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-POLICY",
+      "control_id": "CTL-NIS2-A21A",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "la política de seguridad de los sistemas es la otra mitad del 21(2)(a)"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-ROLES",
+      "control_id": "CTL-NIS2-A20",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "accountability del órgano de dirección + formación"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-OVERSIGHT",
+      "control_id": "CTL-NIS2-A21F",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "evaluar la eficacia de las medidas es supervisión, exigida por ley en la UE"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-SUPPLY",
+      "control_id": "CTL-NIS2-A21",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "cadena de suministro exigida por ley (21(2)(d))"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-SUPPLY",
+      "control_id": "CTL-NIS2-A21D",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "seguridad de la cadena de suministro, enunciada como medida propia"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-AWARENESS",
+      "control_id": "CTL-NIS2-A20",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "formación del órgano de dirección"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-AWARENESS",
+      "control_id": "CTL-NIS2-A21G",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "higiene básica y formación del personal"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-IR",
+      "control_id": "CTL-NIS2-A21B",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "gestión de incidentes exigida por ley"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-BACKUP",
+      "control_id": "CTL-NIS2-A21C",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "gestión de copias dentro de la continuidad exigida"
+      }
+    },
+    {
+      "capability_id": "CAP-RC-RECOVER",
+      "control_id": "CTL-NIS2-A21C",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "recuperación ante desastres y gestión de crisis"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-PATCH",
+      "control_id": "CTL-NIS2-A21E",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "tratamiento de vulnerabilidades exigido por ley"
+      }
+    },
+    {
+      "capability_id": "CAP-ID-THREAT",
+      "control_id": "CTL-NIS2-A21E",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "la divulgación de vulnerabilidades es obligación legal en la UE, no una buena práctica"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-CRYPTO",
+      "control_id": "CTL-NIS2-A21H",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "política de criptografía y cifrado"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-ACCESS",
+      "control_id": "CTL-NIS2-A21I",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "políticas de control de acceso exigidas"
+      }
+    },
+    {
+      "capability_id": "CAP-ID-ASSET",
+      "control_id": "CTL-NIS2-A21I",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "gestión de activos dentro de la misma medida"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "control_id": "CTL-NIS2-A21J",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "MFA o autenticación continua exigida por ley: es la medida donde el delta US/UE se ve mejor"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-NIS2-A23",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "EU",
+        "note": "plazos 24h/72h/1 mes (delta regional)"
+      }
+    }
+  ]
+}

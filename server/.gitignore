@@ -15,6 +15,9 @@ __pycache__/
 *.db
 *.sqlite3
 
+# Embedding model cache
+.cache/
+
 # Editors
 .vscode/
 .idea/

@@ -1,0 +1,35 @@
+{
+  "note": "Juicio experto de qué marcos rigen cada activo y cuáles quedan fuera de sector. Instrumento de medición; el motor no lo lee.",
+  "assets": {
+    "ESC-AIRGAP": {
+      "label": "SIS aislado de gaseoducto (energía)",
+      "sectors": ["energy"],
+      "governs": ["CSF", "IEC62443", "CIS", "NIS2", "CIRCIA"],
+      "out_of_scope": ["IMO", "TSA"]
+    },
+    "ESC-PORT": {
+      "label": "Terminal portuaria de combustible (marítimo, transporte, energía)",
+      "sectors": ["maritime", "transport", "energy"],
+      "governs": ["CSF", "IEC62443", "CIS", "NIS2", "CIRCIA", "IMO", "TSA"],
+      "out_of_scope": []
+    },
+    "ESC-OFFICE": {
+      "label": "Centro de control corporativo (energía)",
+      "sectors": ["energy"],
+      "governs": ["CSF", "IEC62443", "CIS", "NIS2", "CIRCIA"],
+      "out_of_scope": ["IMO", "TSA"]
+    },
+    "ESC-WATER": {
+      "label": "Planta potabilizadora (agua)",
+      "sectors": ["water"],
+      "governs": ["CSF", "IEC62443", "CIS", "NIS2", "CIRCIA"],
+      "out_of_scope": ["IMO", "TSA"]
+    },
+    "ESC-HOSPITAL": {
+      "label": "Hospital (salud)",
+      "sectors": ["health"],
+      "governs": ["CSF", "IEC62443", "CIS", "NIS2", "CIRCIA"],
+      "out_of_scope": ["IMO", "TSA"]
+    }
+  }
+}

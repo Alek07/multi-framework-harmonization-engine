@@ -1,0 +1,16 @@
+# UCM-20 — optional overlay: let Ollama use an NVIDIA GPU. `./scripts/start.sh` applies it
+# when Docker can provide a card. Separate file because a device reservation makes
+# `docker compose up` *fail* where there is none, and starting anywhere is UCM-22.
+#
+# Measured: parse 356 s on CPU, 31 s here. The two paths can resolve a logit
+# near-tie differently, so reproducibility holds within a path, not across them.
+
+services:
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

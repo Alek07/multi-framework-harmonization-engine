@@ -1,0 +1,393 @@
+{
+  "rules_version": "0.3.0",
+  "schema": "TFM-motor-armonizacion/gating",
+  "generated_for": "UCM-9/UCM-44/UCM-48 — gating determinista por perfil del activo; v0.3.0 refina la regla de obligación legal para el corpus US del catálogo v0.6.0",
+  "language_policy": "identificadores en inglés; rationale/compensación/diferimiento en español",
+  "scope_note": "Reglas de gating del núcleo determinista: dicen qué MECANISMOS no aplican a este activo y por qué. Viven aparte del catálogo (que describe lo que existe) y aparte de la precedencia (que resuelve choques): son política de aplicabilidad, revisable con el CISO sin tocar código. v0.2.0 responde a una medición, no a una intuición: contra el catálogo v0.2.0, el set de v0.1.0 nombraba 20 de 225 controles y sólo 7 cambiaban de salida entre el corredor OT y la estación híbrida — el activo apenas movía la baseline. Se escriben las reglas ciegas a la baseline dorada (UCM-5): ajustarlas a las respuestas del experto correlacionaría el motor con su propio instrumento de medida y dejaría sin valor la precisión de gating que mide UCM-18.",
+  "principles": [
+    "Regla de oro: el gating elimina mecanismos, nunca capacidades requeridas, y nunca en silencio.",
+    "Tres salidas y sólo tres: no aplica (exclusión justificada, entregable), objetivo sin mecanismo (exige control compensatorio) y ámbito equivocado (diferido a la capa organizativa).",
+    "Toda exclusión lleva regla, premisa observada del perfil y justificación escrita: es material de auditoría, no una omisión.",
+    "El gating depende de la zona: mismo catálogo + zonas distintas = baselines distintas.",
+    "Una exclusión no es un hueco: el hueco aparece sólo cuando la capacidad se queda sin mecanismo, y entonces se declara.",
+    "Sólo se condiciona sobre premisas que el perfil declara. El rol de la zona es una de ellas: la joya de la corona lo declara y hasta v0.2.0 no llegaba a ninguna regla.",
+    "Que una regla no discrimine no la hace inútil: las de ámbito organizativo disparan en todas las zonas porque la frontera activo/organización no depende del activo."
+  ],
+  "outcome_precedence": [
+    "wrong_scope",
+    "not_applicable",
+    "objective_without_mechanism"
+  ],
+  "rules": [
+    {
+      "id": "GATE-SCOPE-GOVERNANCE",
+      "outcome": "wrong_scope",
+      "control_ids": [
+        "CTL-CSF-GVOC01", "CTL-CSF-GVOC02", "CTL-CSF-GVOC03", "CTL-CSF-GVOC04", "CTL-CSF-GVOC05",
+        "CTL-CSF-GVRM01", "CTL-CSF-GVRM02", "CTL-CSF-GVRM03", "CTL-CSF-GVRM04", "CTL-CSF-GVRM05",
+        "CTL-CSF-GVRM06", "CTL-CSF-GVRM07",
+        "CTL-CSF-GVRR01", "CTL-CSF-GVRR02", "CTL-CSF-GVRR03", "CTL-CSF-GVRR04",
+        "CTL-CSF-GVPO01", "CTL-CSF-GVPO02",
+        "CTL-CSF-GVOV01", "CTL-CSF-GVOV02", "CTL-CSF-GVOV03"
+      ],
+      "applies_when": {},
+      "rationale": "Contexto, estrategia de riesgo, rendición de cuentas, política y supervisión no se implementan en una zona del activo: son programa corporativo. Incluirlos en la baseline del activo fingiría una cobertura que el activo no ejerce, y la capacidad sigue exigida y se acredita arriba.",
+      "deferred_to": "capa organizativa: programa corporativo de gobierno y gestión del riesgo de la ACP",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM. Pendiente de revisión del CISO de la ACP."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-SUPPLY-CHAIN",
+      "outcome": "wrong_scope",
+      "control_ids": [
+        "CTL-CSF-GVSC01", "CTL-CSF-GVSC02", "CTL-CSF-GVSC03", "CTL-CSF-GVSC04", "CTL-CSF-GVSC05",
+        "CTL-CSF-GVSC06", "CTL-CSF-GVSC07", "CTL-CSF-GVSC08", "CTL-CSF-GVSC09", "CTL-CSF-GVSC10",
+        "CTL-CSF-IDAM04", "CTL-CSF-IDRA10", "CTL-CIS-1501", "CTL-CIS-1504"
+      ],
+      "applies_when": {},
+      "rationale": "El riesgo de proveedor se gestiona en contratos, diligencia debida y seguimiento de la relación: nada de eso se configura en el PLC ni en la estación. La zona hereda el resultado, no lo produce.",
+      "deferred_to": "capa organizativa: programa de gestión de proveedores y contratación de la ACP",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM. Pendiente de revisión del CISO de la ACP."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-AWARENESS",
+      "outcome": "wrong_scope",
+      "control_ids": ["CTL-CSF-PRAT01", "CTL-CSF-PRAT02", "CTL-CIS-1401", "CTL-CIS-1409"],
+      "applies_when": {},
+      "rationale": "La concienciación y la formación actúan sobre personas, no sobre la zona. La capacidad sigue exigida y se acredita en la capa organizativa; ninguna configuración del activo la satisface.",
+      "deferred_to": "capa organizativa: plan de concienciación y formación del personal",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-INCIDENT-ORGANIZATION",
+      "outcome": "wrong_scope",
+      "control_ids": [
+        "CTL-CIS-1701", "CTL-CIS-1702", "CTL-CIS-1704",
+        "CTL-CSF-RSCO02", "CTL-CSF-RSCO03", "CTL-CSF-RSMA04",
+        "CTL-CSF-RCCO03", "CTL-CSF-RCCO04"
+      ],
+      "applies_when": {},
+      "rationale": "Designar responsables, mantener contactos, escalar y comunicar —durante el incidente y durante la recuperación— son actos de la organización: la zona aporta la evidencia, no el interlocutor.",
+      "deferred_to": "capa organizativa: plan de respuesta y comunicación de incidentes de la ACP",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-IMPROVEMENT",
+      "outcome": "wrong_scope",
+      "control_ids": [
+        "CTL-CSF-IDIM01", "CTL-CSF-IDIM02", "CTL-CSF-IDIM03", "CTL-CSF-IDIM04", "CTL-CIS-1708"
+      ],
+      "applies_when": {},
+      "rationale": "La mejora continua evalúa, ejercita y revisa el programa: se ejerce sobre el proceso de la organización, no sobre la configuración de la zona.",
+      "deferred_to": "capa organizativa: ciclo de mejora y lecciones aprendidas del programa",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-RISK-PROGRAM",
+      "outcome": "wrong_scope",
+      "control_ids": [
+        "CTL-CSF-IDRA02", "CTL-CSF-IDRA04", "CTL-CSF-IDRA05", "CTL-CSF-IDRA06",
+        "CTL-CSF-IDRA07", "CTL-CSF-IDRA08", "CTL-CSF-IDRA09"
+      ],
+      "applies_when": {},
+      "rationale": "Recibir inteligencia, estimar impacto y verosimilitud, elegir la respuesta al riesgo y operar la divulgación de vulnerabilidades son procesos del programa. La zona aporta el dato — qué hay y qué está vulnerable (ID.RA-01, ID.RA-03) —, no el juicio.",
+      "deferred_to": "capa organizativa: proceso de evaluación y respuesta al riesgo de la ACP",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-SECURE-DEVELOPMENT",
+      "outcome": "wrong_scope",
+      "control_ids": ["CTL-CSF-PRPS06"],
+      "applies_when": {},
+      "rationale": "El operador del gaseoducto no desarrolla el software del sistema de control: las prácticas de desarrollo seguro se exigen al fabricante por contrato y se verifican en la adquisición.",
+      "deferred_to": "capa organizativa: requisitos de desarrollo seguro exigidos al fabricante (IEC 62443-4-1, fuera del alcance de -3-3)",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera producto/sistema: -3-3 mide el sistema, no el ciclo de vida del fabricante."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-PHYSICAL-SECURITY",
+      "outcome": "wrong_scope",
+      "control_ids": ["CTL-CSF-PRAA06", "CTL-CSF-PRIR02", "CTL-CSF-DECM02"],
+      "applies_when": {},
+      "rationale": "El acceso físico, la protección ambiental y la vigilancia del entorno se ejercen sobre la instalación —vallado, caseta, control de llaves—, no sobre la configuración lógica de la zona. Se declaran para que no parezcan olvidados.",
+      "deferred_to": "capa organizativa: seguridad física e instalaciones de la ACP",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera lógica/física declarada por el TFM; el POC no modela mecanismos físicos."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-DATA-GOVERNANCE",
+      "outcome": "wrong_scope",
+      "control_ids": ["CTL-CSF-IDAM07", "CTL-CIS-0307", "CTL-CIS-0302"],
+      "applies_when": {},
+      "rationale": "El inventario y la clasificación de la información son decisiones de gobierno del dato: la zona aplica el resultado (qué se cifra, qué se retiene), no lo establece.",
+      "deferred_to": "capa organizativa: gobierno y clasificación de la información de la ACP",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Frontera activo/organización declarada por el TFM."
+      }
+    },
+    {
+      "id": "GATE-SCOPE-LEGAL-OBLIGATION",
+      "outcome": "wrong_scope",
+      "control_ids": [
+        "CTL-NIS2-A20", "CTL-NIS2-A21", "CTL-NIS2-A21A", "CTL-NIS2-A21B", "CTL-NIS2-A21C",
+        "CTL-NIS2-A21D", "CTL-NIS2-A21E", "CTL-NIS2-A21F", "CTL-NIS2-A21G", "CTL-NIS2-A21H",
+        "CTL-NIS2-A21I", "CTL-NIS2-A21J", "CTL-NIS2-A23", "CTL-IMO-42898",
+        "CTL-CIRCIA-INCIDENT", "CTL-CIRCIA-RANSOM", "CTL-CIRCIA-SUPPLEMENT", "CTL-CIRCIA-PRESERVE",
+        "CTL-TSA-SD01-REPORT", "CTL-TSA-SD01-COORD", "CTL-TSA-SD01-ASSESS",
+        "CTL-TSA-SD02-PLAN"
+      ],
+      "applies_when": {},
+      "rationale": "Obligación legal de gobernanza, reporte o supervisión: obliga al operador, no configura una zona, así que se difiere a la capa organizativa y sigue contando como mandato — el motor la trata como Tier 0 con independencia del SL-objetivo, que es justo lo que la hace visible en el delta regional. Aquí caen la NIS2, la resolución IMO, los cuatro deberes de CIRCIA (reporte de incidente, de rescate, suplementario y preservación de registros), los tres de la TSA SD-2021-01 (reporte, coordinador, evaluación de brechas) y el plan aprobado por TSA de la SD-2021-02. La regla es una enumeración deliberada, no 'toda ley se difiere': una obligación legal que prescribe un mecanismo de zona NO se difiere — se ejerce en la zona y mueve cobertura. El caso es la TSA SD-2021-02, cuyos deberes de segmentación OT/IT (CTL-TSA-SD02-SEGMENT) y MFA en el acceso (CTL-TSA-SD02-MFA) están ausentes de esta lista: sus mapeos de mecanismo (partial/compensatory) los retienen como cualquier otro mecanismo. Sus deberes operativos —monitorización y parcheo— tampoco se difieren: son exigencia contextual que se ejerce en la zona sobre una capacidad que el terreno técnico ya cubre. Esa distinción, obligación a obligación, queda visible y auditable en la baseline.",
+      "deferred_to": "capa organizativa: cumplimiento normativo y relación con el regulador",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Sin esta regla la baseline del activo listaría artículos de la NIS2, los reportes de CIRCIA y los deberes de gobernanza de la TSA como mecanismos retenidos. Los deberes de mecanismo de la TSA SD-02 (segmentación, MFA) se excluyen a propósito: es obligación legal que prescribe mecanismo (UCM-48)."
+      }
+    },
+    {
+      "id": "GATE-NA-ANTIMALWARE-AGENT-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-1001", "CTL-CIS-1007"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "Un agente antimalware residente —por firmas o por comportamiento— no está soportado por el fabricante en equipo embebido, y su escaneo compite con el lazo de control. La capacidad sigue exigida y la cubre el mecanismo propio del sistema de control (SR 3.2).",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona no corre sistema operativo de propósito general."
+      }
+    },
+    {
+      "id": "GATE-NA-AUTORUN-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-1003"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "Desactivar autoarranque y autoreproducción es un ajuste de sistema operativo de escritorio: el equipo embebido no tiene esa función que desactivar.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona no corre sistema operativo de propósito general."
+      }
+    },
+    {
+      "id": "GATE-NA-DATA-AT-REST-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-0311"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "El cifrado de datos en reposo tal y como lo plantea la salvaguarda IT presupone un sistema de ficheros y un gestor de claves que el controlador de campo no ofrece.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona no corre sistema operativo de propósito general."
+      }
+    },
+    {
+      "id": "GATE-NA-ENTERPRISE-IDENTITY-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-0506", "CTL-CIS-0607", "CTL-CIS-0608"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "Centralizar cuentas y control de acceso en un directorio corporativo exige que el equipo hable el protocolo de ese directorio; el controlador de campo mantiene sus cuentas localmente. La capacidad sigue exigida y la cubren la gestión de cuentas y de autenticadores del propio sistema de control (SR 1.3/1.5).",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona no corre sistema operativo de propósito general."
+      }
+    },
+    {
+      "id": "GATE-NA-ENTERPRISE-BACKUP-AGENT-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-1102"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "La copia automática por agente es un mecanismo de servidor. En la zona de control la copia es de configuración y de lógica, y la hace el mecanismo propio del sistema (SR 7.3) en ventana operativa.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona no corre sistema operativo de propósito general."
+      }
+    },
+    {
+      "id": "GATE-NA-MFA-EXTERNAL-APPS",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-0603"],
+      "applies_when": { "nature": { "office_it_surface": false, "interactive_users": false } },
+      "rationale": "No hay aplicaciones expuestas al exterior ni usuarios interactivos en la zona: la salvaguarda no tiene sujeto sobre el que aplicarse.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisas observadas: la zona no tiene superficie ofimática ni usuarios interactivos."
+      }
+    },
+    {
+      "id": "GATE-NA-INTERACTIVE-SESSION-CONTROLS",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-IEC-SR110", "CTL-IEC-SR112", "CTL-IEC-SR27", "CTL-CIS-0403"],
+      "applies_when": { "nature": { "interactive_users": false } },
+      "rationale": "Realimentación del autenticador, aviso de uso, límite de sesiones concurrentes y bloqueo automático presuponen una persona sentada delante. En una zona sin usuarios interactivos no hay sesión de usuario que gobernar; el control de sesión de la capacidad lo sostienen la terminación remota y la integridad de sesión.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona no tiene usuarios interactivos."
+      }
+    },
+    {
+      "id": "GATE-NA-PERSON-TO-PERSON-MESSAGING",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-IEC-SR53"],
+      "applies_when": { "nature": { "office_it_surface": false } },
+      "rationale": "Restringir la mensajería de propósito general exige que la haya: la zona no tiene correo ni navegador que restringir. Se declara para que la ausencia sea una exclusión justificada y no un olvido.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona no tiene superficie ofimática."
+      }
+    },
+    {
+      "id": "GATE-NA-REMOTE-VPN-CLIENT-EMBEDDED",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-1207"],
+      "applies_when": { "nature": { "general_purpose_os": false } },
+      "rationale": "Exigir cliente VPN y AAA corporativa al dispositivo remoto presupone que el extremo es un puesto gestionado. Hacia la zona de control el extremo es el conducto mediado en la IDMZ, y es ahí donde se exige.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona no corre sistema operativo de propósito general."
+      }
+    },
+    {
+      "id": "GATE-OWM-MFA-ADMIN-EMBEDDED",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-CIS-0605"],
+      "applies_when": {
+        "domains": ["OT"],
+        "nature": { "general_purpose_os": false, "interactive_users": false }
+      },
+      "rationale": "El segundo factor no vive en el controlador: el equipo de campo no puede alojar el mecanismo, pero el objetivo —que el acceso administrativo no dependa de un único secreto— sigue en pie.",
+      "compensation": "acceso administrativo mediado desde la IDMZ con MFA en el punto de mediación, credenciales de emergencia en custodia y uso registrado",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisas observadas: zona OT, sin SO de propósito general y sin usuarios interactivos."
+      }
+    },
+    {
+      "id": "GATE-OWM-MFA-REMOTE-EMBEDDED",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-CIS-0604"],
+      "applies_when": {
+        "domains": ["OT"],
+        "nature": { "general_purpose_os": false, "interactive_users": false }
+      },
+      "rationale": "El acceso remoto a la zona no termina en el controlador sino en el conducto: el mecanismo no cabe aquí, el objetivo sí.",
+      "compensation": "jump host en la IDMZ con MFA, sesión grabada y sin ruta directa desde la red corporativa a la zona de control",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisas observadas: zona OT, sin SO de propósito general y sin usuarios interactivos."
+      }
+    },
+    {
+      "id": "GATE-OWM-REMOTE-ACCESS-EMBEDDED",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-IEC-SR113"],
+      "applies_when": {
+        "domains": ["OT"],
+        "nature": { "general_purpose_os": false, "interactive_users": false }
+      },
+      "rationale": "El control del acceso por canales no confiables se exige al FR1 desde SL3 y la zona no puede ejercerlo por sí misma: el controlador no distingue el origen de la conexión. El mandato no se repele — se traslada al conducto y queda pendiente de cierre.",
+      "compensation": "mediación en la IDMZ: sin ruta directa OT/IT, autenticación reforzada y registro de sesión en el punto de mediación (conducto C-IDMZ / C-REMOTE-ENG)",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisas observadas: zona OT, sin SO de propósito general y sin usuarios interactivos."
+      }
+    },
+    {
+      "id": "GATE-OWM-CRYPTOGRAPHY-EMBEDDED",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-IEC-SR43", "CTL-IEC-SR18", "CTL-IEC-SR19", "CTL-CIS-0310"],
+      "applies_when": {
+        "domains": ["OT"],
+        "nature": { "general_purpose_os": false }
+      },
+      "rationale": "Criptografía, certificados y renovación de claves exigen cómputo y ciclo de vida que el equipo de campo no sostiene, y el protocolo industrial del corredor viaja en claro por diseño. El objetivo de confidencialidad e integridad de la comunicación no desaparece por eso.",
+      "compensation": "confidencialidad e integridad por arquitectura: segmentación y frontera de zona, cifrado terminado en la IDMZ y material criptográfico gestionado fuera del equipo de campo",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisas observadas: zona OT sin SO de propósito general. Pendiente de revisión del CISO."
+      }
+    },
+    {
+      "id": "GATE-OWM-PATCH-CADENCE-SAFETY-OT",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-CIS-0701"],
+      "applies_when": { "domains": ["OT"], "safety_relevant": true },
+      "rationale": "La cadencia de parcheo IT no se puede aplicar sobre equipo cuya parada tiene consecuencia física: el objetivo de reducir la exposición sigue vigente, el mecanismo no cabe tal cual.",
+      "compensation": "ventana de parada programada con revalidación de la lógica, y mitigación por conducto y monitorización mientras la vulnerabilidad siga abierta",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisas observadas: zona OT relevante para la seguridad de las personas."
+      }
+    },
+    {
+      "id": "GATE-NA-SIS-REMOTE-PATH",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-IEC-SR26", "CTL-CIS-1207", "CTL-CIS-0604"],
+      "applies_when": { "roles": ["crown_jewel"] },
+      "rationale": "El sistema instrumentado de seguridad no admite ruta de acceso remoto en ninguna forma: no hay sesión remota que terminar ni cliente que exigir, porque no se abre. La modificación se hace presencialmente y con llave física — es la lección directa de TRITON, donde el SIS estaba alcanzable desde la red.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona declara el rol crown_jewel. Pendiente de revisión del CISO de la ACP."
+      }
+    },
+    {
+      "id": "GATE-NA-SIS-PORTABLE-MEDIA",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-IEC-SR23"],
+      "applies_when": { "roles": ["crown_jewel"] },
+      "rationale": "Al SIS no se conectan dispositivos portátiles ni medios extraíbles: el mantenimiento se hace desde estación dedicada bajo procedimiento, así que no hay uso que controlar sino un uso prohibido.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona declara el rol crown_jewel."
+      }
+    },
+    {
+      "id": "GATE-OWM-SIS-PATCH-IN-OPERATION",
+      "outcome": "objective_without_mechanism",
+      "control_ids": ["CTL-CSF-PRPS02", "CTL-CIS-0702"],
+      "applies_when": { "roles": ["crown_jewel"] },
+      "rationale": "Mantener y sustituir el software del SIS conforme al riesgo no se puede ejecutar con el proceso en marcha: cualquier cambio exige parada del tren y revalidación de la función de seguridad. El objetivo se mantiene; el mecanismo, tal y como lo enuncian CSF y CIS, no cabe.",
+      "compensation": "cambio sólo en parada programada, con revalidación funcional de la función instrumentada de seguridad y aprobación de operaciones; mientras tanto, mitigación por conducto restringido y vigilancia de la integridad de la lógica (SR 3.4)",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona declara el rol crown_jewel. Pendiente de revisión del CISO de la ACP."
+      }
+    },
+    {
+      "id": "GATE-NA-SIS-CONTINUOUS-MONITORING-AGENT",
+      "outcome": "not_applicable",
+      "control_ids": ["CTL-CIS-1301"],
+      "applies_when": { "roles": ["crown_jewel"] },
+      "rationale": "La alerta centralizada de eventos presupone que el SIS reporta hacia una plataforma corriente arriba; el SIS no publica hacia la red de supervisión. La vigilancia se ejerce desde el conducto, no desde dentro.",
+      "provenance": {
+        "source": "author_judgment",
+        "note": "Premisa observada: la zona declara el rol crown_jewel."
+      }
+    }
+  ],
+  "limitations": [
+    "Todas las reglas son juicio de autor sobre la aplicabilidad al activo: pendientes de la revisión del CISO de la ACP (UCM-6).",
+    "Las reglas se escribieron sin consultar la baseline dorada (UCM-5), a propósito: es el instrumento con el que UCM-18 medirá la precisión del gating, y ajustarlas a sus respuestas la invalidaría.",
+    "El gating sigue sin poder condicionar sobre el conducto: el perfil declara C-SIS con control 'restricted_max_anti_triton' y ninguna regla puede leerlo. Lo que hoy distingue a la joya de la corona es su rol declarado, no su conectividad.",
+    "Una zona sin regla que la mire retiene el mecanismo: la ausencia de regla nunca excluye. Los controles que ninguna regla nombra se retienen en todas las zonas y se miden con scripts/gating_report.py.",
+    "v0.3.0 (UCM-48): el modelo asumía implícitamente que la ley solo obliga a la organización, y la regla GATE-SCOPE-LEGAL-OBLIGATION difería toda obligación legal a la capa organizativa. La TSA SD-2021-02 lo desmiente — un regulador sectorial legisla mecanismos técnicos concretos (segmentar OT/IT, MFA en el acceso) —, así que la regla pasa a distinguir la obligación de gobernanza/reporte (diferida) de la que prescribe mecanismo (ejercida en la zona). La distinción se codifica por enumeración: SD-01 y CIRCIA están en la lista, SD-02 no. Material de primera para la memoria."
+  ]
+}

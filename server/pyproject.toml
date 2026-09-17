@@ -5,21 +5,34 @@ description = "Motor de armonización multi-marco — núcleo determinista, API 
 requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",
-    "alembic>=1.18.5",
-    "asyncpg>=0.31.0",
-    "bcrypt>=5.0.0",
     "fastapi>=0.139.2",
+    "httpx>=0.28.1",
+    "pydantic-ai-slim[openai]>=2.19.0",
     "pydantic-settings>=2.14.2",
     "pydantic[email]>=2.13.4",
-    "python-jose[cryptography]>=3.5.0",
-    "python-multipart>=0.0.32",
+    "qdrant-client>=1.12",
+    "sentence-transformers>=5.0",
     "sqlalchemy>=2.0.51",
+    # Direct only so the CPU wheel can be pinned below; `tool.uv.sources` does not
+    # reach transitive dependencies.
+    "torch>=2.13.0",
     "uvicorn[standard]>=0.51.0",
 ]
 
+# Embeddings run on the CPU by design and the GPU overlay never touches this
+# process, but the default PyPI wheel drags the whole CUDA runtime onto Linux —
+# ~3.9 GB of image nothing here can call.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+# Serves torch only; without this every package would resolve against it.
+explicit = true
+
 [dependency-groups]
 dev = [
-    "httpx>=0.28.1",
     "mypy>=2.3.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
@@ -30,14 +43,24 @@ dev = [
 pythonpath = ["."]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# The suite must run on any machine, with no containers and no network: the tests
+# that need the real 7B or the real index are deselected unless asked for
+# (`pytest -m llm`, `pytest -m rag`).
+addopts = ["-m", "not llm and not rag"]
+markers = [
+    "llm: needs Ollama up with the pinned model (UCM-12)",
+    "rag: needs Qdrant up and the e5-base model on disk (UCM-13)",
+]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# Enums inherit from `str` on purpose: they are Pydantic fields serialised to and
+# read back from the versioned JSON (catalog, rules, profiles).
+ignore = ["UP042"]
 
 [tool.mypy]
 python_version = "3.12"

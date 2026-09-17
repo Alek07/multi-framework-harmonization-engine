@@ -1,0 +1,735 @@
+"""The whole flow through the API, on several assets, against a deployment.
+
+The seven declared endpoints in the order an operator walks them -- free text in,
+signed baseline and declaration of applicability out -- then the same walk again
+for assets that differ on the premises the engine reads. Unlike the rest of the
+suite (scripted model, fake index, in-process client), this proves the seams hold:
+that a premise declared in the catalog becomes a justified exclusion in the zone
+that does not meet it, and stays legible, with its rule and evidence, in the signed
+document at the far end.
+
+The five assets bracket the premise and sector space rather than being realistic
+in every detail, and are given as prose so the flow starts at the parse. The last
+two, a water plant and a hospital, are out of the pipeline's sectors, so maritime
+and transport norms must come out as justified exclusions, scored against
+`server/eval/applicability_ground_truth.json`.
+
+Premise capture by the parse and the operator's review are reported, not asserted:
+a parse miss is the argument for human-in-the-loop, and the simulated review is
+printed field by field so model and human values stay distinguishable.
+
+Run from the repo root, with the stack up:
+
+    docker compose exec backend python scripts/e2e_flow.py
+    docker compose exec backend python scripts/e2e_flow.py --asset ESC-AIRGAP
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+import httpx
+
+
+@dataclass
+class Asset:
+    """An asset as the operator would hand it over: prose, plus what they answer.
+
+    `review` is not a second parse. It is the table the person fills when the
+    model leaves a required field empty, and it is printed field by field so the
+    seam between the two is never invisible.
+    """
+
+    id: str
+    label: str
+    description: str
+    review: dict[str, Any]
+    summary: dict[str, Any] = field(default_factory=dict)
+
+
+NATURE_ALL_FALSE = {
+    "general_purpose_os": False,
+    "networked": False,
+    "hybrid_it_ot": False,
+    "interactive_users": False,
+    "office_it_surface": False,
+}
+NATURE_ALL_TRUE = dict.fromkeys(NATURE_ALL_FALSE, True)
+
+
+ASSETS: list[Asset] = [
+    Asset(
+        id="ESC-AIRGAP",
+        label="Sistema instrumentado de seguridad, aislado",
+        description=(
+            "El sistema instrumentado de seguridad de la estacion de bombeo PK-42 es un "
+            "controlador embebido dedicado, sin conexion a ninguna red: opera aislado, con "
+            "enclavamientos cableados. No ejecuta ningun sistema operativo de proposito general, "
+            "no tiene pantalla ni teclado, nadie inicia sesion en el, y no se manejan alli ni "
+            "correo ni documentos ofimaticos. Es la joya de la corona del activo y su funcion de "
+            "seguridad es lo ultimo que puede fallar; el objetivo de nivel de seguridad es 4. El "
+            "operador es una empresa de transporte de gas del sector energia. Un fallo de la "
+            "funcion de seguridad provocaria una sobrepresion con rotura y fuga, de consecuencia "
+            "catastrofica. El modelo de amenaza de referencia es ATT&CK for ICS y el incidente de "
+            "referencia es TRITON/TRISIS."
+        ),
+        review={
+            "name": "SIS de la estacion de bombeo PK-42",
+            "case": "PURE_OT",
+            "sectors": ["energy"],
+            "target_sl": 4,
+            "nature": NATURE_ALL_FALSE,
+            "criticality": {
+                "physical_consequence": "loss_of_safety_function",
+                "scale": "catastrophic",
+                "threat_model": "ATTACK_for_ICS",
+            },
+            "conduit_control": "hardwired_interlock",
+        },
+    ),
+    Asset(
+        id="ESC-PORT",
+        label="Terminal portuaria de combustible, dos zonas",
+        description=(
+            "La terminal portuaria de combustible atiende el atraque de buques y tiene dos zonas. "
+            "En el pantalan, el control de los brazos de carga corre sobre equipos embebidos sin "
+            "sistema operativo de proposito general, conectados a la red de control, y operados de "
+            "forma interactiva por el personal de muelle; alli no se manejan correo ni documentos "
+            "ofimaticos, y el objetivo de nivel de seguridad es 3. En la sala de operacion "
+            "portuaria hay estaciones Windows conectadas a la vez a la red corporativa y a la red "
+            "de control, con correo, navegacion web y documentos, y personal que inicia sesion; su "
+            "objetivo de nivel de seguridad es 2. La terminal opera en los sectores maritimo, de "
+            "transporte y de energia. Un incidente provocaria un derrame de combustible con "
+            "incendio en el atraque, de consecuencia catastrofica, y el incidente de referencia es "
+            "NotPetya/Maersk."
+        ),
+        review={
+            "name": "Terminal portuaria de combustible",
+            "case": "HYBRID_IT_OT",
+            "sectors": ["maritime", "transport", "energy"],
+            "target_sl": 3,
+            "nature": NATURE_ALL_TRUE,
+            "criticality": {
+                "physical_consequence": "fuel_spill_and_fire_at_berth",
+                "scale": "catastrophic",
+                "threat_model": "ATTACK_for_ICS",
+            },
+            "conduit_control": "mediated_ship_shore_interface",
+        },
+    ),
+    Asset(
+        id="ESC-OFFICE",
+        label="Centro de control corporativo",
+        description=(
+            "El centro de control corporativo del operador de gasoducto esta en el nivel 5 de "
+            "Purdue. Son servidores y puestos Windows conectados a la red corporativa, que ademas "
+            "alcanza la red de control a traves de una DMZ industrial. El personal inicia sesion "
+            "de forma interactiva y se manejan correo, navegacion web y documentos ofimaticos. El "
+            "objetivo de nivel de seguridad es 2. El operador es una empresa de transporte de gas "
+            "del sector energia. Un incidente causaria la perdida de visibilidad supervisora sobre "
+            "la red de transporte, de consecuencia alta."
+        ),
+        review={
+            "name": "Centro de control corporativo",
+            "case": "HYBRID_IT_OT",
+            "sectors": ["energy"],
+            "target_sl": 2,
+            "nature": NATURE_ALL_TRUE,
+            "criticality": {
+                "physical_consequence": "loss_of_supervisory_visibility",
+                "scale": "high",
+                "threat_model": "ATTACK_enterprise",
+            },
+            "conduit_control": "it_hygiene_and_identity",
+        },
+    ),
+    # Two assets outside the pipeline's sectors: maritime and transport norms
+    # must be excluded by sector, not offered.
+    Asset(
+        id="ESC-WATER",
+        label="Planta potabilizadora, sector agua",
+        description=(
+            "La planta potabilizadora abastece de agua de consumo a una ciudad y opera en el "
+            "sector del agua. Su SCADA corre sobre estaciones Windows conectadas a la red, que "
+            "gobiernan las bombas de captacion y la dosificacion de cloro a traves de PLCs en la "
+            "red de control; la instalacion es a la vez de tecnologia de la informacion y de "
+            "operacion. El personal de planta inicia sesion de forma interactiva en las "
+            "estaciones de operacion, pero en ellas no se manejan correo ni documentos "
+            "ofimaticos. El objetivo de nivel de seguridad es 3. Un ataque que manipule la "
+            "dosificacion provocaria la "
+            "contaminacion del agua distribuida, de consecuencia catastrofica, y el modelo de "
+            "amenaza de referencia es ATT&CK for ICS."
+        ),
+        review={
+            "name": "Planta potabilizadora municipal",
+            "case": "HYBRID_IT_OT",
+            "sectors": ["water"],
+            "target_sl": 3,
+            "nature": {
+                "general_purpose_os": True,
+                "networked": True,
+                "hybrid_it_ot": True,
+                "interactive_users": True,
+                "office_it_surface": False,
+            },
+            "criticality": {
+                "physical_consequence": "drinking_water_contamination",
+                "scale": "catastrophic",
+                "threat_model": "ATTACK_for_ICS",
+            },
+            "conduit_control": "mediated_scada_interface",
+        },
+    ),
+    Asset(
+        id="ESC-HOSPITAL",
+        label="Hospital, sector salud",
+        description=(
+            "El sistema de informacion clinica de un hospital opera en el sector de la salud. Son "
+            "servidores y estaciones Windows conectados a la red, con la historia clinica "
+            "electronica, correo, navegacion web y documentos ofimaticos, y ademas dan servicio a "
+            "equipos medicos conectados a la misma red: es un entorno mixto de tecnologia de la "
+            "informacion y de operacion. El personal sanitario inicia sesion de forma interactiva. "
+            "El objetivo de nivel de seguridad es 2. Un incidente interrumpiria la atencion a "
+            "pacientes, de consecuencia alta, y el modelo de amenaza de referencia es ATT&CK "
+            "empresarial."
+        ),
+        review={
+            "name": "Sistema de informacion clinica hospitalario",
+            "case": "HYBRID_IT_OT",
+            "sectors": ["health"],
+            "target_sl": 2,
+            "nature": NATURE_ALL_TRUE,
+            "criticality": {
+                "physical_consequence": "disruption_of_patient_care",
+                "scale": "high",
+                "threat_model": "ATTACK_enterprise",
+            },
+            "conduit_control": "it_hygiene_and_identity",
+        },
+    ),
+]
+
+SIGNATURE = {
+    "operator": "Responsable de ciberseguridad OT",
+    "rationale": (
+        "Bloque obligatorio revisado zona a zona; los mandatos que el motor no pudo cerrar se "
+        "asumen por escrito tras valorar el riesgo residual."
+    ),
+}
+
+PREMISE_RULE = "GATE-PREMISE-UNMET"
+SECTOR_RULE = "APPLIC-SECTOR"
+
+GROUND_TRUTH_PATH = Path(__file__).resolve().parents[1] / "eval" / "applicability_ground_truth.json"
+
+
+def load_ground_truth() -> dict[str, Any]:
+    return json.loads(GROUND_TRUTH_PATH.read_text(encoding="utf-8"))["assets"]
+
+
+class Report:
+    """Every check is recorded and printed; the run does not stop at the first one."""
+
+    def __init__(self) -> None:
+        self.failed = 0
+        self.passed = 0
+
+    def check(self, ok: bool, label: str, detail: str = "") -> bool:
+        if ok:
+            self.passed += 1
+        else:
+            self.failed += 1
+        mark = "OK  " if ok else "FALLA"
+        print(f"     [{mark}] {label}{f' - {detail}' if detail else ''}")
+        return ok
+
+    def note(self, label: str, value: Any) -> None:
+        print(f"     .     {label}: {value}")
+
+    def step(self, number: str, title: str) -> None:
+        print()
+        print(f"  == {number}  {title}")
+
+
+def complete(asset: Asset, draft: dict[str, Any], missing: list[str], r: Report) -> dict[str, Any]:
+    """The operator's review, simulated -- and printed, so the seam stays visible.
+
+    Every zone the model found is kept. Dropping one would be the silent omission
+    this engine exists to prevent, committed by its own test.
+    """
+    review = asset.review
+    profile: dict[str, Any] = {
+        "id": asset.id,
+        "name": draft.get("name") or review["name"],
+        "case": draft.get("case") or review["case"],
+        "sectors": draft.get("sectors") or review["sectors"],
+        "zones": [],
+        "conduits": [],
+        "criticality": {},
+    }
+
+    supplied: list[str] = []
+    read: list[str] = []
+    for index, raw in enumerate(draft.get("zones") or [{}]):
+        zone = dict(raw)
+        merged: dict[str, Any] = {
+            "id": zone.get("id") or f"{asset.id}-Z{index}",
+            "target_sl": zone.get("target_sl") or review["target_sl"],
+            "nature": {},
+            "safety_out_of_scope": bool(zone.get("safety_out_of_scope")),
+        }
+        # A zone's own sectors override the asset's; dropping them would hand every
+        # zone the asset-wide reading and lose the per-zone sectoral exclusion.
+        for optional in ("purdue", "role", "position", "reference", "sectors"):
+            if zone.get(optional):
+                merged[optional] = zone[optional]
+        model_nature = zone.get("nature") or {}
+        for flag, declared in review["nature"].items():
+            value = model_nature.get(flag)
+            if value is None:
+                value, target = declared, supplied
+            else:
+                target = read
+            target.append(f"{merged['id']}.{flag}")
+            merged["nature"][flag] = bool(value)
+        profile["zones"].append(merged)
+
+    criticality = draft.get("criticality") or {}
+    for field_name, declared in review["criticality"].items():
+        profile["criticality"][field_name] = criticality.get(field_name) or declared
+    for optional in ("consequence_path", "attack_reference"):
+        if criticality.get(optional):
+            profile["criticality"][optional] = criticality[optional]
+
+    for index, conduit in enumerate(draft.get("conduits") or []):
+        endpoints = conduit.get("endpoints") or []
+        if len(endpoints) < 2:
+            continue
+        profile["conduits"].append(
+            {
+                "id": conduit.get("id") or f"C-{index}",
+                "endpoints": endpoints,
+                "control": conduit.get("control") or review["conduit_control"],
+            }
+        )
+
+    r.note("zonas que el modelo encontro", [z["id"] for z in profile["zones"]])
+    r.note("campos que el modelo dejo vacios", len(missing))
+    r.note("premisas leidas por el modelo", f"{len(read)} de {len(read) + len(supplied)}")
+    if supplied:
+        r.note("premisas que declaro la persona", supplied)
+    asset.summary["zones"] = [z["id"] for z in profile["zones"]]
+    asset.summary["premises_read"] = len(read)
+    asset.summary["premises_supplied"] = len(supplied)
+    return profile
+
+
+def parse_asset(client: httpx.Client, asset: Asset, r: Report) -> dict[str, Any]:
+    r.step("1/7", "POST /asset/parse  -- texto libre a borrador revisable")
+    body = client.post("/asset/parse", json={"description": asset.description}, timeout=900.0)
+    r.check(body.status_code == 200, "el parseo responde", f"HTTP {body.status_code}")
+    result = body.json()
+
+    prov = result["provenance"]
+    r.check(result["review_required"] is True, "el borrador exige revision humana")
+    r.check(prov["temperature"] == 0.0 and prov["seed"] is not None, "temp 0 y semilla fijada")
+    r.check(bool(prov["model_digest"]), "digest del modelo verificado")
+    r.note("intentos del modelo", prov["attempts"])
+    return result
+
+
+def candidates(client: httpx.Client, asset: Asset, profile: dict, r: Report) -> dict[str, Any]:
+    r.step("2/7", "POST /candidates  -- perfil a opciones equivalentes por capacidad")
+    body = client.post("/candidates", json={"profile": profile}, timeout=1800.0)
+    r.check(body.status_code == 200, "el motor responde", f"HTTP {body.status_code}")
+    run = body.json()
+
+    caps = [c for zone in run["zones"] for c in zone["capabilities"]]
+    per_zone = {z["zone"]["zone_id"]: len(z["capabilities"]) for z in run["zones"]}
+    r.check(set(per_zone.values()) == {37}, "37 capacidades en cada zona", str(per_zone))
+    r.check(
+        run["retrieval"]["status"] == "ok",
+        "el recuperador contesto",
+        run["retrieval"]["status"],
+    )
+
+    silent = [
+        c["capability_id"]
+        for c in caps
+        if not c["offered_control_ids"]
+        and not (
+            c["resolution"]["gap"] or c["gating"]["gap"] or (c.get("retrieval") or {}).get("gap")
+        )
+    ]
+    r.check(not silent, "0 omisiones silenciosas (invariante 2)", str(silent))
+
+    excluded = [d for c in caps for d in c["gating"]["excluded"]]
+    by_premise = [d for d in excluded if d["rule_id"] == PREMISE_RULE]
+    r.check(
+        all(d["rationale"].strip() and d["evidence"] for d in excluded),
+        "toda exclusion lleva motivo y evidencia",
+    )
+    r.check(
+        all(c["gating"]["required"] is True for c in caps),
+        "ninguna capacidad deja de ser requerida",
+    )
+
+    surviving = {
+        zone["zone"]["zone_id"]: len(
+            {o["control"]["id"] for c in zone["capabilities"] for o in c["resolution"]["options"]}
+            - {d["control_id"] for c in zone["capabilities"] for d in c["gating"]["excluded"]}
+        )
+        for zone in run["zones"]
+    }
+    r.note("controles del catalogo que sobreviven, por zona", surviving)
+    r.note("exclusiones", f"{len(excluded)} - por premisa {len(by_premise)}")
+
+    asset.summary.update(
+        surviving=surviving,
+        excluded=len(excluded),
+        by_premise=len(by_premise),
+        suggestions=run["retrieval"]["suggestions"],
+        outstanding=sum(len(z["outstanding_capability_ids"]) for z in run["zones"]),
+    )
+    return run
+
+
+def applicability(asset: Asset, run: dict[str, Any], truth: dict[str, Any], r: Report) -> None:
+    """Spurious inclusions: out-of-sector norms offered instead of excluded by sector."""
+    r.step("2b/7", "Precision de aplicabilidad  -- inclusiones espurias")
+    entry = truth.get(asset.id)
+    if entry is None:
+        r.note("sin verdad de referencia para este activo", asset.id)
+        return
+
+    out_of_scope = set(entry["out_of_scope"])
+    governs = set(entry["governs"])
+    r.note(
+        "juicio experto",
+        f"rigen {sorted(governs)}; fuera de sector {sorted(out_of_scope) or '-'}",
+    )
+
+    # control_id -> control object; options carry every control in play.
+    meta = {
+        option["control"]["id"]: option["control"]
+        for zone in run["zones"]
+        for capability in zone["capabilities"]
+        for option in capability["resolution"]["options"]
+    }
+
+    spurious: list[tuple[str, str]] = []
+    excluded_other: list[tuple[str, str]] = []
+    silent: list[tuple[str, str]] = []
+    overreach: list[tuple[str, str]] = []
+    correct = 0
+
+    for zone in run["zones"]:
+        zid = zone["zone"]["zone_id"]
+        caps = zone["capabilities"]
+        retained = {
+            control_id
+            for c in caps
+            for control_id in (
+                *c["gating"]["retained_control_ids"],
+                *c["gating"]["compensatory_control_ids"],
+            )
+        }
+        by_sector = {
+            d["control_id"]
+            for c in caps
+            for d in c["gating"]["excluded"]
+            if d["rule_id"] == SECTOR_RULE
+        }
+        excluded_any = {d["control_id"] for c in caps for d in c["gating"]["excluded"]}
+        in_play = {o["control"]["id"] for c in caps for o in c["resolution"]["options"]}
+
+        for control_id in sorted(in_play):
+            framework = meta[control_id]["framework"]
+            if framework in out_of_scope:
+                if control_id in retained:
+                    spurious.append((control_id, zid))
+                elif control_id in by_sector:
+                    correct += 1
+                elif control_id in excluded_any:
+                    excluded_other.append((control_id, zid))
+                else:
+                    silent.append((control_id, zid))
+            elif framework in governs and control_id in by_sector:
+                overreach.append((control_id, zid))
+
+    oos_total = correct + len(spurious) + len(excluded_other) + len(silent)
+    precision = correct / (correct + len(spurious)) if (correct + len(spurious)) else 1.0
+
+    if oos_total:
+        r.check(not spurious, "0 inclusiones espurias (norma fuera de sector ofrecida)",
+                str(sorted(c for c, _ in spurious)))
+        r.check(not silent, "0 silencio sobre normas fuera de sector",
+                str(sorted(c for c, _ in silent)))
+        r.note(
+            "precision de aplicabilidad",
+            f"{precision:.2f} ({correct}/{correct + len(spurious)})",
+        )
+        r.note("normas fuera de sector excluidas por ambito", f"{correct} de {oos_total} en juego")
+        if excluded_other:
+            r.note("fuera de sector, excluidas por otra razon (no por ambito)",
+                   sorted(c for c, _ in excluded_other))
+        for control_id, zid in spurious:
+            control = meta[control_id]
+            r.note(
+                f"espuria {control_id}",
+                f"{control['framework']} ({control['official_id']}) rige "
+                f"{control['applies_to_sectors']}, ofrecida en {zid} "
+                f"(sectores del activo {entry['sectors']})",
+            )
+    else:
+        r.note("normas fuera de sector", "ninguna: todo lo que rige este activo esta en sector")
+
+    r.check(not overreach, "0 exclusiones indebidas (norma en sector excluida por ambito)",
+            str(sorted(c for c, _ in overreach)))
+
+    asset.summary.update(
+        oos_norms=oos_total,
+        spurious=len(spurious),
+        applic_precision=round(precision, 4),
+        sector_excluded=correct,
+        overreach=len(overreach),
+    )
+
+
+def delta(client: httpx.Client, asset: Asset, profile: dict, zone_id: str, r: Report) -> None:
+    r.step("3/7", "POST /delta  -- que anade responder tambien ante la UE")
+    body = client.post(
+        "/delta",
+        json={"regions": ["US", "EU"], "profile": profile, "zone_id": zone_id},
+        timeout=600.0,
+    )
+    r.check(body.status_code == 200, "el delta responde", f"HTTP {body.status_code}")
+    result = body.json()
+    r.check(result["zone"]["zone_id"] == zone_id, "es la zona pedida")
+    r.check(len(result["capabilities"]) == 37, "cubre las 37 capacidades")
+    added = sum(len(c["added"]) for c in result["capabilities"])
+    r.note("capacidades que cambian al anadir EU", len(result["changed_capability_ids"]))
+    asset.summary.update(delta_changed=len(result["changed_capability_ids"]), delta_added=added)
+
+
+def compose(client: httpx.Client, asset: Asset, run: dict, profile: dict, r: Report) -> dict:
+    r.step("4/7", "POST /baseline/compose  -- las decisiones del humano, firmadas")
+    choices = [
+        {
+            "kind": "gap_accepted",
+            "zone_id": zone["zone"]["zone_id"],
+            "capability_id": capability_id,
+            "rationale": (
+                "Riesgo residual asumido por escrito: el activo no admite el mecanismo y la "
+                f"compensacion pasa a la capa organizativa ({capability_id})."
+            ),
+        }
+        for zone in run["zones"]
+        for capability_id in zone["outstanding_capability_ids"]
+    ]
+    r.note("mandatos que el motor no pudo cerrar", len(choices))
+
+    body = client.post(
+        "/baseline/compose",
+        json={
+            "run_id": run["run_id"],
+            "profile": profile,
+            "choices": choices,
+            "signature": SIGNATURE,
+        },
+        timeout=600.0,
+    )
+    r.check(body.status_code == 201, "la baseline se firma", f"HTTP {body.status_code}")
+    baseline = body.json()
+    r.check(baseline["tier_0_complete"] is True, "el bloque obligatorio esta completo")
+    r.check(baseline["run_id"] == run["run_id"], "la firma apunta a esta corrida")
+    asset.summary["baseline"] = baseline["baseline_id"]
+    return baseline
+
+
+def trail(client: httpx.Client, asset: Asset, baseline: dict, r: Report) -> None:
+    r.step("5/7", "GET /baseline/{id}/audit-log  -- la traza completa y su cadena")
+    body = client.get(f"/baseline/{baseline['baseline_id']}/audit-log", timeout=300.0)
+    r.check(body.status_code == 200, "la bitacora responde", f"HTTP {body.status_code}")
+    log = body.json()
+
+    r.check(log["chain"]["valid"] is True, "la cadena de hashes verifica")
+    r.check(
+        log["engine_events"] > 0 and log["human_events"] > 0,
+        "hay asientos de motor y de humano",
+    )
+    r.check(
+        all(e["decision"].strip() and e["rationale"].strip() for e in log["events"]),
+        "todo asiento dice que se decidio y por que",
+    )
+    actors = sorted({e["actor"] for e in log["events"]})
+    r.check(set(actors) <= {"engine", "human"}, "solo motor y humano son actores", str(actors))
+    r.note("asientos", f"{log['engine_events']} motor + {log['human_events']} humano")
+    asset.summary.update(
+        events=len(log["events"]),
+        human_events=log["human_events"],
+        chain_valid=log["chain"]["valid"],
+    )
+
+
+def listing(client: httpx.Client, baseline: dict, r: Report) -> None:
+    r.step("6/7", "GET /baselines  -- lo firmado en este registro")
+    body = client.get("/baselines", timeout=300.0)
+    r.check(body.status_code == 200, "el listado responde", f"HTTP {body.status_code}")
+    ids = [b["baseline_id"] for b in body.json()["baselines"]]
+    r.check(baseline["baseline_id"] in ids, "la baseline recien firmada aparece")
+
+
+def statement(client: httpx.Client, asset: Asset, baseline: dict, r: Report) -> None:
+    r.step("7/7", "GET /baseline/{id}/statement  -- la declaracion de aplicabilidad")
+    path = f"/baseline/{baseline['baseline_id']}/statement"
+    body = client.get(path, timeout=300.0)
+    r.check(body.status_code == 200, "la declaracion responde", f"HTTP {body.status_code}")
+    soa = body.json()
+
+    rows = [row for zone in soa["zones"] for row in zone["rows"]]
+    per_zone = {zone["zone_id"]: len(zone["rows"]) for zone in soa["zones"]}
+    r.check(set(per_zone.values()) == {37}, "una fila por capacidad en cada zona", str(per_zone))
+    r.check(all(row["required"] is True for row in rows), "ninguna capacidad deja de ser exigida")
+    r.check(soa["chain"]["valid"] is True, "el documento verifica su propia cadena")
+    r.check(bool(soa["limitations"]), "el documento declara lo que no es")
+
+    # The claim, at the far end of the chain.
+    mechs = [m for row in rows for m in row["mechanisms"]]
+    by_premise = [m for m in mechs if m["rule_id"] == PREMISE_RULE]
+    expected = asset.summary.get("by_premise", 0)
+    if expected:
+        r.check(
+            bool(by_premise),
+            "las exclusiones por premisa llegan a la declaracion firmada",
+            f"{len(by_premise)} mecanismo(s)",
+        )
+        r.check(
+            all(m["disposition"] == "not_applicable" and m["evidence"] for m in by_premise),
+            "cada una llega como exclusion justificada, con su evidencia",
+        )
+        sample = by_premise[0]
+        r.note("ejemplo", f"{sample['control_id']} ({sample['official_id']})")
+        r.note("evidencia", sample["evidence"][0] if sample["evidence"] else "-")
+    else:
+        r.note("exclusiones por premisa", "ninguna en este activo, y eso es la respuesta")
+
+    # A sectoral exclusion must survive into the signed declaration too.
+    by_sector = [m for m in mechs if m["rule_id"] == SECTOR_RULE]
+    if asset.summary.get("sector_excluded", 0):
+        r.check(
+            bool(by_sector),
+            "las exclusiones por ambito llegan a la declaracion firmada",
+            f"{len(by_sector)} mecanismo(s)",
+        )
+        r.check(
+            all(m["disposition"] == "not_applicable" and m["evidence"] for m in by_sector),
+            "cada una llega como exclusion justificada por ambito, con su evidencia",
+        )
+
+    # Counted over what the gating did not exclude, not over what the signature
+    # took: a contextual obligation is offered rather than "included", so counting
+    # only included ones reported zero IMO for a maritime terminal.
+    gated_out = {"not_applicable", "objective_without_mechanism", "wrong_scope"}
+    surviving = [m for m in mechs if m["disposition"] not in gated_out and m["framework"]]
+    frameworks = sorted({m["framework"] for m in surviving})
+    r.note("marcos que sobreviven al gating", frameworks)
+
+    oscal = client.get(path, params={"format": "oscal"}, timeout=300.0)
+    r.check(oscal.status_code == 200, "la variante OSCAL responde", f"HTTP {oscal.status_code}")
+    r.check("system-security-plan" in oscal.text, "es un system-security-plan")
+    asset.summary.update(
+        statement_rows=len(rows),
+        premise_in_statement=len(by_premise),
+        frameworks=frameworks,
+    )
+
+
+def walk(client: httpx.Client, asset: Asset, truth: dict[str, Any], r: Report) -> None:
+    """One asset, all seven endpoints, in the order the operator walks them."""
+    print()
+    print(f"=== {asset.id}  {asset.label}")
+    parsed = parse_asset(client, asset, r)
+    profile = complete(asset, parsed["draft"], parsed["missing_required"], r)
+    run = candidates(client, asset, profile, r)
+    applicability(asset, run, truth, r)
+    delta(client, asset, profile, run["zones"][0]["zone"]["zone_id"], r)
+    baseline = compose(client, asset, run, profile, r)
+    trail(client, asset, baseline, r)
+    listing(client, baseline, r)
+    statement(client, asset, baseline, r)
+
+
+def compare(assets: list[Asset]) -> None:
+    print()
+    print(f"=== Mismo catalogo, mismas reglas, {len(assets)} activo(s)")
+    header = (
+        f"{'activo':12} {'zonas':>6} {'premisas':>9} {'sobreviven':>22} "
+        f"{'excl':>5} {'prem':>5} {'abiertos':>9} {'IMO':>4} "
+        f"{'f/sec':>6} {'esp':>4} {'prec':>5}"
+    )
+    print(header)
+    print("-" * len(header))
+    for a in assets:
+        s = a.summary
+        if not s.get("surviving"):
+            continue
+        surviving = "/".join(str(v) for v in s["surviving"].values())
+        premises = f"{s['premises_read']}/{s['premises_read'] + s['premises_supplied']}"
+        imo = "si" if "IMO" in s.get("frameworks", []) else "-"
+        precision = f"{s['applic_precision']:.2f}" if "applic_precision" in s else "-"
+        print(
+            f"{a.id:12} {len(s['zones']):6} {premises:>9} {surviving:>22} "
+            f"{s['excluded']:5} {s['by_premise']:5} {s['outstanding']:9} {imo:>4} "
+            f"{s.get('oos_norms', 0):>6} {s.get('spurious', 0):>4} {precision:>5}"
+        )
+    print()
+    print("   premisas = leidas por el modelo / totales; el resto las declaro la persona")
+    print("   sobreviven = controles del catalogo que el gating no excluyo, por zona")
+    print("   f/sec = normas fuera de sector en juego; esp = inclusiones espurias;")
+    print("   prec = precision de aplicabilidad (correctas / (correctas + espurias)), meta 1.00")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base-url", default="http://localhost:8000/api/v1")
+    parser.add_argument("--asset", help="run only this one (ESC-AIRGAP, ESC-PORT, ESC-OFFICE)")
+    parser.add_argument("--out", help="write the per-asset summary as JSON")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    chosen = [a for a in ASSETS if not args.asset or a.id == args.asset]
+    if not chosen:
+        print(f"   no hay ningun activo llamado {args.asset}")
+        return 2
+
+    truth = load_ground_truth()
+    r = Report()
+    print(f"   flujo completo contra {args.base_url} - {len(chosen)} activo(s)")
+    with httpx.Client(base_url=args.base_url) as client:
+        for asset in chosen:
+            walk(client, asset, truth, r)
+
+    compare(chosen)
+    print()
+    print(f"=== {r.passed} comprobaciones pasan, {r.failed} fallan")
+    if args.out:
+        with open(args.out, "w", encoding="utf-8") as handle:
+            json.dump(
+                {a.id: {"label": a.label, **a.summary} for a in chosen},
+                handle,
+                ensure_ascii=False,
+                indent=2,
+            )
+    return 1 if r.failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

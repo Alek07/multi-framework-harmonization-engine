@@ -1,0 +1,83 @@
+   flujo completo contra http://localhost:8000/api/v1 - 1 activo(s)
+
+=== ESC-AIRGAP  Sistema instrumentado de seguridad, aislado
+
+  == 1/7  POST /asset/parse  -- texto libre a borrador revisable
+     [OK  ] el parseo responde - HTTP 200
+     [OK  ] el borrador exige revision humana
+     [OK  ] temp 0 y semilla fijada
+     [OK  ] digest del modelo verificado
+     .     intentos del modelo: 1
+     .     zonas que el modelo encontro: ['Z-SISTEMA_INSTRUMENTADO_SEGuridad']
+     .     campos que el modelo dejo vacios: 1
+     .     premisas leidas por el modelo: 5 de 5
+
+  == 2/7  POST /candidates  -- perfil a opciones equivalentes por capacidad
+     [OK  ] el motor responde - HTTP 200
+     [OK  ] 37 capacidades en cada zona - {'Z-SISTEMA_INSTRUMENTADO_SEGuridad': 37}
+     [OK  ] el recuperador contesto - ok
+     [OK  ] 0 omisiones silenciosas (invariante 2) - []
+     [OK  ] toda exclusion lleva motivo y evidencia
+     [OK  ] ninguna capacidad deja de ser requerida
+     .     controles del catalogo que sobreviven, por zona: {'Z-SISTEMA_INSTRUMENTADO_SEGuridad': 96}
+     .     exclusiones: 165 - por premisa 14
+
+  == 2b/7  Precision de aplicabilidad  -- inclusiones espurias
+     .     juicio experto: rigen ['CIRCIA', 'CIS', 'CSF', 'IEC62443', 'NIS2']; fuera de sector ['IMO', 'TSA']
+     [OK  ] 0 inclusiones espurias (norma fuera de sector ofrecida) - []
+     [OK  ] 0 silencio sobre normas fuera de sector - []
+     .     precision de aplicabilidad: 1.00 (15/15)
+     .     normas fuera de sector excluidas por ambito: 15 de 15 en juego
+     [OK  ] 0 exclusiones indebidas (norma en sector excluida por ambito) - []
+
+  == 3/7  POST /delta  -- que anade responder tambien ante la UE
+     [OK  ] el delta responde - HTTP 200
+     [OK  ] es la zona pedida
+     [OK  ] cubre las 37 capacidades
+     .     capacidades que cambian al anadir EU: 16
+
+  == 4/7  POST /baseline/compose  -- las decisiones del humano, firmadas
+     .     mandatos que el motor no pudo cerrar: 8
+     [OK  ] la baseline se firma - HTTP 201
+     [OK  ] el bloque obligatorio esta completo
+     [OK  ] la firma apunta a esta corrida
+
+  == 5/7  GET /baseline/{id}/audit-log  -- la traza completa y su cadena
+     [OK  ] la bitacora responde - HTTP 200
+     [OK  ] la cadena de hashes verifica
+     [OK  ] hay asientos de motor y de humano
+     [OK  ] todo asiento dice que se decidio y por que
+     [OK  ] solo motor y humano son actores - ['engine', 'human']
+     .     asientos: 516 motor + 31 humano
+
+  == 6/7  GET /baselines  -- lo firmado en este registro
+     [OK  ] el listado responde - HTTP 200
+     [OK  ] la baseline recien firmada aparece
+
+  == 7/7  GET /baseline/{id}/statement  -- la declaracion de aplicabilidad
+     [OK  ] la declaracion responde - HTTP 200
+     [OK  ] una fila por capacidad en cada zona - {'Z-SISTEMA_INSTRUMENTADO_SEGuridad': 37}
+     [OK  ] ninguna capacidad deja de ser exigida
+     [OK  ] el documento verifica su propia cadena
+     [OK  ] el documento declara lo que no es
+     [OK  ] las exclusiones por premisa llegan a la declaracion firmada - 14 mecanismo(s)
+     [OK  ] cada una llega como exclusion justificada, con su evidencia
+     .     ejemplo: CTL-CSF-DECM01 (DE.CM-01)
+     .     evidencia: el control presupone que la zona tiene conexión de red, y la zona declara lo contrario
+     [OK  ] las exclusiones por ambito llegan a la declaracion firmada - 19 mecanismo(s)
+     [OK  ] cada una llega como exclusion justificada por ambito, con su evidencia
+     .     marcos que sobreviven al gating: ['CIS', 'CSF', 'IEC62443']
+     [OK  ] la variante OSCAL responde - HTTP 200
+     [OK  ] es un system-security-plan
+
+=== Mismo catalogo, mismas reglas, 1 activo(s)
+activo        zonas  premisas             sobreviven  excl  prem  abiertos  IMO  f/sec  esp  prec
+-------------------------------------------------------------------------------------------------
+ESC-AIRGAP        1       5/5                     96   165    14         8    -     15    0  1.00
+
+   premisas = leidas por el modelo / totales; el resto las declaro la persona
+   sobreviven = controles del catalogo que el gating no excluyo, por zona
+   f/sec = normas fuera de sector en juego; esp = inclusiones espurias;
+   prec = precision de aplicabilidad (correctas / (correctas + espurias)), meta 1.00
+
+=== 37 comprobaciones pasan, 0 fallan

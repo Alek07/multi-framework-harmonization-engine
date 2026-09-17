@@ -1,0 +1,14 @@
+.env
+
+# Editors
+.vscode/
+.idea/
+
+# Playwright MCP
+.playwright-mcp/
+
+# Derived measurement output (server/scripts/retrieval_cut.py)
+docs/corte-del-recuperador.json
+
+# End-to-end run artifacts (make e2e) — console logs and JSON summaries
+server/eval/runs/

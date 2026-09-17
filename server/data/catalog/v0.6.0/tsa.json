@@ -1,0 +1,224 @@
+{
+  "framework": "TSA",
+  "note": "TSA Security Directives Pipeline-2021-01 y -2021-02 (series; revisiones consultadas 01G y 02G, verificado 2026-09-02). Capa legal estadounidense sectorial: rige solo los oleoductos y gasoductos de líquidos peligrosos y gas natural que la TSA designa como críticos, y en la taxonomía neutral eso es 'transport' — el Transportation Systems Sector, no 'energy'. Es exactamente el desajuste que la memoria explota: el mismo gasoducto es 'energy' bajo NIS2 y 'transport' bajo la TSA, así que el activo declara ambos sectores y cada norma se engancha por el suyo. Se desglosa obligación a obligación, como la NIS2 desglosa el art. 21(2): un control por deber distinto, para que el delta y la baseline nombren cada exigencia y no un bloque. La serie -01 son deberes de gobernanza y reporte (reporte a CISA, coordinador de ciberseguridad, evaluación de brechas): se difieren a la capa organizativa. La serie -02 rompe el supuesto de que 'ley ⇒ capa organizativa': dos de sus deberes prescriben mecanismos concretos de zona (segmentación OT/IT y MFA en el acceso) que se ejercen en el activo y sí mueven cobertura, por eso se mapean partial/compensatory y no se difieren; los demás (monitorización, parcheo, plan aprobado) son exigencia contextual. Descripciones parafraseadas de las directivas de la TSA y de sus notas de prensa (§7.5), nunca verbatim.",
+  "controls": [
+    {
+      "id": "CTL-TSA-SD01-REPORT",
+      "framework": "TSA",
+      "official_id": "SD Pipeline-2021-01G (report to CISA)",
+      "title": "SD Pipeline-2021-01 series — incident reporting",
+      "paraphrased_description": "Obliga al operador de oleoducto crítico a reportar los incidentes de ciberseguridad a CISA en un plazo máximo de 12 horas.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "reporte a CISA en 12 h: más rápido que las 72 h de la NIS2"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "transport"
+      ]
+    },
+    {
+      "id": "CTL-TSA-SD01-COORD",
+      "framework": "TSA",
+      "official_id": "SD Pipeline-2021-01G (cybersecurity coordinator)",
+      "title": "SD Pipeline-2021-01 series — cybersecurity coordinator",
+      "paraphrased_description": "Obliga al operador a designar un coordinador de ciberseguridad primario y alterno, disponibles las 24 horas para coordinar con TSA y CISA.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "coordinador primario y alterno disponibles 24/7"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "transport"
+      ]
+    },
+    {
+      "id": "CTL-TSA-SD01-ASSESS",
+      "framework": "TSA",
+      "official_id": "SD Pipeline-2021-01G (gap assessment)",
+      "title": "SD Pipeline-2021-01 series — vulnerability assessment",
+      "paraphrased_description": "Obliga al operador a evaluar sus prácticas frente a las recomendaciones de la TSA, identificar brechas y proponer su remediación.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "autoevaluación de brechas frente a las recomendaciones de la TSA"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "transport"
+      ]
+    },
+    {
+      "id": "CTL-TSA-SD02-SEGMENT",
+      "framework": "TSA",
+      "official_id": "SD Pipeline-2021-02G (network segmentation)",
+      "title": "SD Pipeline-2021-02 series — network segmentation",
+      "paraphrased_description": "Obliga al operador a segmentar sus redes de forma que la tecnología operacional pueda seguir operando aunque la tecnología de información quede comprometida, con separación física y lógica entre ambas.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "obligación legal que prescribe un mecanismo de zona: segmentación OT/IT"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "transport"
+      ]
+    },
+    {
+      "id": "CTL-TSA-SD02-MFA",
+      "framework": "TSA",
+      "official_id": "SD Pipeline-2021-02G (multi-factor authentication)",
+      "title": "SD Pipeline-2021-02 series — multi-factor authentication",
+      "paraphrased_description": "Obliga al operador a exigir autenticación multifactor en el acceso a los sistemas de información y operacionales.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "obligación legal que prescribe un mecanismo de zona: MFA en el acceso"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "transport"
+      ]
+    },
+    {
+      "id": "CTL-TSA-SD02-MONITOR",
+      "framework": "TSA",
+      "official_id": "SD Pipeline-2021-02G (continuous monitoring)",
+      "title": "SD Pipeline-2021-02 series — continuous monitoring and detection",
+      "paraphrased_description": "Obliga al operador a mantener políticas y procedimientos de monitorización continua y detección para identificar amenazas y corregir anomalías que afecten a los sistemas críticos.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "monitorización continua y detección exigidas por ley"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "transport"
+      ]
+    },
+    {
+      "id": "CTL-TSA-SD02-PATCH",
+      "framework": "TSA",
+      "official_id": "SD Pipeline-2021-02G (risk-based patching)",
+      "title": "SD Pipeline-2021-02 series — risk-based patching",
+      "paraphrased_description": "Obliga al operador a reducir el riesgo de explotación de sistemas sin parchear aplicando actualizaciones de forma oportuna con una metodología basada en el riesgo.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "parcheo basado en riesgo exigido por ley"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "transport"
+      ]
+    },
+    {
+      "id": "CTL-TSA-SD02-PLAN",
+      "framework": "TSA",
+      "official_id": "SD Pipeline-2021-02G (TSA-approved plan)",
+      "title": "SD Pipeline-2021-02 series — TSA-approved implementation plan",
+      "paraphrased_description": "Obliga al operador a mantener un plan de implementación de ciberseguridad aprobado por la TSA y a evaluar anualmente la eficacia de sus medidas, con pruebas del plan de respuesta.",
+      "jurisdiction": "US",
+      "strength": {
+        "kind": "legal",
+        "note": "plan aprobado por TSA y evaluación anual de eficacia"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "transport"
+      ]
+    }
+  ],
+  "mappings": [
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-TSA-SD01-REPORT",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "plazo de reporte a CISA de 12 h: el lado estadounidense es más rápido que las 72 h de la NIS2"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-ROLES",
+      "control_id": "CTL-TSA-SD01-COORD",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "coordinador de ciberseguridad primario y alterno disponible 24/7, exigido por ley"
+      }
+    },
+    {
+      "capability_id": "CAP-ID-RISK",
+      "control_id": "CTL-TSA-SD01-ASSESS",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "autoevaluación de brechas frente a las recomendaciones de la TSA"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-SEGMENT",
+      "control_id": "CTL-TSA-SD02-SEGMENT",
+      "type": "partial",
+      "coverage_weight": 0.5,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "la ley prescribe segmentación OT/IT y que el OT opere aunque el IT caiga: obligación que sí es mecanismo de zona"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-MFA",
+      "control_id": "CTL-TSA-SD02-MFA",
+      "type": "compensatory",
+      "coverage_weight": 0.4,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "MFA exigido por ley en el acceso; hacia el OT embebido se ejerce en el punto de mediación"
+      }
+    },
+    {
+      "capability_id": "CAP-DE-MONITOR",
+      "control_id": "CTL-TSA-SD02-MONITOR",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "monitorización continua y detección exigidas por ley"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-PATCH",
+      "control_id": "CTL-TSA-SD02-PATCH",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "parcheo basado en riesgo exigido por ley"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-OVERSIGHT",
+      "control_id": "CTL-TSA-SD02-PLAN",
+      "type": "contextual",
+      "coverage_weight": 0.3,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "US",
+        "note": "plan aprobado por TSA y evaluación anual de eficacia: supervisión exigida por ley"
+      }
+    }
+  ]
+}

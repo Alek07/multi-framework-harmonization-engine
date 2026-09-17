@@ -9,3 +9,6 @@ __pycache__
 *.db
 tests
 node_modules
+
+# Embedding model cache
+.cache

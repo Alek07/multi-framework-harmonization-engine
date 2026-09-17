@@ -1,0 +1,241 @@
+{
+  "framework": "IMO",
+  "note": "IMO MSC.428(98) y los elementos funcionales de las Directrices MSC-FAL.1/Circ.3/Rev.3 (§3.5), de 4 de abril de 2025. Overlay marítimo del contexto ACP: exige que el riesgo cibernético se aborde dentro del sistema de gestión de la seguridad (SMS), no que se implante un mecanismo concreto. Por eso todo mapeo es contextual y de peso bajo — la resolución 428(98) obliga al armador, no configura un PLC. Sólo MSC.428(98) se declara type=legal: es la resolución obligatoria. Los elementos funcionales de la circular son directrices, no obligación, y tiparlos como legales los convertiría en Tier 0 incondicional — el motor trata toda obligación legal como mandato con independencia del SL, así que llamar ley a una recomendación falsearía el bloque obligatorio del activo. La Rev.3 antepone un sexto elemento funcional, Govern, como §3.5.1 y desplaza un lugar a los cinco de la redacción de 2017: lo que allí era §3.5.1 Identify es aquí §3.5.2, y Recover pasa de §3.5.5 a §3.5.6. El catálogo v0.2.0 seguía la numeración de 2017, superada desde abril de 2025; los identificadores internos de control no cambian, sólo el official_id al que apuntan.",
+  "controls": [
+    {
+      "id": "CTL-IMO-42898",
+      "framework": "IMO",
+      "official_id": "MSC.428(98)",
+      "title": "Maritime Cyber Risk Management in Safety Management Systems",
+      "paraphrased_description": "Exige abordar el riesgo cibernético dentro del sistema de gestión de la seguridad (SMS).",
+      "jurisdiction": "INTL-MARITIME",
+      "strength": {
+        "kind": "legal",
+        "note": "dentro del SMS"
+      },
+      "type": "legal",
+      "applies_to_sectors": [
+        "maritime"
+      ]
+    },
+    {
+      "id": "CTL-IMO-FAL3GOV",
+      "framework": "IMO",
+      "official_id": "MSC-FAL.1/Circ.3/Rev.3 §3.5.1",
+      "title": "Govern (functional element)",
+      "paraphrased_description": "Establecer y supervisar la estrategia, las expectativas y las políticas de gestión del riesgo cibernético, definir roles y responsabilidades del personal, y asegurar la continuidad del negocio y la gestión de crisis.",
+      "jurisdiction": "INTL-MARITIME",
+      "strength": {
+        "kind": "guideline",
+        "note": "dentro del SMS"
+      },
+      "type": "technical",
+      "applies_to_sectors": [
+        "maritime"
+      ]
+    },
+    {
+      "id": "CTL-IMO-FAL3ID",
+      "framework": "IMO",
+      "official_id": "MSC-FAL.1/Circ.3/Rev.3 §3.5.2",
+      "title": "Identify (functional element)",
+      "paraphrased_description": "Identificar roles, sistemas y datos cuyo compromiso pondría en riesgo la operación.",
+      "jurisdiction": "INTL-MARITIME",
+      "strength": {
+        "kind": "guideline",
+        "note": "dentro del SMS"
+      },
+      "type": "technical",
+      "applies_to_sectors": [
+        "maritime"
+      ]
+    },
+    {
+      "id": "CTL-IMO-FAL3PR",
+      "framework": "IMO",
+      "official_id": "MSC-FAL.1/Circ.3/Rev.3 §3.5.3",
+      "title": "Protect (functional element)",
+      "paraphrased_description": "Aplicar medidas de control de riesgo y planes de contingencia proporcionados al riesgo identificado.",
+      "jurisdiction": "INTL-MARITIME",
+      "strength": {
+        "kind": "guideline",
+        "note": "dentro del SMS"
+      },
+      "type": "technical",
+      "applies_to_sectors": [
+        "maritime"
+      ]
+    },
+    {
+      "id": "CTL-IMO-FAL3DE",
+      "framework": "IMO",
+      "official_id": "MSC-FAL.1/Circ.3/Rev.3 §3.5.4",
+      "title": "Detect (functional element)",
+      "paraphrased_description": "Disponer de actividades que detecten a tiempo un evento cibernético.",
+      "jurisdiction": "INTL-MARITIME",
+      "strength": {
+        "kind": "guideline",
+        "note": "dentro del SMS"
+      },
+      "type": "technical",
+      "applies_to_sectors": [
+        "maritime"
+      ]
+    },
+    {
+      "id": "CTL-IMO-FAL3RS",
+      "framework": "IMO",
+      "official_id": "MSC-FAL.1/Circ.3/Rev.3 §3.5.5",
+      "title": "Respond (functional element)",
+      "paraphrased_description": "Actuar ante el evento para restablecer los sistemas necesarios para la operación.",
+      "jurisdiction": "INTL-MARITIME",
+      "strength": {
+        "kind": "guideline",
+        "note": "dentro del SMS"
+      },
+      "type": "technical",
+      "applies_to_sectors": [
+        "maritime"
+      ]
+    },
+    {
+      "id": "CTL-IMO-FAL3RC",
+      "framework": "IMO",
+      "official_id": "MSC-FAL.1/Circ.3/Rev.3 §3.5.6",
+      "title": "Recover (functional element)",
+      "paraphrased_description": "Restaurar los sistemas afectados y volver a la operación normal.",
+      "jurisdiction": "INTL-MARITIME",
+      "strength": {
+        "kind": "guideline",
+        "note": "dentro del SMS"
+      },
+      "type": "technical",
+      "applies_to_sectors": [
+        "maritime"
+      ]
+    }
+  ],
+  "mappings": [
+    {
+      "capability_id": "CAP-GOV-RISK",
+      "control_id": "CTL-IMO-42898",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "riesgo cibernético dentro del SMS"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-REPORT",
+      "control_id": "CTL-IMO-42898",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "reporte dentro del SMS"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-POLICY",
+      "control_id": "CTL-IMO-FAL3GOV",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "estrategia y políticas de riesgo cibernético dentro del SMS"
+      }
+    },
+    {
+      "capability_id": "CAP-GOV-ROLES",
+      "control_id": "CTL-IMO-FAL3GOV",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "roles y responsabilidades del personal en la gestión del riesgo cibernético"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-BACKUP",
+      "control_id": "CTL-IMO-FAL3GOV",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "la Rev.3 sitúa la continuidad del negocio y la gestión de crisis dentro de Govern"
+      }
+    },
+    {
+      "capability_id": "CAP-ID-RISK",
+      "control_id": "CTL-IMO-FAL3ID",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "identificación de sistemas cuyo compromiso afecta a la operación"
+      }
+    },
+    {
+      "capability_id": "CAP-ID-ASSET",
+      "control_id": "CTL-IMO-FAL3ID",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "la identificación parte del inventario"
+      }
+    },
+    {
+      "capability_id": "CAP-PR-ACCESS",
+      "control_id": "CTL-IMO-FAL3PR",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "medidas de control de riesgo dentro del SMS"
+      }
+    },
+    {
+      "capability_id": "CAP-DE-MONITOR",
+      "control_id": "CTL-IMO-FAL3DE",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "detección temprana del evento cibernético"
+      }
+    },
+    {
+      "capability_id": "CAP-RS-IR",
+      "control_id": "CTL-IMO-FAL3RS",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "respuesta para restablecer la operación"
+      }
+    },
+    {
+      "capability_id": "CAP-RC-RECOVER",
+      "control_id": "CTL-IMO-FAL3RC",
+      "type": "contextual",
+      "coverage_weight": 0.2,
+      "provenance": {
+        "source": "author_judgment",
+        "jurisdiction": "INTL-MARITIME",
+        "note": "restauración y vuelta a la operación normal"
+      }
+    }
+  ]
+}
